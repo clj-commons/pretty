@@ -10,7 +10,7 @@
 ;;; Obviously, this is making use of some internals of Clojure that
 ;;; could change at any time.
 
-(def ^:private DEMANGLE
+(def ^:private clojure->java
   (->> (Compiler/CHAR_MAP)
        set/map-invert
        (sort-by #(-> % first .length))
@@ -18,7 +18,7 @@
 
 (defn- match-mangled
   [^String s i]
-  (->> DEMANGLE
+  (->> clojure->java
        (filter (fn [[k _]] (.regionMatches s i k 0 (.length k))))
        ;; Return the matching sequence and its single character replacement
        first))
