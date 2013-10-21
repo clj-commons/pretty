@@ -152,6 +152,8 @@
    :property bold-font
    :function-name bold-font})
 
+(def ^:private empty-stack-trace-warning "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
+
 (defn- format-stack-trace!
   [builder stack-trace]
   (let [elements (map expand-stack-trace stack-trace)
@@ -159,6 +161,9 @@
         line-width (max-value-length elements :line)
         name-width (max-value-length elements :name)
         class-width (max-value-length elements :class)]
+    (when (empty? stack-trace)
+      (binding [*out* *err*] (println empty-stack-trace-warning)
+                             (flush)))
     (doseq [{:keys [file line name names class method]} elements]
       (indent! builder (- name-width (.length name)))
       ;; There will be 0 or 2+ names (the first being the namespace)
