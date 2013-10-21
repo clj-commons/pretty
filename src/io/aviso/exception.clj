@@ -144,8 +144,16 @@
      ;; Used to present compound name with last term highlighted
      :names names}))
 
+(def ^:dynamic *fonts*
+  "ANSI fonts for different elements in the formatted exception report."
+  {:exception (str bold-font red-font)
+   :reset reset-font
+   :message italic-font
+   :property bold-font
+   :function-name bold-font})
+
 (defn- format-stack-trace!
-  [builder stack-trace emphasis-font reset-ansi]
+  [builder stack-trace]
   (let [elements (map expand-stack-trace stack-trace)
         file-width (max-value-length elements :file)
         line-width (max-value-length elements :line)
@@ -157,7 +165,7 @@
       (when-not (empty? names)
         (doto builder
           (append! (->> names drop-last (str/join "/")))
-          (append! "/" emphasis-font (last names) reset-ansi)))
+          (append! "/" (:function-name *fonts* "") (last names) (:reset *fonts* ""))))
       (doto builder
         (append! "  ")
         (justified! file-width file)
@@ -168,34 +176,37 @@
         (append! "." method \newline)))))
 
 (defn format-exception
-  "Formats an exception as a multi-line string.  The optional ansi? flag is used to
-  turn off ANSI colors and highlights."
-  ([exception] (format-exception exception true))
-  ([exception ansi?]
-   (let [exception-font (if ansi? (str bold-font red-font) "")
-         message-font (if ansi? italic-font "")
-         emphasis-font (if ansi? bold-font "")
-         reset-ansi (if ansi? reset-font "")
-         exception-stack (->> exception
-                              analyze-exception
-                              (map #(assoc % :name (-> % :exception class .getName))))
-         exception-column-width (max-value-length exception-stack :name)
-         result (StringBuilder. 2000)]
-     (doseq [e exception-stack]
-       (justified! result exception-column-width exception-font (:name e) reset-ansi)
-       ;; TODO: Handle no message for the exception specially
-       (append! result ": " message-font (-> e :exception .getMessage) reset-ansi \newline)
+  "Formats an exception as a multi-line string. The *fonts* var contains ANSI definitions for how fonts
+  are displayed; bind it to nil to remove ANSI formatting entirely."
+  [exception]
+  (let [exception-font (:exception *fonts* "")
+        message-font (:message *fonts* "")
+        property-font (:property *fonts* "")
+        reset-font (:reset *fonts* "")
+        exception-stack (->> exception
+                             analyze-exception
+                             (map #(assoc % :name (-> % :exception class .getName))))
+        exception-column-width (max-value-length exception-stack :name)
+        result (StringBuilder. 2000)]
+    (doseq [e exception-stack]
+      (justified! result exception-column-width exception-font (:name e) reset-font)
+      ;; TODO: Handle no message for the exception specially
+      (append! result ": "
+               message-font
+               (-> e :exception .getMessage)
+               reset-font
+               \newline)
 
-       (let [properties (update-keys (:properties e) name)
-             prop-keys (keys properties)
-             ;; Allow for the width of the exception class name, and some extra
-             ;; indentation.
-             prop-name-width (+ exception-column-width
-                                4
-                                (max-length prop-keys))]
-         (doseq [k (sort prop-keys)]
-           (justified! result prop-name-width emphasis-font k reset-ansi)
-           (append! result ": " (get properties k) \newline))
-         (if (:root e)
-           (format-stack-trace! result (-> e :exception .getStackTrace) emphasis-font reset-ansi))))
-     (.toString result))))
+      (let [properties (update-keys (:properties e) name)
+            prop-keys (keys properties)
+            ;; Allow for the width of the exception class name, and some extra
+            ;; indentation.
+            prop-name-width (+ exception-column-width
+                               4
+                               (max-length prop-keys))]
+        (doseq [k (sort prop-keys)]
+          (justified! result prop-name-width property-font k reset-font)
+          (append! result ": " (get properties k) \newline))
+        (if (:root e)
+          (format-stack-trace! result (-> e :exception .getStackTrace)))))
+    (.toString result)))
