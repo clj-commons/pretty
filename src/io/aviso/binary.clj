@@ -48,7 +48,7 @@
 
   (32 bytes per line)
 
-  ... that is, a four-byte offset, then up-to 32 bytes (depending on the length of the array)."
+  ... that is, a four-byte offset, then up-to 32 bytes (depending on the length of the data)."
   [data]
   (loop [offset 0
          blocks []]
@@ -99,11 +99,10 @@
             (format-byte-deltas ansi/bold-red false offset actual-length actual expected-length expected))))
 
 (defn format-byte-delta
-  "Formats a hex dump of the expected bytes (on the left) and actual bytes (on the right). Bytes
+  "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
   that do not match are highlighted in green on the expected side, and red on the actual side.
-  If the expected bytes are shorted than the actual, then it will be padded with -- placeholders (highlighted
-  in red). Likewise, if the expected bytes length exceeds the actual, then the expected side will also
-  be padded with -- placeholders (in green).
+  When one side is shorter than the other, it is padded with -- placeholders to make this
+  more clearly visible.
 
   expected - ByteData
   actual - ByteData
