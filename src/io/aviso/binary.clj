@@ -2,7 +2,7 @@
   "Utilities for formatting binary data (byte arrays) or binary deltas."
   (require [io.aviso.ansi :as ansi]))
 
-(defprotocol ByteData
+(defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
   supports a length and random access to individual bytes."
 
@@ -10,7 +10,7 @@
   (byte-at [this index] "The byte value at a specific offset."))
 
 (extend-type (Class/forName "[B")
-  ByteData
+  BinaryData
   (data-length [ary] (alength ary))
   (byte-at [ary index] (aget ary index)))
 
@@ -18,12 +18,12 @@
 ;;; String is in utf-8.
 
 (extend-type String
-  ByteData
+  BinaryData
   (data-length [s] (.length s))
   (byte-at [s index] (-> s (.charAt index) byte)))
 
 (extend-type nil
-  ByteData
+  BinaryData
   (data-length [this] 0)
   (byte-at [this index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
 
