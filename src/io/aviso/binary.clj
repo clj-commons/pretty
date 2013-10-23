@@ -39,7 +39,7 @@
            (for [i (range line-count)]
              (format " %02X" (byte-at data (+ offset i)))))))
 
-(defn format-byte-data
+(defn format-binary
   "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
 
   0000: 4E 6F 77 20 69 73 20 74 68 65 20 74 69 6D 65 20 66 6F 72 20 61 6C 6C 20 67 6F 6F 64 20 6D 65 6E
@@ -98,7 +98,7 @@
             (format-byte-deltas ansi/bold-green true offset expected-length expected actual-length actual)
             (format-byte-deltas ansi/bold-red false offset actual-length actual expected-length expected))))
 
-(defn format-byte-delta
+(defn format-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
   that do not match are highlighted in green on the expected side, and red on the actual side.
   When one side is shorter than the other, it is padded with -- placeholders to make this
