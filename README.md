@@ -55,7 +55,7 @@ You can also compare two binary data values:
 
 If the two data are of different lengths, the shorter one is padded with `--` to make up the difference.
 
-== io.aviso.exception
+## io.aviso.exception
 
 Exceptions in Clojure are extremely painful for many reasons:
 
