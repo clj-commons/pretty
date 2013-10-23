@@ -10,6 +10,10 @@ Thats what _pretty_ is for.  It adds support for pretty output where it counts:
 * Hex dump of binary deltas
 * Readable output for exceptions
 
+pretty is available under the terms of the Apache Software License 2.0.
+
+pretty is downloadable from the [Clojars Repository](https://clojars.org/io.aviso/pretty).
+
 ## io.aviso.ansi
 
 This namespace defines a number of functions and constants for producing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
@@ -75,7 +79,3 @@ The all-important stack trace is carefully formatted for readability, with the l
 presenting the file name and line number, and the right-most columns the Java class and method names.
 
 ![](https://www.evernote.com/shard/s54/sh/7df05675-3d07-463e-b27c-195214b2a854/2333cd1a62d550522f6a4534b129dd58/deep/0/REPL%20and%20binary.clj%20-%20%5Bpretty%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D.png)
-
-# License
-
-pretty is available under the terms of the Apache Software License 2.0.
