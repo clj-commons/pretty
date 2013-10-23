@@ -60,8 +60,9 @@ If the two data are of different lengths, the shorter one is padded with `--` to
 Exceptions in Clojure are extremely painful for many reasons:
 
 * They are often nested (wrapped and rethrown)
-* Output relies on Java's standard exception output, which is already pretty broken
 * Stack frames reference the JVM class for Clojure functions, leaving the user to demangle the name back to the Clojure name
+* Stack traces are output for every exception, which clogs output without providing useful detail
+* Stack traces are often truncated, obscuring vital information
 * Many stack frames represent implementation details of Clojure that are not relevant
 
 This is addressed by the `format-exception` function, which takes an exception and converts it to a string, ready to be printed to the console.
