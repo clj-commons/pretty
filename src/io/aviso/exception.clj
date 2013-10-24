@@ -199,13 +199,14 @@
         exception-column-width (max-value-length exception-stack :name)
         result (StringBuilder. 2000)]
     (doseq [e exception-stack]
-      (let [^Throwable exception (-> e :exception)]
+      (let [^Throwable exception (-> e :exception)
+            message (.getMessage exception)]
         (justified! result exception-column-width exception-font (:name e) reset-font)
         ;; TODO: Handle no message for the exception specially
-        (append! result ": "
-                 message-font
-                 (.getMessage exception)
-                 reset-font
+        (append! result ":"
+                 (if message
+                   (str " " message-font message reset-font)
+                   "")
                  \newline)
 
         (let [properties (update-keys (:properties e) name)
