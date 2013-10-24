@@ -1,11 +1,15 @@
 (ns io.aviso.exception
   "Code to assist with presenting exceptions in pretty way."
-  (:import (java.lang StringBuilder))
+  (import (java.lang StringBuilder StackTraceElement))
   (use io.aviso.ansi)
   (import [clojure.lang Compiler])
   (require [clojure
             [set :as set]
             [string :as str]]))
+
+(defn- string-length
+  [^String s]
+  (.length s))
 
 ;;; Obviously, this is making use of some internals of Clojure that
 ;;; could change at any time.
@@ -13,20 +17,21 @@
 (def ^:private clojure->java
   (->> (Compiler/CHAR_MAP)
        set/map-invert
-       (sort-by #(-> % first .length))
+       (sort-by #(-> % first string-length))
        reverse))
+
 
 (defn- match-mangled
   [^String s i]
   (->> clojure->java
-       (filter (fn [[k _]] (.regionMatches s i k 0 (.length k))))
+       (filter (fn [[k _]] (.regionMatches s i k 0 (string-length k))))
        ;; Return the matching sequence and its single character replacement
        first))
 
 (defn demangle
   "De-munges a Java name back to a Clojure name by converting mangled sequences, such as \"_QMARK_\"
   back into simple characters."
-  [s]
+  [^String s]
   (let [in-length (.length s)
         result (StringBuilder. in-length)]
     (loop [i 0]
@@ -34,7 +39,7 @@
         (>= i in-length) (.toString result)
         (= \_ (.charAt s i)) (let [[match replacement] (match-mangled s i)]
                                (.append result replacement)
-                               (recur (+ i (.length match))))
+                               (recur (+ i (string-length match))))
         :else (do
                 (.append result (.charAt s i))
                 (recur (inc i)))))))
@@ -92,7 +97,7 @@
   [coll]
   (if (empty? coll)
     0
-    (apply max (map #(-> % .length) coll))))
+    (apply max (map string-length coll))))
 
 (defn- max-value-length
   [coll key]
@@ -106,10 +111,10 @@
   (append! builder (apply str (repeat spaces \space))))
 
 (defn- justified!
-  ([builder width value]
+  ([builder width ^String value]
    (indent! builder (- width (.length value)))
    (append! builder value))
-  ([builder width prefix value suffix]
+  ([builder width prefix ^String value suffix]
    (indent! builder (- width (.length value)))
    (append! builder prefix value suffix)))
 
@@ -127,7 +132,7 @@
     (->> (cons namespace-name function-ids) (map demangle))))
 
 (defn- expand-stack-trace
-  [element]
+  [^StackTraceElement element]
   (let [class-name (.getClassName element)
         method-name (.getMethodName element)
         file-name (or (.getFileName element) "")
@@ -164,7 +169,7 @@
     (when (empty? stack-trace)
       (binding [*out* *err*] (println empty-stack-trace-warning)
                              (flush)))
-    (doseq [{:keys [file line name names class method]} elements]
+    (doseq [{:keys [file line ^String name names class method]} elements]
       (indent! builder (- name-width (.length name)))
       ;; There will be 0 or 2+ names (the first being the namespace)
       (when-not (empty? names)
@@ -194,24 +199,25 @@
         exception-column-width (max-value-length exception-stack :name)
         result (StringBuilder. 2000)]
     (doseq [e exception-stack]
-      (justified! result exception-column-width exception-font (:name e) reset-font)
-      ;; TODO: Handle no message for the exception specially
-      (append! result ": "
-               message-font
-               (-> e :exception .getMessage)
-               reset-font
-               \newline)
+      (let [^Throwable exception (-> e :exception)]
+        (justified! result exception-column-width exception-font (:name e) reset-font)
+        ;; TODO: Handle no message for the exception specially
+        (append! result ": "
+                 message-font
+                 (.getMessage exception)
+                 reset-font
+                 \newline)
 
-      (let [properties (update-keys (:properties e) name)
-            prop-keys (keys properties)
-            ;; Allow for the width of the exception class name, and some extra
-            ;; indentation.
-            prop-name-width (+ exception-column-width
-                               4
-                               (max-length prop-keys))]
-        (doseq [k (sort prop-keys)]
-          (justified! result prop-name-width property-font k reset-font)
-          (append! result ": " (get properties k) \newline))
-        (if (:root e)
-          (format-stack-trace! result (-> e :exception .getStackTrace)))))
+        (let [properties (update-keys (:properties e) name)
+              prop-keys (keys properties)
+              ;; Allow for the width of the exception class name, and some extra
+              ;; indentation.
+              prop-name-width (+ exception-column-width
+                                 4
+                                 (max-length prop-keys))]
+          (doseq [k (sort prop-keys)]
+            (justified! result prop-name-width property-font k reset-font)
+            (append! result ": " (get properties k) \newline))
+          (if (:root e)
+            (format-stack-trace! result (.getStackTrace exception))))))
     (.toString result)))
