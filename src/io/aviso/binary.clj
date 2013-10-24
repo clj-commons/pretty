@@ -1,6 +1,7 @@
 (ns io.aviso.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (require [io.aviso.ansi :as ansi]))
+  (require [io.aviso.ansi :as ansi]
+           [clojure.string :as s]))
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
@@ -33,11 +34,16 @@
 (defn- format-line
   [offset data line-count]
   (format
-    "%04X:%s%n"
+    "%04X:%s"
     offset
     (apply str
            (for [i (range line-count)]
              (format " %02X" (byte-at data (+ offset i)))))))
+
+(defn- join-lines
+  "Joins all the lines together seperated by newlines."
+  [lines]
+  (s/join \newline lines))
 
 (defn format-binary
   "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
@@ -51,12 +57,12 @@
   ... that is, a four-byte offset, then up-to 32 bytes (depending on the length of the data)."
   [data]
   (loop [offset 0
-         blocks []]
+         lines []]
     (let [remaining (- (data-length data) offset)]
       (if (< remaining 1)
-        (apply str blocks)
+        (join-lines lines)
         (recur (+ bytes-per-line offset)
-               (conj blocks
+               (conj lines
                      (format-line offset data (min bytes-per-line remaining))))))))
 
 
@@ -70,6 +76,7 @@
 (defn- to-hex
   [byte-array byte-offset]
   (format "%02X" (byte-at byte-array byte-offset)))
+
 
 (defn- format-byte-deltas
   [ansi-color pad? offset data-length data alternate-length alternate]
@@ -93,7 +100,7 @@
   [offset expected-length ^bytes expected actual-length actual]
   (let [line-count (max (min bytes-per-diff-line (- expected-length offset))
                         (min bytes-per-diff-line (- actual-length offset)))]
-    (format "%04X:%s |%s%n"
+    (format "%04X:%s |%s"
             offset
             (format-byte-deltas ansi/bold-green true offset expected-length expected actual-length actual)
             (format-byte-deltas ansi/bold-red false offset actual-length actual expected-length expected))))
@@ -113,9 +120,9 @@
         actual-length (data-length actual)
         target-length (max actual-length expected-length)]
     (loop [offset 0
-           blocks []]
+           lines []]
       (if (< (- target-length offset) 1)
-        (apply str blocks)
+        (join-lines lines)
         (recur (+ bytes-per-diff-line offset)
-               (conj blocks
+               (conj lines
                      (format-delta-line offset expected-length expected actual-length actual)))))))
