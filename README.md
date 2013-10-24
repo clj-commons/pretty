@@ -10,9 +10,10 @@ Thats what _pretty_ is for.  It adds support for pretty output where it counts:
 * Hex dump of binary deltas
 * Readable output for exceptions
 
-pretty is available under the terms of the Apache Software License 2.0.
+pretty is released under the terms of the Apache Software License 2.0.
 
-pretty is downloadable from the [Clojars Repository](https://clojars.org/io.aviso/pretty).
+pretty is available from the Clojars artifact repository as `io.aviso:pretty`.
+Follow [these instructions](https://clojars.org/io.aviso/pretty) to configure the dependency in your build tool.
 
 ## io.aviso.ansi
 
