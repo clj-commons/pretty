@@ -72,7 +72,9 @@ Exceptions in Clojure are extremely painful for many reasons:
 
 This is addressed by the `format-exception` function, which takes an exception and converts it to a string, ready to be printed to the console.
 
-`format-exception` works its ways down the exception heirarchy; it only presents the stack trace for the deepest, or root, exception.
+`format-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception. It can navigate
+any property that returns a non-nil Throwable type, not just the rootCause property; this makes it properly expand older exceptions
+that do not set the rootCause property.
 
 It displays the class name of each exception, its message, and any non-nil properties of the exception.
 
