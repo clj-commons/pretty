@@ -12,7 +12,10 @@ Thats what _pretty_ is for.  It adds support for pretty output where it counts:
 
 pretty is available under the terms of the Apache Software License 2.0.
 
-pretty is downloadable from the [Clojars Repository](https://clojars.org/io.aviso/pretty).
+## Dependency/Installation
+
+pretty dependency information can be found on its [Clojars Repository](https://clojars.org/io.aviso/pretty)
+page.
 
 ## io.aviso.ansi
 
