@@ -19,7 +19,7 @@ Follow [these instructions](https://clojars.org/io.aviso/pretty) to configure th
 
 This namespace defines a number of functions and constants for producing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
 
-```
+```clojure
 (println (str "The following text will be " (bold-red "bold and red") "."))
 ```
 
@@ -38,7 +38,7 @@ In addition there are functions `bold` and `italic` and constants `bold-font`, `
 
 The above example could also be written as:
 
-```
+```clojure
 (println (str "The following text will be " bold-font red-font "bold and red" reset-font "."))
 ```
 
@@ -48,8 +48,11 @@ This namespace support output of binary data.
 
 Binary data is represented using the protocol BinaryData; this protocol is extended on byte arrays, on String, and on nil.
 
-```
+```clojure
 (println (format-binary "Choose immutability and see where it takes you."))
+```
+
+```
 0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 20 61 6E 64 20 73 65 65 20 77 68 65 72
 0020: 65 20 69 74 20 74 61 6B 65 73 20 79 6F 75 2E
 ```
