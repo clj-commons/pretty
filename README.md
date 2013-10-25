@@ -47,6 +47,7 @@ The above example could also be written as:
 This namespace support output of binary data.
 
 Binary data is represented using the protocol BinaryData; this protocol is extended on byte arrays, on String, and on nil.
+BinaryData is simply a randomly accessible collection of bytes, with a known length.
 
 ```clojure
 (println (format-binary "Choose immutability and see where it takes you."))
