@@ -194,7 +194,7 @@
         (justify line-width line)
         (w/write "  ")
         (justify class-width class)
-        (w/writes "." method \newline)))))
+        (w/writes "." method w/newline)))))
 
 
 (defn write-exception
@@ -217,10 +217,10 @@
          (justify writer exception-column-width exception-font (:name e) reset-font)
          ;; TODO: Handle no message for the exception specially
          (w/writes writer ":"
-                 (if message
-                   (str " " message-font message reset-font)
-                   "")
-                 \newline)
+                   (if message
+                     (str " " message-font message reset-font)
+                     "")
+                   w/newline)
 
          (let [properties (update-keys (:properties e) name)
                prop-keys (keys properties)
@@ -231,7 +231,7 @@
                                   (max-length prop-keys))]
            (doseq [k (sort prop-keys)]
              (justify writer prop-name-width property-font k reset-font)
-             (w/writes writer ": " (get properties k) \newline))
+             (w/writes writer ": " (get properties k) w/newline))
            (if (:root e)
              (write-stack-trace writer exception))))))))
 

@@ -17,3 +17,8 @@
   This is used to get around the fact that protocols do not support varadic parameters."
   [writer & values]
   (write writer (apply str values)))
+
+(def newline
+  "End-of-line terminator, platform specific."
+  (System/getProperty "line.separator"))
+
