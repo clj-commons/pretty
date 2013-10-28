@@ -1,12 +1,12 @@
 (ns io.aviso.exception
   "Code to assist with presenting exceptions in pretty way."
-  (import (java.lang StringBuilder StackTraceElement))
+  (import [java.lang StringBuilder StackTraceElement]
+          [clojure.lang Compiler])
   (use io.aviso.ansi)
-  (:import [clojure.lang Compiler])
-  (:require [clojure
-             [set :as set]
-             [string :as str]]
-            [io.aviso.writer :as w]))
+  (require [clojure
+            [set :as set]
+            [string :as str]]
+           [io.aviso.writer :as w]))
 
 (defn- string-length
   [^String s]
