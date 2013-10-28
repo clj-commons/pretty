@@ -2,14 +2,20 @@
   "Code to assist with presenting exceptions in pretty way."
   (import (java.lang StringBuilder StackTraceElement))
   (use io.aviso.ansi)
-  (import [clojure.lang Compiler])
-  (require [clojure
-            [set :as set]
-            [string :as str]]))
+  (:import [clojure.lang Compiler])
+  (:require [clojure
+             [set :as set]
+             [string :as str]]
+            [io.aviso.writer :as w]))
 
 (defn- string-length
   [^String s]
   (.length s))
+
+(defn- writes
+  "Constructs a string from the values (with no seperator) and writes the string to the Writer."
+  [writer & values]
+  (w/write writer (apply str values)))
 
 ;;; Obviously, this is making use of some internals of Clojure that
 ;;; could change at any time.
@@ -70,7 +76,7 @@
                                nil-property-keys
                                throwable-property-keys)
         retained-properties (apply dissoc properties discarded-keys)]
-    [{:exception exception
+    [{:exception  exception
       :properties retained-properties}
      nested-exception]))
 
@@ -103,20 +109,17 @@
   [coll key]
   (max-length (map key coll)))
 
-(defn- append!
-  [^StringBuilder builder & values]
-  (doseq [v values] (.append builder v)))
+(defn- indent [writer spaces]
+  (writes writer (apply str (repeat spaces \space))))
 
-(defn- indent! [builder spaces]
-  (append! builder (apply str (repeat spaces \space))))
-
-(defn- justified!
-  ([builder width ^String value]
-   (indent! builder (- width (.length value)))
-   (append! builder value))
-  ([builder width prefix ^String value suffix]
-   (indent! builder (- width (.length value)))
-   (append! builder prefix value suffix)))
+(defn- justify
+  "Writes the text, right justified within its column."
+  ([writer width ^String value]
+   (indent writer (- width (.length value)))
+   (w/write writer value))
+  ([writer width prefix ^String value suffix]
+   (indent writer (- width (.length value)))
+   (writes writer prefix value suffix)))
 
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
@@ -131,7 +134,7 @@
     ;; are name-mangled dashes).
     (->> (cons namespace-name function-ids) (map demangle))))
 
-(defn- expand-stack-trace
+(defn- expand-stack-trace-element
   [^StackTraceElement element]
   (let [class-name (.getClassName element)
         method-name (.getMethodName element)
@@ -140,85 +143,106 @@
                          (contains? #{"invoke" "doInvoke"} method-name))
         names (if is-clojure? (convert-to-clojure class-name) [])
         name (str/join "/" names)]
-    {:file file-name
-     :line (-> element .getLineNumber str)
-     :class class-name
+    {:file   file-name
+     :line   (-> element .getLineNumber str)
+     :class  class-name
      :method method-name
      ;; Used to calculate column width
-     :name name
+     :name   name
      ;; Used to present compound name with last term highlighted
-     :names names}))
-
-(def ^:dynamic *fonts*
-  "ANSI fonts for different elements in the formatted exception report."
-  {:exception (str bold-font red-font)
-   :reset reset-font
-   :message italic-font
-   :property bold-font
-   :function-name bold-font})
+     :names  names}))
 
 (def ^:private empty-stack-trace-warning "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
 
-(defn- format-stack-trace!
-  [builder stack-trace]
-  (let [elements (map expand-stack-trace stack-trace)
+(defn expand-stack-trace
+  "Extracts the stack trace for an exception and returns a seq of expanded element maps:
+  - :file file name
+  - :line line number
+  - :class Java class name
+  - :method Java method name
+  - :name - Fully qualified Clojure name, or blank
+  - :names - Clojure name split at slashes "
+  [^Throwable exception]
+  (let [elements (map expand-stack-trace-element (.getStackTrace exception))]
+    (when (empty? elements)
+      (binding [*out* *err*]
+        (println empty-stack-trace-warning)
+        (flush)))
+    elements))
+
+(def ^:dynamic *fonts*
+  "ANSI fonts for different elements in the formatted exception report."
+  {:exception     (str bold-font red-font)
+   :reset         reset-font
+   :message       italic-font
+   :property      bold-font
+   :function-name bold-font})
+
+(defn- write-stack-trace
+  [writer exception]
+  (let [elements (expand-stack-trace exception)
         file-width (max-value-length elements :file)
         line-width (max-value-length elements :line)
         name-width (max-value-length elements :name)
         class-width (max-value-length elements :class)]
-    (when (empty? stack-trace)
-      (binding [*out* *err*] (println empty-stack-trace-warning)
-                             (flush)))
     (doseq [{:keys [file line ^String name names class method]} elements]
-      (indent! builder (- name-width (.length name)))
+      (indent writer (- name-width (.length name)))
       ;; There will be 0 or 2+ names (the first being the namespace)
       (when-not (empty? names)
-        (doto builder
-          (append! (->> names drop-last (str/join "/")))
-          (append! "/" (:function-name *fonts* "") (last names) (:reset *fonts* ""))))
-      (doto builder
-        (append! "  ")
-        (justified! file-width file)
-        (append! ":")
-        (justified! line-width line)
-        (append! "  ")
-        (justified! class-width class)
-        (append! "." method \newline)))))
+        (doto writer
+          (w/write (->> names drop-last (str/join "/")))
+          (writes "/" (:function-name *fonts*) (last names) (:reset *fonts*))))
+      (doto writer
+        (w/write "  ")
+        (justify file-width file)
+        (w/write ":")
+        (justify line-width line)
+        (w/write "  ")
+        (justify class-width class)
+        (writes "." method \newline)))))
 
-(defn format-exception
-  "Formats an exception as a multi-line string. The *fonts* var contains ANSI definitions for how fonts
-  are displayed; bind it to nil to remove ANSI formatting entirely."
-  [exception]
-  (let [exception-font (:exception *fonts* "")
-        message-font (:message *fonts* "")
-        property-font (:property *fonts* "")
-        reset-font (:reset *fonts* "")
-        exception-stack (->> exception
-                             analyze-exception
-                             (map #(assoc % :name (-> % :exception class .getName))))
-        exception-column-width (max-value-length exception-stack :name)
-        result (StringBuilder. 2000)]
-    (doseq [e exception-stack]
-      (let [^Throwable exception (-> e :exception)
-            message (.getMessage exception)]
-        (justified! result exception-column-width exception-font (:name e) reset-font)
-        ;; TODO: Handle no message for the exception specially
-        (append! result ":"
+
+(defn write-exception
+  "Writes a formatted version of the exception to the writer.
+
+  The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
+  ([exception] (write-exception *out* exception))
+  ([writer exception]
+   (let [exception-font (:exception *fonts*)
+         message-font (:message *fonts*)
+         property-font (:property *fonts*)
+         reset-font (:reset *fonts* "")
+         exception-stack (->> exception
+                              analyze-exception
+                              (map #(assoc % :name (-> % :exception class .getName))))
+         exception-column-width (max-value-length exception-stack :name)]
+     (doseq [e exception-stack]
+       (let [^Throwable exception (-> e :exception)
+             message (.getMessage exception)]
+         (justify writer exception-column-width exception-font (:name e) reset-font)
+         ;; TODO: Handle no message for the exception specially
+         (writes writer ":"
                  (if message
                    (str " " message-font message reset-font)
                    "")
                  \newline)
 
-        (let [properties (update-keys (:properties e) name)
-              prop-keys (keys properties)
-              ;; Allow for the width of the exception class name, and some extra
-              ;; indentation.
-              prop-name-width (+ exception-column-width
-                                 4
-                                 (max-length prop-keys))]
-          (doseq [k (sort prop-keys)]
-            (justified! result prop-name-width property-font k reset-font)
-            (append! result ": " (get properties k) \newline))
-          (if (:root e)
-            (format-stack-trace! result (.getStackTrace exception))))))
-    (.toString result)))
+         (let [properties (update-keys (:properties e) name)
+               prop-keys (keys properties)
+               ;; Allow for the width of the exception class name, and some extra
+               ;; indentation.
+               prop-name-width (+ exception-column-width
+                                  4
+                                  (max-length prop-keys))]
+           (doseq [k (sort prop-keys)]
+             (justify writer prop-name-width property-font k reset-font)
+             (writes writer ": " (get properties k) \newline))
+           (if (:root e)
+             (write-stack-trace writer exception))))))))
+
+(defn format-exception
+  "Formats an exception as a multi-line string using write-exception."
+  [exception]
+  (let [builder (StringBuilder. 2000)]
+    (write-exception builder exception)
+    (.toString builder)))
