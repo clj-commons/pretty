@@ -50,7 +50,7 @@ Binary data is represented using the protocol BinaryData; this protocol is exten
 BinaryData is simply a randomly accessible collection of bytes, with a known length.
 
 ```clojure
-(println (format-binary "Choose immutability and see where it takes you."))
+(write-binary "Choose immutability and see where it takes you.")
 ```
 
 ```
@@ -58,11 +58,17 @@ BinaryData is simply a randomly accessible collection of bytes, with a known len
 0020: 65 20 69 74 20 74 61 6B 65 73 20 79 6F 75 2E
 ```
 
-You can also compare two binary data values:
+`write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as defined by `io.aviso.writer/Writer` protocol)
 
-![](https://www.evernote.com/shard/s54/sh/d7d3942b-d99f-4ab7-a572-04186495c49b/841bbc6d91db0a1927a4fbc67336569d/deep/0/REPL%20and%20binary.clj%20-%20%5Bpretty%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D.png)
+Alternately, `format-binary` will return this formatted binary output string.
+
+You can also compare two binary data values with `write-binary-delta`:
+
+![](https://www.evernote.com/shard/s54/sh/dc407aa4-a81e-4851-abed-3ca2949efba1/dfa5d033da855b1a97dd899682ea01fd/deep/0/README.md%20-%20%5Bpretty%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D%20and%20stages.clj%20-%20%5Bswitch%5D%20-%20nexus%20-%20%5B~/workspaces/annadale/nexus%5D.png)
 
 If the two data are of different lengths, the shorter one is padded with `--` to make up the difference.
+
+As with `write-binary`, there's a `format-binary-delta`, and a three-argument version of `write-binary-delta` for specifying a Writer target.
 
 ## io.aviso.exception
 
@@ -74,9 +80,53 @@ Exceptions in Clojure are extremely painful for many reasons:
 * Stack traces are often truncated, obscuring vital information
 * Many stack frames represent implementation details of Clojure that are not relevant
 
-This is addressed by the `format-exception` function, which takes an exception and converts it to a string, ready to be printed to the console.
+This is addressed by the `write-exception` function; it take an exception formats it nearly to a Writer, again `*out*` by 
+\default.
 
-`format-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception. It can navigate
+This is best explained by example; here's a `SQLException` wrapped inside two `RuntimeException`s, and printed normally:
+
+```
+(.printStackTrace e)
+=> nil
+java.lang.RuntimeException: Request handling exception
+	at user$make_exception.invoke(user.clj:6)
+	at clojure.lang.AFn.applyToHelper(AFn.java:159)
+	at clojure.lang.AFn.applyTo(AFn.java:151)
+	at clojure.lang.Compiler$InvokeExpr.eval(Compiler.java:3458)
+	at clojure.lang.Compiler$DefExpr.eval(Compiler.java:408)
+	at clojure.lang.Compiler.eval(Compiler.java:6624)
+	at clojure.lang.Compiler.eval(Compiler.java:6582)
+	at clojure.core$eval.invoke(core.clj:2852)
+	at clojure.main$repl$read_eval_print__6588$fn__6591.invoke(main.clj:259)
+	at clojure.main$repl$read_eval_print__6588.invoke(main.clj:259)
+	at clojure.main$repl$fn__6597.invoke(main.clj:277)
+	at clojure.main$repl.doInvoke(main.clj:277)
+	at clojure.lang.RestFn.invoke(RestFn.java:1096)
+	at clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__876.invoke(interruptible_eval.clj:56)
+	at clojure.lang.AFn.applyToHelper(AFn.java:159)
+	at clojure.lang.AFn.applyTo(AFn.java:151)
+	at clojure.core$apply.invoke(core.clj:617)
+	at clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)
+	at clojure.lang.RestFn.invoke(RestFn.java:425)
+	at clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:41)
+	at clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__917$fn__920.invoke(interruptible_eval.clj:171)
+	at clojure.core$comp$fn__4154.invoke(core.clj:2330)
+	at clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__910.invoke(interruptible_eval.clj:138)
+	at clojure.lang.AFn.run(AFn.java:24)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
+	at java.lang.Thread.run(Thread.java:680)
+Caused by: java.lang.RuntimeException: Failure updating row
+	... 27 more
+Caused by: java.sql.SQLException: Database failure
+	... 27 more
+```
+
+... and here's the equivalent, via `write-exception`:
+
+![](https://www.evernote.com/shard/s54/sh/be166f69-ce90-4f27-af63-cf76511516e0/9a36d82f5bd67e220887901639529630/deep/0/Appendable.java%20-%20%5B1.6%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D.png)
+
+`write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception. It can navigate
 any property that returns a non-nil Throwable type, not just the rootCause property; this makes it properly expand older exceptions
 that do not set the rootCause property.
 
@@ -85,4 +135,5 @@ It displays the class name of each exception, its message, and any non-nil prope
 The all-important stack trace is carefully formatted for readability, with the left-most column identifying Clojure functions, the middle columns
 presenting the file name and line number, and the right-most columns the Java class and method names.
 
-![](https://www.evernote.com/shard/s54/sh/7df05675-3d07-463e-b27c-195214b2a854/2333cd1a62d550522f6a4534b129dd58/deep/0/REPL%20and%20binary.clj%20-%20%5Bpretty%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D.png)
+The related function, `format-exception`, produces the same output, but returns it as a string.
+
