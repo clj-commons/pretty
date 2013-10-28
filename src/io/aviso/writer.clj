@@ -9,4 +9,4 @@
 (extend-protocol Writer
   ;; Appendable is implemented by StringBuilder and PrintWriter.
   Appendable
-  (write [this string] (.append this string)))
+  (write [this ^CharSequence string] (.append this string)))
