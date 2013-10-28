@@ -18,7 +18,12 @@
   [writer & values]
   (write writer (apply str values)))
 
-(def newline
+(defn writef
+  "Writes formatted data."
+  [writer fmt & values]
+  (write writer (apply format fmt values)))
+
+(def endline
   "End-of-line terminator, platform specific."
   (System/getProperty "line.separator"))
 

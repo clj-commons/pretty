@@ -1,6 +1,7 @@
 (ns user
   (import (java.sql SQLException))
-  (use [io.aviso ansi binary exception]))
+  (use [io.aviso ansi binary exception]
+       [clojure test]))
 
 (defn make-exception
   "Creates a sample exception used to test the exception formatting logic."
