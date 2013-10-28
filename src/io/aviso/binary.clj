@@ -3,8 +3,7 @@
   (import (java.lang StringBuilder))
   (require [io.aviso
             [ansi :as ansi]
-            [writer :as w]]
-           [clojure.string :as s]))
+            [writer :as w]]))
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
@@ -40,11 +39,6 @@
   (doseq [i (range line-count)]
     (w/writef writer " %02X" (byte-at data (+ offset i))))
   (w/write writer w/endline))
-
-(defn- join-lines
-  "Joins all the lines together seperated by newlines."
-  [lines]
-  (s/join \newline lines))
 
 (defn write-binary
   "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
