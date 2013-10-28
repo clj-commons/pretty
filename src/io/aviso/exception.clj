@@ -12,11 +12,6 @@
   [^String s]
   (.length s))
 
-(defn- writes
-  "Constructs a string from the values (with no seperator) and writes the string to the Writer."
-  [writer & values]
-  (w/write writer (apply str values)))
-
 ;;; Obviously, this is making use of some internals of Clojure that
 ;;; could change at any time.
 
@@ -110,16 +105,16 @@
   (max-length (map key coll)))
 
 (defn- indent [writer spaces]
-  (writes writer (apply str (repeat spaces \space))))
+  (w/writes writer (apply str (repeat spaces \space))))
 
 (defn- justify
-  "Writes the text, right justified within its column."
+  "w/writes the text, right justified within its column."
   ([writer width ^String value]
    (indent writer (- width (.length value)))
    (w/write writer value))
   ([writer width prefix ^String value suffix]
    (indent writer (- width (.length value)))
-   (writes writer prefix value suffix)))
+   (w/writes writer prefix value suffix)))
 
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
@@ -191,7 +186,7 @@
       (when-not (empty? names)
         (doto writer
           (w/write (->> names drop-last (str/join "/")))
-          (writes "/" (:function-name *fonts*) (last names) (:reset *fonts*))))
+          (w/writes "/" (:function-name *fonts*) (last names) (:reset *fonts*))))
       (doto writer
         (w/write "  ")
         (justify file-width file)
@@ -199,11 +194,11 @@
         (justify line-width line)
         (w/write "  ")
         (justify class-width class)
-        (writes "." method \newline)))))
+        (w/writes "." method \newline)))))
 
 
 (defn write-exception
-  "Writes a formatted version of the exception to the writer.
+  "w/writes a formatted version of the exception to the writer.
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception] (write-exception *out* exception))
@@ -221,7 +216,7 @@
              message (.getMessage exception)]
          (justify writer exception-column-width exception-font (:name e) reset-font)
          ;; TODO: Handle no message for the exception specially
-         (writes writer ":"
+         (w/writes writer ":"
                  (if message
                    (str " " message-font message reset-font)
                    "")
@@ -236,7 +231,7 @@
                                   (max-length prop-keys))]
            (doseq [k (sort prop-keys)]
              (justify writer prop-name-width property-font k reset-font)
-             (writes writer ": " (get properties k) \newline))
+             (w/writes writer ": " (get properties k) \newline))
            (if (:root e)
              (write-stack-trace writer exception))))))))
 
