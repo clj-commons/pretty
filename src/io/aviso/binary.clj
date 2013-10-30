@@ -38,7 +38,7 @@
   (w/writef writer "%04X:" offset)
   (doseq [i (range line-count)]
     (w/writef writer " %02X" (byte-at data (+ offset i))))
-  (w/write writer w/endline))
+  (w/writeln writer))
 
 (defn write-binary
   "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
@@ -62,9 +62,7 @@
 (defn format-binary
   "Formats the data as with write-binary and returns the result as a string."
   [data]
-  (let [result (StringBuilder. (* 3 (data-length data)))]
-    (write-binary result data)
-    (.toString result)))
+  (w/into-string write-binary data))
 
 (defn- match?
   [byte-offset data-length data alternate-length alternate]
@@ -84,11 +82,11 @@
     (let [byte-offset (+ offset i)]
       (cond
         ;; Exact match on both sides is easy, just print it out.
-        (match? byte-offset data-length data alternate-length alternate) (w/writes writer " " (to-hex data byte-offset))
+        (match? byte-offset data-length data alternate-length alternate) (w/write writer " " (to-hex data byte-offset))
         ;; Some kind of mismatch, so decorate with this side's color
-        (< byte-offset data-length) (w/writes writer " " (ansi-color (to-hex data byte-offset)))
+        (< byte-offset data-length) (w/write writer " " (ansi-color (to-hex data byte-offset)))
         ;; Are we out of data on this side?  Print a "--" decorated with the color.
-        (< byte-offset alternate-length) (w/writes writer " " (ansi-color "--"))
+        (< byte-offset alternate-length) (w/write writer " " (ansi-color "--"))
         ;; This side must be longer than the alternate side.
         ;; On the left/green side, we need to pad with spaces
         ;; On the right/red side, we need nothing.
@@ -101,7 +99,7 @@
     (w/writef writer "%04X:" offset)
     (write-byte-deltas writer ansi/bold-green true offset expected-length expected actual-length actual)
     (write-byte-deltas writer ansi/bold-red false offset actual-length actual expected-length expected)
-    (w/write writer w/endline)))
+    (w/writeln writer)))
 
 (defn write-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
@@ -134,6 +132,4 @@
 
   Display 16 bytes (from each data set) per line."
   [expected actual]
-  (let [result (StringBuilder. 2000)]
-    (write-binary-delta result expected actual)
-    (.toString result)))
+  (w/into-string write-binary-delta expected actual))

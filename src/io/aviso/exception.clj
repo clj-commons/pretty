@@ -105,16 +105,16 @@
   (max-length (map key coll)))
 
 (defn- indent [writer spaces]
-  (w/writes writer (apply str (repeat spaces \space))))
+  (w/write writer (apply str (repeat spaces \space))))
 
 (defn- justify
-  "w/writes the text, right justified within its column."
+  "w/write the text, right justified within its column."
   ([writer width ^String value]
    (indent writer (- width (.length value)))
    (w/write writer value))
   ([writer width prefix ^String value suffix]
    (indent writer (- width (.length value)))
-   (w/writes writer prefix value suffix)))
+   (w/write writer prefix value suffix)))
 
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
@@ -147,7 +147,8 @@
      ;; Used to present compound name with last term highlighted
      :names  names}))
 
-(def ^:private empty-stack-trace-warning "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
+(def ^:private empty-stack-trace-warning
+  "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
 
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded element maps:
@@ -186,7 +187,7 @@
       (when-not (empty? names)
         (doto writer
           (w/write (->> names drop-last (str/join "/")))
-          (w/writes "/" (:function-name *fonts*) (last names) (:reset *fonts*))))
+          (w/write "/" (:function-name *fonts*) (last names) (:reset *fonts*))))
       (doto writer
         (w/write "  ")
         (justify file-width file)
@@ -194,11 +195,11 @@
         (justify line-width line)
         (w/write "  ")
         (justify class-width class)
-        (w/writes "." method w/endline)))))
+        (w/writeln "." method)))))
 
 
 (defn write-exception
-  "w/writes a formatted version of the exception to the writer.
+  "w/write a formatted version of the exception to the writer.
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception] (write-exception *out* exception))
@@ -216,7 +217,7 @@
              message (.getMessage exception)]
          (justify writer exception-column-width exception-font (:name e) reset-font)
          ;; TODO: Handle no message for the exception specially
-         (w/writes writer ":"
+         (w/write writer ":"
                    (if message
                      (str " " message-font message reset-font)
                      "")
@@ -231,13 +232,11 @@
                                   (max-length prop-keys))]
            (doseq [k (sort prop-keys)]
              (justify writer prop-name-width property-font k reset-font)
-             (w/writes writer ": " (get properties k) w/endline))
+             (w/write writer ": " (get properties k) w/endline))
            (if (:root e)
              (write-stack-trace writer exception))))))))
 
 (defn format-exception
   "Formats an exception as a multi-line string using write-exception."
   [exception]
-  (let [builder (StringBuilder. 2000)]
-    (write-exception builder exception)
-    (.toString builder)))
+  (w/into-string write-exception exception))
