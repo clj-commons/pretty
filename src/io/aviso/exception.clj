@@ -81,10 +81,11 @@
   on the exception that should be reported.
 
   The :properties map does not include any properties that are assignable to type Throwable.
-  The first property of type Throwable (not necessarily the rootCause property)
+  The first property that is assignable to type Throwable (not necessarily the rootCause property)
   will be used as the nested exception (for the next map in the sequence).
 
-  The final map in the sequence will have an additional value, :root, set to true."
+  The final map in the sequence will have an additional value, :root, set to true. This is used to indicate
+  which exception should present the stack trace."
   [^Throwable t]
   (loop [result []
          current t]
@@ -124,7 +125,7 @@
   [class-name]
   (let [[namespace-name & raw-function-ids] (str/split class-name #"\$")
         ;; Clojure adds __1234 unique ids to the ends of things, remove those.
-        function-ids (map #(or (nth (first (re-seq #"([\w|.|-]+)__\d+?" %)) 1 nil) %) raw-function-ids)]
+        function-ids (map #(str/replace % #"__\d+" "") raw-function-ids)]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
     ;; are name-mangled dashes).
     (->> (cons namespace-name function-ids) (map demangle))))
@@ -156,8 +157,8 @@
   - :line line number
   - :class Java class name
   - :method Java method name
-  - :name - Fully qualified Clojure name, or blank
-  - :names - Clojure name split at slashes "
+  - :name - Fully qualified Clojure name, or the empty string for non-Clojure stack frames
+  - :names - Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
   (let [elements (map expand-stack-trace-element (.getStackTrace exception))]
     (when (empty? elements)
