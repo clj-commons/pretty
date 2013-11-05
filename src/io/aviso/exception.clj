@@ -4,6 +4,7 @@
           [clojure.lang Compiler])
   (use io.aviso.ansi)
   (require [clojure
+            [pprint :as pp]
             [set :as set]
             [string :as str]]
            [io.aviso.writer :as w]))
@@ -199,8 +200,25 @@
         (w/writeln "." method)))))
 
 
+(defn- write-property-value [writer value-indent value]
+  (loop [lines (-> value
+                   (pp/write :stream nil :length (or *print-length* 10))
+                   (str/split-lines))
+         is-first true]
+    (if (empty? lines)
+      nil
+      (do
+        (if-not is-first
+          (indent writer value-indent))
+        (w/writeln writer (first lines))
+        (recur (rest lines) false)))))
+
 (defn write-exception
   "w/write a formatted version of the exception to the writer.
+
+  Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
+  to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
+  This is to ensure that infinite lists do not cause exception writing to loop endlessly.
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception] (write-exception *out* exception))
@@ -219,10 +237,10 @@
          (justify writer exception-column-width exception-font (:name e) reset-font)
          ;; TODO: Handle no message for the exception specially
          (w/write writer ":"
-                   (if message
-                     (str " " message-font message reset-font)
-                     "")
-                   w/endline)
+                  (if message
+                    (str " " message-font message reset-font)
+                    "")
+                  w/endline)
 
          (let [properties (update-keys (:properties e) name)
                prop-keys (keys properties)
@@ -233,7 +251,8 @@
                                   (max-length prop-keys))]
            (doseq [k (sort prop-keys)]
              (justify writer prop-name-width property-font k reset-font)
-             (w/write writer ": " (get properties k) w/endline))
+             (w/write writer ": ")
+             (write-property-value writer (+ 2 prop-name-width) (get properties k)))
            (if (:root e)
              (write-stack-trace writer exception))))))))
 
