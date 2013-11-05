@@ -1,9 +1,9 @@
 (ns io.aviso.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (import (java.lang StringBuilder))
-  (require [io.aviso
-            [ansi :as ansi]
-            [writer :as w]]))
+  (:import (java.lang StringBuilder))
+  (:require [io.aviso
+             [ansi :as ansi]
+             [writer :as w]]))
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that

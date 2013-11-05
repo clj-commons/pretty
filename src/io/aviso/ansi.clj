@@ -1,6 +1,6 @@
 (ns io.aviso.ansi
   "Help with generating textual output that includes ANSI escape codes for formatting."
-  (require [clojure.string :as str]))
+  (:require [clojure.string :as str]))
 
 ;; control sequence initiator: ESC [
 (def ^:const csi "\u001b[")
