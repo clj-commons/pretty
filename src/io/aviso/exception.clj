@@ -31,7 +31,7 @@
        first))
 
 (defn demangle
-  "De-munges a Java name back to a Clojure name by converting mangled sequences, such as \"_QMARK_\"
+  "De-mangle a Java name back to a Clojure name by converting mangled sequences, such as \"_QMARK_\"
   back into simple characters."
   [^String s]
   (let [in-length (.length s)
