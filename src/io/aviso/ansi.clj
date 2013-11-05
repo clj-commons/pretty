@@ -2,14 +2,19 @@
   "Help with generating textual output that includes ANSI escape codes for formatting."
   (:require [clojure.string :as str]))
 
-;; control sequence initiator: ESC [
-(def ^:const csi "\u001b[")
+(def ^:const csi
+  "The control sequence initiator: ESC ["
+  "\u001b[")
 
 ;; select graphic rendition
-(def ^:const sgr "m")
+(def ^:const sgr
+  "The Select Graphic Rendition suffix: m"
+  "m")
 
-(def ^:const ^{:doc "Resets the font, clearing bold, italic, color, and background color."}
-  reset-font (str csi sgr))
+(def ^:const
+  reset-font
+  "Resets the font, clearing bold, italic, color, and background color."
+  (str csi sgr))
 
 (defn ^:private def-sgr-const
   "Utility for defining a font-modifying constant."

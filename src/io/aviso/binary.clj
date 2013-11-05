@@ -7,7 +7,9 @@
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
-  supports a length and random access to individual bytes."
+  supports a length and random access to individual bytes.
+
+  BinaryData is extended onto byte arrays, onto String, and onto nil."
 
   (data-length [this] "The total number of bytes available.")
   (byte-at [this index] "The byte value at a specific offset."))
@@ -127,8 +129,8 @@
   When one side is shorter than the other, it is padded with -- placeholders to make this
   more clearly visible.
 
-  expected - ByteData
-  actual - ByteData
+  expected - BinaryData
+  actual - BinaryData
 
   Display 16 bytes (from each data set) per line."
   [expected actual]
