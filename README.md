@@ -15,6 +15,8 @@ pretty is released under the terms of the Apache Software License 2.0.
 pretty is available from the Clojars artifact repository as `io.aviso:pretty`.
 Follow [these instructions](https://clojars.org/io.aviso/pretty) to configure the dependency in your build tool.
 
+[API Documentation](http://howardlewisship.com/io.aviso/pretty/)
+
 ## io.aviso.ansi
 
 This namespace defines a number of functions and constants for producing [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code).
