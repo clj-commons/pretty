@@ -1,5 +1,5 @@
 (ns io.aviso.exception
-  "Code to assist with presenting exceptions in pretty way."
+  "Format and present exceptions in pretty (structured, formatted) way."
   (:import [java.lang StringBuilder StackTraceElement]
            [clojure.lang Compiler])
   (:use io.aviso.ansi)
@@ -214,7 +214,7 @@
         (recur (rest lines) false)))))
 
 (defn write-exception
-  "w/write a formatted version of the exception to the writer.
+  "Writes a formatted version of the exception to the writer.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
