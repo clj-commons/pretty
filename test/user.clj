@@ -7,10 +7,19 @@
   []
   (throw (SQLException. "Database failure" "ABC" 123)))
 
+(defprotocol Worker
+  (do-work [this]))
+
+(defn make-jdbc-update-worker
+  []
+  (reify
+      Worker
+    (do-work [this] (jdbc-update))))
+
 (defn- update-row
   []
   (try
-    (jdbc-update)
+    (-> (make-jdbc-update-worker) do-work)
     (catch Throwable e
       (throw (RuntimeException. "Failure updating row" e)))))
 

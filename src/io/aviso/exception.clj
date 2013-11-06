@@ -131,13 +131,20 @@
   (into {} (map (fn [[k v]] [(f k) v]) m)))
 
 (defn- convert-to-clojure
-  [class-name]
+  [class-name method-name]
   (let [[namespace-name & raw-function-ids] (str/split class-name #"\$")
         ;; Clojure adds __1234 unique ids to the ends of things, remove those.
-        function-ids (map #(str/replace % #"__\d+" "") raw-function-ids)]
+        function-ids (map #(str/replace % #"__\d+" "") raw-function-ids)
+        ;; In a degenerate case, a protocol method could be called "invoke" or "doInvoke"; we're ignoring
+        ;; that possibility here and assuming it's the IFn.invoke() or doInvoke().
+        all-ids (if (contains? #{"invoke" "doInvoke"} method-name)
+                    function-ids
+                    (-> function-ids vec (conj method-name)))]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
     ;; are name-mangled dashes).
-    (->> (cons namespace-name function-ids) (map demangle))))
+    (->>
+      (cons namespace-name all-ids)
+      (map demangle))))
 
 (defn- expand-stack-trace-element
   [^StackTraceElement element]
@@ -145,23 +152,22 @@
         method-name (.getMethodName element)
         dotx (.lastIndexOf class-name ".")
         file-name (or (.getFileName element) "")
-        is-clojure? (and (.endsWith file-name ".clj")
-                         (contains? #{"invoke" "doInvoke"} method-name))
-        names (if is-clojure? (convert-to-clojure class-name) [])
+        is-clojure? (.endsWith file-name ".clj")
+        names (if is-clojure? (convert-to-clojure class-name method-name) [])
         name (str/join "/" names)
         line (-> element .getLineNumber)]
-    {:file   file-name
-     :line   (if (pos? line) line)
-     :class  class-name
-     :package (if (pos? dotx) (.substring class-name 0 dotx))
+    {:file         file-name
+     :line         (if (pos? line) line)
+     :class        class-name
+     :package      (if (pos? dotx) (.substring class-name 0 dotx))
      :simple-class (if (pos? dotx)
                      (.substring class-name (inc dotx))
                      class-name)
-     :method method-name
+     :method       method-name
      ;; Used to calculate column width
-     :name   name
+     :name         name
      ;; Used to present compound name with last term highlighted
-     :names  names}))
+     :names        names}))
 
 (def ^:private empty-stack-trace-warning
   "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
