@@ -53,7 +53,7 @@
   (reduce (fn [result [k v]] (if (f v) (conj result k) result)) [] (seq m)))
 
 (defn- expand-exception
-  [exception]
+  [^Throwable exception]
   (let [properties (bean exception)
         cause (:cause properties)
         nil-property-keys (match-keys properties nil?)
@@ -71,25 +71,33 @@
         discarded-keys (concat [:suppressed :message :localizedMessage :class :stackTrace]
                                nil-property-keys
                                throwable-property-keys)
-        retained-properties (apply dissoc properties discarded-keys)]
+        retained-properties (apply dissoc properties discarded-keys)
+        ]
     [{:exception  exception
+      :class-name (-> exception .getClass .getName)
+      :message    (.getMessage exception)
       :properties retained-properties}
      nested-exception]))
 
 (defn analyze-exception
   "Converts an exception into a seq of maps representing nested exceptions. Each map
-  contains the original exception as :exception, plus a :properties map of additional properties
-  on the exception that should be reported.
+  contains:
+
+  - :exception - the original Throwable instance
+  - :class-name - the name of the Java class
+  - :message - the value of the exception's message property (possibly nil)
+  - :properties - a map of properties to present
 
   The :properties map does not include any properties that are assignable to type Throwable.
+
   The first property that is assignable to type Throwable (not necessarily the rootCause property)
   will be used as the nested exception (for the next map in the sequence).
 
   The final map in the sequence will have an additional value, :root, set to true. This is used to indicate
   which exception should present the stack trace."
-  [^Throwable t]
+  [^Throwable e]
   (loop [result []
-         current t]
+         current e]
     (let [[expanded nested] (expand-exception current)]
       (if nested
         (recur (conj result expanded) nested)
@@ -112,7 +120,7 @@
 (defn- justify
   "w/write the text, right justified within its column."
   ([writer width ^String value]
-   (indent writer (- width (.length value)))
+   (indent writer (- width (-> value str .length)))
    (w/write writer value))
   ([writer width prefix ^String value suffix]
    (indent writer (- width (.length value)))
@@ -135,14 +143,20 @@
   [^StackTraceElement element]
   (let [class-name (.getClassName element)
         method-name (.getMethodName element)
+        dotx (.lastIndexOf class-name ".")
         file-name (or (.getFileName element) "")
         is-clojure? (and (.endsWith file-name ".clj")
                          (contains? #{"invoke" "doInvoke"} method-name))
         names (if is-clojure? (convert-to-clojure class-name) [])
-        name (str/join "/" names)]
+        name (str/join "/" names)
+        line (-> element .getLineNumber)]
     {:file   file-name
-     :line   (-> element .getLineNumber str)
+     :line   (if (pos? line) line)
      :class  class-name
+     :package (if (pos? dotx) (.substring class-name 0 dotx))
+     :simple-class (if (pos? dotx)
+                     (.substring class-name (inc dotx))
+                     class-name)
      :method method-name
      ;; Used to calculate column width
      :name   name
@@ -155,8 +169,10 @@
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded element maps:
   - :file file name
-  - :line line number
-  - :class Java class name
+  - :line line number as an integer, or nil
+  - :class complete Java class name
+  - :package Java package name, or nil for root package
+  - :simple-class simple name of Java class (without package prefix)
   - :method Java method name
   - :name - Fully qualified Clojure name, or the empty string for non-Clojure stack frames
   - :names - Clojure name split at slashes (empty for non-Clojure stack frames)"
@@ -180,7 +196,7 @@
   [writer exception]
   (let [elements (expand-stack-trace exception)
         file-width (max-value-length elements :file)
-        line-width (max-value-length elements :line)
+        line-width (->> elements (map :line) (map str) max-length)
         name-width (max-value-length elements :name)
         class-width (max-value-length elements :class)]
     (doseq [{:keys [file line ^String name names class method]} elements]
