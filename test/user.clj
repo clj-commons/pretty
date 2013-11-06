@@ -5,7 +5,7 @@
 
 (defn- jdbc-update
   []
-  (throw (SQLException. "Database failure" "ABC" 123)))
+  (throw (SQLException. "Database failure\nSELECT FOO, BAR, BAZ\nFROM GNIP\nfailed with ABC123" "ABC" 123)))
 
 (defprotocol Worker
   (do-work [this]))

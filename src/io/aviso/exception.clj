@@ -126,6 +126,16 @@
    (indent writer (- width (.length value)))
    (w/write writer prefix value suffix)))
 
+(defn- write-indented
+  [writer indent-amount value]
+  (loop [lines (str/split-lines value)
+         is-first true]
+    (when-not (empty? lines)
+      (if-not is-first
+        (indent writer indent-amount))
+      (w/writeln writer (first lines))
+      (recur (rest lines) false))))
+
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
   (into {} (map (fn [[k v]] [(f k) v]) m)))
@@ -138,8 +148,8 @@
         ;; In a degenerate case, a protocol method could be called "invoke" or "doInvoke"; we're ignoring
         ;; that possibility here and assuming it's the IFn.invoke() or doInvoke().
         all-ids (if (contains? #{"invoke" "doInvoke"} method-name)
-                    function-ids
-                    (-> function-ids vec (conj method-name)))]
+                  function-ids
+                  (-> function-ids vec (conj method-name)))]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
     ;; are name-mangled dashes).
     (->>
@@ -221,19 +231,9 @@
         (justify class-width class)
         (w/writeln "." method)))))
 
-
 (defn- write-property-value [writer value-indent value]
-  (loop [lines (-> value
-                   (pp/write :stream nil :length (or *print-length* 10))
-                   (str/split-lines))
-         is-first true]
-    (if (empty? lines)
-      nil
-      (do
-        (if-not is-first
-          (indent writer value-indent))
-        (w/writeln writer (first lines))
-        (recur (rest lines) false)))))
+  (write-indented writer value-indent
+                  (pp/write value :stream nil :length (or *print-length* 10))))
 
 (defn write-exception
   "Writes a formatted version of the exception to the writer.
@@ -258,19 +258,20 @@
              message (.getMessage exception)]
          (justify writer exception-column-width exception-font (:name e) reset-font)
          ;; TODO: Handle no message for the exception specially
-         (w/write writer ":"
-                  (if message
-                    (str " " message-font message reset-font)
-                    "")
-                  w/endline)
+         (w/write writer ":")
+         (if-not message
+           (w/writeln writer)
+           (do
+             (w/write writer " ")
+             (write-indented writer
+                             (+ 2 exception-column-width)
+                             (str message-font message reset-font))))
 
          (let [properties (update-keys (:properties e) name)
                prop-keys (keys properties)
                ;; Allow for the width of the exception class name, and some extra
                ;; indentation.
-               prop-name-width (+ exception-column-width
-                                  4
-                                  (max-length prop-keys))]
+               prop-name-width (+ 4 (max-length prop-keys))]
            (doseq [k (sort prop-keys)]
              (justify writer prop-name-width property-font k reset-font)
              (w/write writer ": ")
