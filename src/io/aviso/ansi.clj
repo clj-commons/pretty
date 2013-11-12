@@ -60,6 +60,8 @@
 
 (def-sgr-fn "bold" 1)
 (def-sgr-fn "italic" 3)
+(def-sgr-fn "inverse" 7)
 
 (def ^:const bold-font (str csi 1 sgr))
 (def ^:const italic-font (str csi 3 sgr))
+(def ^:const italic-font (str csi 7 sgr))
