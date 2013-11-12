@@ -18,9 +18,9 @@
 
 (defn ^:private def-sgr-const
   "Utility for defining a font-modifying constant."
-  [symbol-name code]
+  [symbol-name & codes]
   (eval
-    `(def ^:const ~(symbol symbol-name) ~(str csi code sgr))))
+    `(def ^:const ~(symbol symbol-name) ~(str csi (str/join ";" codes) sgr))))
 
 (defn ^:private def-sgr-fn
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
@@ -52,7 +52,9 @@
                  (def-sgr-fn (str "bold-" color-name) 1 (+ 30 index))
                  (def-sgr-fn (str "bold-" color-name "-bg") 1 (+ 40 index))
                  (def-sgr-const (str color-name "-font") (+ 30 index))
-                 (def-sgr-const (str color-name "-bg-font") (+ 40 index)))
+                 (def-sgr-const (str color-name "-bg-font") (+ 40 index))
+                 (def-sgr-const (str "bold-" color-name "-font") 1 (+ 30 index))
+                 (def-sgr-const (str "bold-" color-name "-bg-font") 1 (+ 40 index)))
                ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"]))
 
 ;; ANSI defines quite a few more, but we're limiting to those that display properly in the
