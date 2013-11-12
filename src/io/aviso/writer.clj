@@ -25,8 +25,9 @@
   ([writer value]
    (write-string writer (str value)))
   ([writer value & values]
+   (write writer value)
    (doseq [value values]
-     (write-string writer (str value)))))
+     (write writer value))))
 
 (defn writeln
   "Constructs a string from the values (with no seperator) and writes the string to the Writer,
@@ -34,7 +35,7 @@
   ([writer]
    (write-string writer endline))
   ([writer & values]
-   (write writer values)
+   (apply write writer values)
    (write-string writer endline)))
 
 (defn writef
