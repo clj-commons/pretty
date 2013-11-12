@@ -202,34 +202,48 @@
 
 (def ^:dynamic *fonts*
   "ANSI fonts for different elements in the formatted exception report."
-  {:exception     (str bold-font red-font)
+  {:exception     bold-red-font
    :reset         reset-font
    :message       italic-font
    :property      bold-font
-   :function-name bold-font})
+   :source        green-font
+   :function-name bold-yellow-font
+   :clojure-frame yellow-font
+   :java-frame    white-font})
+
+(defn- preformat-stack-frame
+  [element]
+  (let [names (:names element)]
+    (if (-> element :names empty?)
+      ;; Case 1: names is empty, it's a Java frame
+      (let [full-name (str (:class element) "." (:method element))]
+        (assoc element
+          :name-width (.length full-name)
+          :formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))))
+      ;; Case 2: it's a Clojure name
+      (assoc element
+        :name-width (.length (:name element))
+        :formatted-name (str
+                          (:clojure-frame *fonts*)
+                          (->> names drop-last (str/join "/"))
+                          "/"
+                          (:function-name *fonts*) (last names) (:reset *fonts*))))))
 
 (defn- write-stack-trace
   [writer exception]
-  (let [elements (expand-stack-trace exception)
-        file-width (max-value-length elements :file)
-        line-width (->> elements (map :line) (map str) max-length)
-        name-width (max-value-length elements :name)
-        class-width (max-value-length elements :class)]
-    (doseq [{:keys [file line ^String name names class method]} elements]
-      (indent writer (- name-width (.length name)))
-      ;; There will be 0 or 2+ names (the first being the namespace)
-      (when-not (empty? names)
-        (doto writer
-          (w/write (->> names drop-last (str/join "/")))
-          (w/write "/" (:function-name *fonts*) (last names) (:reset *fonts*))))
+  (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
+        name-col-width (->> elements (map :name-width) (apply max))
+        file-col-width (max-value-length elements :file)
+        line-col-width (->> elements (map :line) (map str) max-length)]
+    (doseq [{:keys [file line ^String formatted-name name-width]} elements]
       (doto writer
-        (w/write "  ")
-        (justify file-width file)
+        (indent (- name-col-width name-width))
+        (w/write formatted-name)
+        (w/write "  " (:source *fonts*))
+        (justify file-col-width file)
         (w/write ":")
-        (justify line-width line)
-        (w/write "  ")
-        (justify class-width class)
-        (w/writeln "." method)))))
+        (justify line-col-width line)
+        (w/writeln (:reset *fonts*))))))
 
 (defn- write-property-value [writer value-indent value]
   (write-indented writer value-indent
