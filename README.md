@@ -33,15 +33,21 @@ For each of the supported colors (black, red, green, yellow, blue, magenta, cyan
 * bold-_color_-bg - function to enable bold text and the background color
 * _color_-font - constant that enables the text color
 * _color_-bg-font - constant that enables the background color
+* bold-_color_-font - constant that enables the text color in bold
+* bold-_color_-bg-font - constant that enables the background color in bold
 
 The functions are passed a string and wrap the string with ANSI codes to enable an ANSI graphic representation for the text, with a reset after the text.
 
-In addition there are functions `bold` and `italic` and constants `bold-font`, `italic-font`, and `reset-font`.
+Note that the exact color interpretation of the ANSI codes varies significantly between platforms and applications, and
+is frequently configurable, often using themes. You may need to adjust your application's settings to get an optimum
+display.
+
+In addition there are functions `bold`, `inverse`, and `italic` and constants `bold-font`, `inverse-font`, `italic-font`, and `reset-font`.
 
 The above example could also be written as:
 
 ```clojure
-(println (str "The following text will be " bold-font red-font "bold and red" reset-font "."))
+(println (str "The following text will be " bold-red-font "bold and red" reset-font "."))
 ```
 
 ## io.aviso.binary
@@ -62,7 +68,7 @@ BinaryData is simply a randomly accessible collection of bytes, with a known len
 
 `write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as defined by `io.aviso.writer/Writer` protocol)
 
-Alternately, `format-binary` will return this formatted binary output string.
+Alternately, `format-binary` will return the formatted binary output string.
 
 You can also compare two binary data values with `write-binary-delta`:
 
@@ -77,13 +83,12 @@ As with `write-binary`, there's a `format-binary-delta`, and a three-argument ve
 Exceptions in Clojure are extremely painful for many reasons:
 
 * They are often nested (wrapped and rethrown)
-* Stack frames reference the JVM class for Clojure functions, leaving the user to demangle the name back to the Clojure name
+* Stack frames reference the JVM class for Clojure functions, leaving the user to de-mangle the name back to the Clojure name
 * Stack traces are output for every exception, which clogs output without providing useful detail
-* Stack traces are often truncated, obscuring vital information
+* Stack traces are often truncated, requiring the user to manually re-assemble the stack trace from several pieces
 * Many stack frames represent implementation details of Clojure that are not relevant
 
-This is addressed by the `write-exception` function; it take an exception formats it nearly to a Writer, again `*out*` by 
-\default.
+This is addressed by the `write-exception` function; it take an exception formats it nearly to a Writer, again `*out*` by default.
 
 This is best explained by example; here's a `SQLException` wrapped inside two `RuntimeException`s, and printed normally:
 
@@ -126,7 +131,7 @@ Caused by: java.sql.SQLException: Database failure
 
 ... and here's the equivalent, via `write-exception`:
 
-![](https://www.evernote.com/shard/s54/sh/be166f69-ce90-4f27-af63-cf76511516e0/9a36d82f5bd67e220887901639529630/deep/0/Appendable.java%20-%20%5B1.6%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D.png)
+![](https://www.evernote.com/shard/s54/sh/ad94a14b-2107-4183-ab4a-3796a6225ea9/9295ec6d8acea581d2e0d7463026618c/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png)
 
 `write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception. It can navigate
 any property that returns a non-nil Throwable type, not just the rootCause property; this makes it properly expand older exceptions
@@ -134,8 +139,8 @@ that do not set the rootCause property.
 
 It displays the class name of each exception, its message, and any non-nil properties of the exception.
 
-The all-important stack trace is carefully formatted for readability, with the left-most column identifying Clojure functions, the middle columns
-presenting the file name and line number, and the right-most columns the Java class and method names.
+The all-important stack trace is carefully formatted for readability, with the left-most column identifying Clojure functions
+or Java class and method, and the right columns presenting the file name and line number.
 
 The related function, `format-exception`, produces the same output, but returns it as a string.
 
