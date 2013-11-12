@@ -44,7 +44,10 @@
 ;;;   - bold-C-bg: change background to bold variation of color (e.g., "bold-green-bg")
 ;;; - constants
 ;;;   - C-font: enable text in that color (e.g., "green-font")
-;;;   - C-bg-font: enable backgroun in that bold color (e.g., "green-bg-font")
+;;;   - C-bg-font: enable background in that color (e.g., "green-bg-font")
+;;;   - bold-C-font; enable bold text in that color (e.g., "bold-green-font")
+;;;   - bold-C-bg-font; enable background in that bold color (e.g., "bold-green-bg-font")
+
 (doall
   (map-indexed (fn [index color-name]
                  (def-sgr-fn color-name (+ 30 index))
