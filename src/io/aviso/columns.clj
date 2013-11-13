@@ -77,9 +77,12 @@
   [& column-defs]
   (let [column-fns (map column-def-to-fn column-defs)]
     (fn [writer & column-data]
-      (reduce (fn [cd cf] (cf writer cd))
-              column-data
-              column-fns))))
+      (loop [column-fns column-fns
+             column-data column-data]
+        (when-not (empty? column-fns)
+          (let [cf (first column-fns)
+                remaining-column-data (cf writer column-data)]
+            (recur (rest column-fns) remaining-column-data)))))))
 
 (defn write-rows
   "A convienience for writing rows of columns using a prepared column formatter.
