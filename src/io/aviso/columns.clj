@@ -7,29 +7,29 @@
 
 (defn- string-length [^String s] (.length s))
 
-(defn- data-width [column-value]
+(defn- decompose
+  [column-value]
   (if (vector? column-value)
-    (get column-value 0)
-    (-> column-value str string-length)))
-
-(defn- data-value [column-value]
-  (if (vector? column-value)
-    (get column-value 1)
-    column-value))
+    ;; Ensure that the column value is, in fact, a string.
+    [(nth column-value 0) (-> (nth column-value 1) str)]
+    (let [as-string (str column-value)]
+      [(string-length as-string) as-string])))
 
 (defn- indent
   "Indents sufficient to pad the column value to the column width."
-  [writer column-width column-value]
-  (w/write writer (apply str (repeat (- column-width (data-width column-value)) \space))))
+  [writer indent-amount]
+  (w/write writer (apply str (repeat indent-amount \space))))
 
-(defn- format-column
-  [width justification]
-  (fn [writer column-value]
-    (if (= justification :right)
-      (indent writer width column-value))
-    (w/write writer (data-value column-value))
-    (if (= justification :left)
-      (indent writer width column-value))))
+(defn- write-column-value
+  [justification width]
+  (fn column-writer [writer column-value]
+    (let [[value-width value-string] (decompose column-value)
+          indent-amount (max 0 (- width value-width))]
+      (if (= justification :right)
+        (indent writer indent-amount))
+      (w/write writer value-string)
+      (if (= justification :left)
+        (indent writer indent-amount)))))
 
 (defn- fixed-column
   [fixed-value]
@@ -38,23 +38,24 @@
     column-data))
 
 (defn- dynamic-column
-  [column-formatter]
+  "Returns a function that consumes the next column data value and delegates to a column writer function
+  to actually write the output for the column."
+  [column-writer]
   (fn [writer [column-value & remaining-column-data]]
-    (column-formatter writer column-value)
+    (column-writer writer column-value)
     remaining-column-data))
 
 (defn- nil-column
-  "Does nothing and returns the column-data unchanged."
+  "Does nothing and returns the column data unchanged."
   [writer column-data]
   column-data)
 
 (defn- column-def-to-fn [column-def]
   (cond
     (string? column-def) (fixed-column column-def)
-    (number? column-def) (-> (format-column column-def :left) dynamic-column)
+    (number? column-def) (-> (write-column-value :left column-def) dynamic-column)
     (nil? column-def) nil-column
-    :else (let [[justification width] column-def]
-            (-> (format-column width justification) dynamic-column))))
+    :else (-> (apply write-column-value column-def) dynamic-column)))
 
 (defn format-columns
   "Converts a number of column definitions into a formatting function. Each column definition may be:
@@ -62,7 +63,7 @@
   - a string, to indicate a non-consuming column that outputs a fixed value. This is often just a space
   character or two, to seperate columns.
   - a number, to indicate a consuming column that outputs a left justified value of the given width.
-  - a vector containing a keyword and a number; then number is the width, the keyword is the justification.
+  - a vector containing a keyword and a number; the number is the width, the keyword is the justification.
   - nil, which is treated like an empty string
 
   With explicit justification, the keyword may be :left, :right, or :none.  :left justification
@@ -70,16 +71,18 @@
   before the value. :none does not pad with spaces at all, and should only be used in the final column.
 
   Values are normally strings, but to support non-printing characters in the strings, a value may
-  be a two-element vector consisting of its effective width and the actual value to print.
+  be a two-element vector consisting of its effective width and the actual value to write. Non-string
+  values are converted to strings using str.
 
   The returned function accepts a Writer and the column data and writes each column value, with appropriate
-  padding, to the Writer. No end-of-line character is written. "
+  padding, to the Writer."
   [& column-defs]
   (let [column-fns (map column-def-to-fn column-defs)]
     (fn [writer & column-data]
       (loop [column-fns column-fns
              column-data column-data]
-        (when-not (empty? column-fns)
+        (if (empty? column-fns)
+          (w/writeln writer)
           (let [cf (first column-fns)
                 remaining-column-data (cf writer column-data)]
             (recur (rest column-fns) remaining-column-data)))))))

@@ -238,8 +238,7 @@
                                     [:right (max-value-length elements :file)]
                                     ": "
                                     [:right (->> elements (map :line) (map str) max-length)]
-                                    (:reset *fonts*)
-                                    w/endline)]
+                                    (:reset *fonts*))]
     (c/write-rows writer formatter [#(vector (:name-width %) (:formatted-name %)) :file :line] elements)))
 
 (defn- write-property-value [writer value-indent value]
