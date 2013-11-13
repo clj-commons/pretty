@@ -20,15 +20,26 @@
   [writer indent-amount]
   (w/write writer (apply str (repeat indent-amount \space))))
 
+(defn- truncate
+    [justification ^String string amount]
+  (cond
+    (nil? amount) string
+    (zero? amount) string
+    (= :left justification) (.substring string 0 (- (string-length string) amount))
+    (= :right justification) (.substring string amount)
+    :else string))
+
 (defn- write-column-value
   [justification width]
   (fn column-writer [writer column-value]
     (let [[value-width value-string] (decompose column-value)
-          indent-amount (max 0 (- width value-width))]
-      (if (= justification :right)
+          indent-amount (and width (max 0 (- width value-width)))
+          truncate-amount (and width (max 0 (- value-width width)))
+          truncated (truncate justification value-string truncate-amount)]
+      (if (and indent-amount (= justification :right))
         (indent writer indent-amount))
-      (w/write writer value-string)
-      (if (= justification :left)
+      (w/write writer truncated)
+      (if (and indent-amount (= justification :left))
         (indent writer indent-amount)))))
 
 (defn- fixed-column
@@ -55,6 +66,7 @@
     (string? column-def) (fixed-column column-def)
     (number? column-def) (-> (write-column-value :left column-def) dynamic-column)
     (nil? column-def) nil-column
+    (= :none column-def) (-> (write-column-value :none nil) dynamic-column)
     :else (-> (apply write-column-value column-def) dynamic-column)))
 
 (defn format-columns
@@ -64,11 +76,17 @@
   character or two, to seperate columns.
   - a number, to indicate a consuming column that outputs a left justified value of the given width.
   - a vector containing a keyword and a number; the number is the width, the keyword is the justification.
+  - :none, to indicate a consuming column with no explicit width
   - nil, which is treated like an empty string
 
   With explicit justification, the keyword may be :left, :right, or :none.  :left justification
   pads the column with spaces after the value; :right justification pads the column with spaces
   before the value. :none does not pad with spaces at all, and should only be used in the final column.
+
+  :left and :right justified columns will truncate long values; :left truncates from the right (e.g.,
+  display initial characters, discard trailing characters)
+  and :right truncates from the left (e.g., discards initial characters, display trailing characters).
+  Generally speaking, truncation does not occur because columns are sized to fit their contents.
 
   Values are normally strings, but to support non-printing characters in the strings, a value may
   be a two-element vector consisting of its effective width and the actual value to write. Non-string
