@@ -7,7 +7,9 @@
              [pprint :as pp]
              [set :as set]
              [string :as str]]
-            [io.aviso.writer :as w]))
+            [io.aviso
+             [columns :as c]
+             [writer :as w]]))
 
 (defn- string-length
   [^String s]
@@ -71,8 +73,7 @@
         discarded-keys (concat [:suppressed :message :localizedMessage :class :stackTrace]
                                nil-property-keys
                                throwable-property-keys)
-        retained-properties (apply dissoc properties discarded-keys)
-        ]
+        retained-properties (apply dissoc properties discarded-keys)]
     [{:exception  exception
       :class-name (-> exception .getClass .getName)
       :message    (.getMessage exception)
@@ -84,7 +85,7 @@
   contains:
 
   - :exception - the original Throwable instance
-  - :class-name - the name of the Java class
+  - :class-name - the name of the Java class for the exception
   - :message - the value of the exception's message property (possibly nil)
   - :properties - a map of properties to present
 
@@ -176,7 +177,7 @@
      :method       method-name
      ;; Used to calculate column width
      :name         name
-     ;; Used to present compound name with last term highlighted
+     ;; Used to present compound Clojure name with last term highlighted
      :names        names}))
 
 (def ^:private empty-stack-trace-warning
@@ -232,18 +233,14 @@
 (defn- write-stack-trace
   [writer exception]
   (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
-        name-col-width (->> elements (map :name-width) (apply max))
-        file-col-width (max-value-length elements :file)
-        line-col-width (->> elements (map :line) (map str) max-length)]
-    (doseq [{:keys [file line ^String formatted-name name-width]} elements]
-      (doto writer
-        (indent (- name-col-width name-width))
-        (w/write formatted-name)
-        (w/write "  " (:source *fonts*))
-        (justify file-col-width file)
-        (w/write ":")
-        (justify line-col-width line)
-        (w/writeln (:reset *fonts*))))))
+        formatter (c/format-columns [:right (->> elements (map :name-width) (apply max))]
+                                    "  " (:source *fonts*)
+                                    [:right (max-value-length elements :file)]
+                                    ": "
+                                    [:right (->> elements (map :line) (map str) max-length)]
+                                    (:reset *fonts*)
+                                    w/endline)]
+    (c/write-rows writer formatter [#(vector (:name-width %) (:formatted-name %)) :file :line] elements)))
 
 (defn- write-property-value [writer value-indent value]
   (write-indented writer value-indent
