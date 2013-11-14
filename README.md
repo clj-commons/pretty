@@ -9,6 +9,7 @@ Thats what _pretty_ is for.  It adds support for pretty output where it counts:
 * Hex dump of binary data
 * Hex dump of binary deltas
 * Readable output for exceptions
+* Formatting data into columns
 
 pretty is released under the terms of the Apache Software License 2.0.
 
@@ -94,14 +95,10 @@ This is best explained by example; here's a `SQLException` wrapped inside two `R
 
 ```
 (.printStackTrace e)
-=> nil
 java.lang.RuntimeException: Request handling exception
-	at user$make_exception.invoke(user.clj:6)
-	at clojure.lang.AFn.applyToHelper(AFn.java:159)
-	at clojure.lang.AFn.applyTo(AFn.java:151)
-	at clojure.lang.Compiler$InvokeExpr.eval(Compiler.java:3458)
-	at clojure.lang.Compiler$DefExpr.eval(Compiler.java:408)
-	at clojure.lang.Compiler.eval(Compiler.java:6624)
+	at user$make_exception.invoke(user.clj:30)
+	at user$eval1322.invoke(NO_SOURCE_FILE:1)
+	at clojure.lang.Compiler.eval(Compiler.java:6619)
 	at clojure.lang.Compiler.eval(Compiler.java:6582)
 	at clojure.core$eval.invoke(core.clj:2852)
 	at clojure.main$repl$read_eval_print__6588$fn__6591.invoke(main.clj:259)
@@ -109,29 +106,35 @@ java.lang.RuntimeException: Request handling exception
 	at clojure.main$repl$fn__6597.invoke(main.clj:277)
 	at clojure.main$repl.doInvoke(main.clj:277)
 	at clojure.lang.RestFn.invoke(RestFn.java:1096)
-	at clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__876.invoke(interruptible_eval.clj:56)
+	at clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__808.invoke(interruptible_eval.clj:56)
 	at clojure.lang.AFn.applyToHelper(AFn.java:159)
 	at clojure.lang.AFn.applyTo(AFn.java:151)
 	at clojure.core$apply.invoke(core.clj:617)
 	at clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)
 	at clojure.lang.RestFn.invoke(RestFn.java:425)
 	at clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:41)
-	at clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__917$fn__920.invoke(interruptible_eval.clj:171)
+	at clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__849$fn__852.invoke(interruptible_eval.clj:171)
 	at clojure.core$comp$fn__4154.invoke(core.clj:2330)
-	at clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__910.invoke(interruptible_eval.clj:138)
+	at clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__842.invoke(interruptible_eval.clj:138)
 	at clojure.lang.AFn.run(AFn.java:24)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:886)
-	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:908)
-	at java.lang.Thread.run(Thread.java:680)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1110)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:603)
+	at java.lang.Thread.run(Thread.java:722)
 Caused by: java.lang.RuntimeException: Failure updating row
-	... 27 more
+	at user$update_row.invoke(user.clj:22)
+	... 24 more
 Caused by: java.sql.SQLException: Database failure
-	... 27 more
+SELECT FOO, BAR, BAZ
+FROM GNIP
+failed with ABC123
+	at user$jdbc_update.invoke(user.clj:6)
+	at user$make_jdbc_update_worker$reify__214.do_work(user.clj:17)
+	... 25 more
 ```
 
 ... and here's the equivalent, via `write-exception`:
 
-![](https://www.evernote.com/shard/s54/sh/ad94a14b-2107-4183-ab4a-3796a6225ea9/9295ec6d8acea581d2e0d7463026618c/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png)
+![](https://www.evernote.com/shard/s54/sh/9df8600b-adf2-4605-8298-48d78aa93dd7/e0fccbe84d3de74091ccc0fc3c70d411/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png)
 
 `write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception. It can navigate
 any property that returns a non-nil Throwable type, not just the rootCause property; this makes it properly expand older exceptions
@@ -143,4 +146,12 @@ The all-important stack trace is carefully formatted for readability, with the l
 or Java class and method, and the right columns presenting the file name and line number.
 
 The related function, `format-exception`, produces the same output, but returns it as a string.
+
+# io.aviso.columns
+
+The columnar namespace is what's used by the exceptions namespace to format the exceptions, properties, and stack
+traces.
+
+The `format-columns` function is provided with a number of column definitions that describes the width and justification
+
 
