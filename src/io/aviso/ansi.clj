@@ -74,7 +74,7 @@
 
 (def ^:const ^:private ansi-pattern (Pattern/compile "\\e\\[.*?m"))
 
-(defn strip-ansi
+(defn ^String strip-ansi
   "Removes ANSI codes from a string, returning just the raw text."
   [string]
   (str/replace string ansi-pattern ""))
