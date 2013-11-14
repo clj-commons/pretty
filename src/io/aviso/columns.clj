@@ -3,17 +3,11 @@
   may be left or right justified. Generally, columns are sized to the largest item in the column.
   When a value is provided in a column, it may be associated with an explicit width which is helpful
   when the value contains non-printing characters (such as those defined in the io.aviso.ansi namespace)."
-  (:require [io.aviso.writer :as w]))
-
-(defn- string-length [^String s] (.length s))
-
-(defn- decompose
-  [column-value]
-  (if (vector? column-value)
-    ;; Ensure that the column value is, in fact, a string.
-    [(nth column-value 0) (-> (nth column-value 1) str)]
-    (let [as-string (str column-value)]
-      [(string-length as-string) as-string])))
+  (:require
+    [clojure.string :as str]
+    [io.aviso
+     [ansi :as ansi]
+     [writer :as w]]))
 
 (defn- indent
   "Indents sufficient to pad the column value to the column width."
@@ -21,53 +15,73 @@
   (w/write writer (apply str (repeat indent-amount \space))))
 
 (defn- truncate
-    [justification ^String string amount]
+  [justification ^String string amount]
   (cond
     (nil? amount) string
     (zero? amount) string
-    (= :left justification) (.substring string 0 (- (string-length string) amount))
+    (= :left justification) (.substring string 0 (- (.length string) amount))
     (= :right justification) (.substring string amount)
     :else string))
 
-(defn- write-column-value
+(defn- write-none-column [writer current-indent column-value]
+  (loop [first-line true
+         lines (-> column-value str str/split-lines)]
+    (when-not (empty? lines)
+      (when-not first-line
+        (w/writeln writer)
+        (indent writer current-indent))
+      (w/write writer (first lines))
+      (recur false (rest lines))))
+  ;; :none columns don't have an explicit width, so just return the current indent.
+  ;; it shouldn't matter because :none should be the last consuming column.
+  current-indent)
+
+(defn- make-column-writer
   [justification width]
-  (fn column-writer [writer column-value]
-    (let [[value-width value-string] (decompose column-value)
-          indent-amount (and width (max 0 (- width value-width)))
-          truncate-amount (and width (max 0 (- value-width width)))
-          truncated (truncate justification value-string truncate-amount)]
-      (if (and indent-amount (= justification :right))
-        (indent writer indent-amount))
-      (w/write writer truncated)
-      (if (and indent-amount (= justification :left))
-        (indent writer indent-amount)))))
+  (if (= :none justification)
+    write-none-column
+    (fn column-writer [writer current-indent column-value]
+      (let [value-string (str column-value)
+            value-width (ansi/visual-length value-string)
+            indent-amount (max 0 (- width value-width))
+            truncate-amount (max 0 (- value-width width))
+            ;; This isn't aware of ANSI escape codes and will do the wrong thing when truncating a string with
+            ;; such codes.
+            truncated (truncate justification value-string truncate-amount)]
+        (if (= justification :right)
+          (indent writer indent-amount))
+        (w/write writer truncated)
+        (if (= justification :left)
+          (indent writer indent-amount)))
+      ;; Return the updated indent amount; a :none column doesn't compute
+      (+ current-indent width))))
 
 (defn- fixed-column
   [fixed-value]
-  (fn [writer column-data]
-    (w/write writer fixed-value)
-    column-data))
+  (let [value-length (ansi/visual-length fixed-value)]
+    (fn [writer indent column-data]
+      (w/write writer fixed-value)
+      [(+ indent value-length) column-data])))
 
 (defn- dynamic-column
   "Returns a function that consumes the next column data value and delegates to a column writer function
   to actually write the output for the column."
   [column-writer]
-  (fn [writer [column-value & remaining-column-data]]
-    (column-writer writer column-value)
-    remaining-column-data))
+  (fn [writer indent [column-value & remaining-column-values]]
+    [(column-writer writer indent column-value) remaining-column-values]))
 
 (defn- nil-column
-  "Does nothing and returns the column data unchanged."
-  [writer column-data]
-  column-data)
+  "Does nothing and returns the indent and column data unchanged."
+  [writer indent column-values]
+  [indent column-values])
 
 (defn- column-def-to-fn [column-def]
   (cond
     (string? column-def) (fixed-column column-def)
-    (number? column-def) (-> (write-column-value :left column-def) dynamic-column)
+    (number? column-def) (-> (make-column-writer :left column-def) dynamic-column)
     (nil? column-def) nil-column
-    (= :none column-def) (-> (write-column-value :none nil) dynamic-column)
-    :else (-> (apply write-column-value column-def) dynamic-column)))
+    (= :none column-def) (-> (make-column-writer :none nil) dynamic-column)
+    :else (-> (apply make-column-writer column-def) dynamic-column)))
 
 (defn format-columns
   "Converts a number of column definitions into a formatting function. Each column definition may be:
@@ -88,22 +102,27 @@
   and :right truncates from the left (e.g., discards initial characters, display trailing characters).
   Generally speaking, truncation does not occur because columns are sized to fit their contents.
 
-  Values are normally strings, but to support non-printing characters in the strings, a value may
-  be a two-element vector consisting of its effective width and the actual value to write. Non-string
-  values are converted to strings using str.
+  An column width is required for :left or :right. Column width is optional and ignored for :none.
 
-  The returned function accepts a Writer and the column data and writes each column value, with appropriate
+  Values are normally string, but any type is accepted and will be converted to a string.
+  This code is aware of ANSI codes and ignores them to calculate the length of a value for formatting and
+  identation purposes.
+
+  There will likely be problems if a long string with ANSI codes is truncated, however.
+
+  The returned function accepts a Writer and the column values and writes each column value, with appropriate
   padding, to the Writer."
   [& column-defs]
   (let [column-fns (map column-def-to-fn column-defs)]
-    (fn [writer & column-data]
-      (loop [column-fns column-fns
-             column-data column-data]
+    (fn [writer & column-values]
+      (loop [current-indent 0
+             column-fns column-fns
+             values column-values]
         (if (empty? column-fns)
           (w/writeln writer)
           (let [cf (first column-fns)
-                remaining-column-data (cf writer column-data)]
-            (recur (rest column-fns) remaining-column-data)))))))
+                [new-indent remaining-values] (cf writer current-indent values)]
+            (recur new-indent (rest column-fns) remaining-values)))))))
 
 (defn write-rows
   "A convienience for writing rows of columns using a prepared column formatter.

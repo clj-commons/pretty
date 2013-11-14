@@ -11,9 +11,7 @@
              [columns :as c]
              [writer :as w]]))
 
-(defn- string-length
-  [^String s]
-  (.length s))
+(defn- length [^String s] (.length s))
 
 ;;; Obviously, this is making use of some internals of Clojure that
 ;;; could change at any time.
@@ -21,14 +19,14 @@
 (def ^:private clojure->java
   (->> (Compiler/CHAR_MAP)
        set/map-invert
-       (sort-by #(-> % first string-length))
+       (sort-by #(-> % first length))
        reverse))
 
 
 (defn- match-mangled
   [^String s i]
   (->> clojure->java
-       (filter (fn [[k _]] (.regionMatches s i k 0 (string-length k))))
+       (filter (fn [[k _]] (.regionMatches s i k 0 (length k))))
        ;; Return the matching sequence and its single character replacement
        first))
 
@@ -43,7 +41,7 @@
         (>= i in-length) (.toString result)
         (= \_ (.charAt s i)) (let [[match replacement] (match-mangled s i)]
                                (.append result replacement)
-                               (recur (+ i (string-length match))))
+                               (recur (+ i (length match))))
         :else (do
                 (.append result (.charAt s i))
                 (recur (inc i)))))))
@@ -109,33 +107,11 @@
   [coll]
   (if (empty? coll)
     0
-    (apply max (map string-length coll))))
+    (apply max (map visual-length coll))))
 
 (defn- max-value-length
   [coll key]
   (max-length (map key coll)))
-
-(defn- indent [writer spaces]
-  (w/write writer (apply str (repeat spaces \space))))
-
-(defn- justify
-  "w/write the text, right justified within its column."
-  ([writer width ^String value]
-   (indent writer (- width (-> value str .length)))
-   (w/write writer value))
-  ([writer width prefix ^String value suffix]
-   (indent writer (- width (.length value)))
-   (w/write writer prefix value suffix)))
-
-(defn- write-indented
-  [writer indent-amount value]
-  (loop [lines (str/split-lines value)
-         is-first true]
-    (when-not (empty? lines)
-      (if-not is-first
-        (indent writer indent-amount))
-      (w/writeln writer (first lines))
-      (recur (rest lines) false))))
 
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
@@ -219,11 +195,9 @@
       ;; Case 1: names is empty, it's a Java frame
       (let [full-name (str (:class element) "." (:method element))]
         (assoc element
-          :name-width (.length full-name)
           :formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))))
       ;; Case 2: it's a Clojure name
       (assoc element
-        :name-width (.length (:name element))
         :formatted-name (str
                           (:clojure-frame *fonts*)
                           (->> names drop-last (str/join "/"))
@@ -233,17 +207,17 @@
 (defn- write-stack-trace
   [writer exception]
   (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
-        formatter (c/format-columns [:right (->> elements (map :name-width) (apply max))]
+        formatter (c/format-columns [:right (max-value-length elements :formatted-name)]
                                     "  " (:source *fonts*)
                                     [:right (max-value-length elements :file)]
                                     ": "
                                     [:right (->> elements (map :line) (map str) max-length)]
                                     (:reset *fonts*))]
-    (c/write-rows writer formatter [#(vector (:name-width %) (:formatted-name %)) :file :line] elements)))
+    (c/write-rows writer formatter [:formatted-name :file :line] elements)))
 
-(defn- write-property-value [writer value-indent value]
-  (write-indented writer value-indent
-                  (pp/write value :stream nil :length (or *print-length* 10))))
+(defn- format-property-value
+  [value]
+  (pp/write value :stream nil :length (or *print-length* 10)))
 
 (defn write-exception
   "Writes a formatted version of the exception to the writer.
@@ -262,32 +236,30 @@
          exception-stack (->> exception
                               analyze-exception
                               (map #(assoc % :name (-> % :exception class .getName))))
-         exception-column-width (max-value-length exception-stack :name)]
+         exception-formatter (c/format-columns [:right (max-value-length exception-stack :name)]
+                                               ": "
+                                               :none)]
      (doseq [e exception-stack]
        (let [^Throwable exception (-> e :exception)
-             message (.getMessage exception)]
-         (justify writer exception-column-width exception-font (:name e) reset-font)
-         ;; TODO: Handle no message for the exception specially
-         (w/write writer ":")
-         (if-not message
-           (w/writeln writer)
-           (do
-             (w/write writer " ")
-             (write-indented writer
-                             (+ 2 exception-column-width)
-                             (str message-font message reset-font))))
-
-         (let [properties (update-keys (:properties e) name)
-               prop-keys (keys properties)
-               ;; Allow for the width of the exception class name, and some extra
-               ;; indentation.
-               prop-name-width (+ 4 (max-length prop-keys))]
-           (doseq [k (sort prop-keys)]
-             (justify writer prop-name-width property-font k reset-font)
-             (w/write writer ": ")
-             (write-property-value writer (+ 2 prop-name-width) (get properties k)))
-           (if (:root e)
-             (write-stack-trace writer exception))))))))
+             class-name (:name e)
+             message (.getMessage exception)
+             properties (update-keys (:properties e) name)
+             prop-keys (keys properties)
+             ;; Allow for the width of the exception class name, and some extra
+             ;; indentation.
+             property-formatter (c/format-columns "    "
+                                                  [:right (max-length prop-keys)]
+                                                  ": "
+                                                  :none)]
+         (exception-formatter writer
+                              (str exception-font class-name reset-font)
+                              (str message-font message reset-font))
+         (doseq [k (sort prop-keys)]
+           (property-formatter writer
+                               (str property-font k reset-font)
+                               (-> properties (get k) format-property-value)))
+         (if (:root e)
+           (write-stack-trace writer exception)))))))
 
 (defn format-exception
   "Formats an exception as a multi-line string using write-exception."
