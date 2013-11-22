@@ -102,17 +102,6 @@
         (recur (conj result expanded) nested)
         (conj result (assoc expanded :root true))))))
 
-(defn- max-length
-  "Find the maximum length of the strings in the collection."
-  [coll]
-  (if (empty? coll)
-    0
-    (apply max (map visual-length coll))))
-
-(defn- max-value-length
-  [coll key]
-  (max-length (map key coll)))
-
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
   (into {} (map (fn [[k v]] [(f k) v]) m)))
@@ -207,11 +196,11 @@
 (defn- write-stack-trace
   [writer exception]
   (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
-        formatter (c/format-columns [:right (max-value-length elements :formatted-name)]
+        formatter (c/format-columns [:right (c/max-value-length elements :formatted-name)]
                                     "  " (:source *fonts*)
-                                    [:right (max-value-length elements :file)]
+                                    [:right (c/max-value-length elements :file)]
                                     2
-                                    [:right (->> elements (map :line) (map str) max-length)]
+                                    [:right (->> elements (map :line) (map str) c/max-length)]
                                     (:reset *fonts*))]
     (c/write-rows writer formatter [:formatted-name
                                     :file
@@ -242,7 +231,7 @@
          exception-stack (->> exception
                               analyze-exception
                               (map #(assoc % :name (-> % :exception class .getName))))
-         exception-formatter (c/format-columns [:right (max-value-length exception-stack :name)]
+         exception-formatter (c/format-columns [:right (c/max-value-length exception-stack :name)]
                                                ": "
                                                :none)]
      (doseq [e exception-stack]
@@ -254,7 +243,7 @@
                   ;; Allow for the width of the exception class name, and some extra
                   ;; indentation.
                   property-formatter (c/format-columns "    "
-                                                       [:right (max-length prop-keys)]
+                                                       [:right (c/max-length prop-keys)]
                                                        ": "
                                                        :none)]
               (exception-formatter writer

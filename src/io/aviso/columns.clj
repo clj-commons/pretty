@@ -134,6 +134,21 @@
   [writer column-formatter extractors row-data]
   (let [column-data-extractor (apply juxt extractors)]
     (doseq [row row-data]
-      (apply column-formatter writer (column-data-extractor row)))))
+           (apply column-formatter writer (column-data-extractor row)))))
 
+(defn max-length
+  "Find the maximum length of the strings in the collection, based on their visual length (that is,
+  omitting ANSI escape codes)."
+  [coll]
+  (if (empty? coll)
+    0
+    (apply max (map ansi/visual-length coll))))
+
+(defn max-value-length
+  "A convinience for computing the maximum length of one string property from a collection of values.
+
+  coll - collection of values
+  key - key that is passed one value and returns the property, typically a keyword when the values are maps"
+  [coll key]
+  (max-length (map key coll)))
 
