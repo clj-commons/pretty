@@ -89,7 +89,7 @@ Exceptions in Clojure are extremely painful for many reasons:
 * Stack traces are often truncated, requiring the user to manually re-assemble the stack trace from several pieces
 * Many stack frames represent implementation details of Clojure that are not relevant
 
-This is addressed by the `write-exception` function; it take an exception formats it nearly to a Writer, again `*out*` by default.
+This is addressed by the `write-exception` function; it take an exception formats it neatly to a Writer, again `*out*` by default.
 
 This is best explained by example; here's a `SQLException` wrapped inside two `RuntimeException`s, and printed normally:
 
@@ -147,11 +147,36 @@ or Java class and method, and the right columns presenting the file name and lin
 
 The related function, `format-exception`, produces the same output, but returns it as a string.
 
+For both `format-exception` and `write-exception`, output of the stack trace is optional.
+
 # io.aviso.columns
 
 The columnar namespace is what's used by the exceptions namespace to format the exceptions, properties, and stack
 traces.
 
-The `format-columns` function is provided with a number of column definitions that describes the width and justification
+The `format-columns` function is provided with a number of column definitions that describes the width and justification of the columns,
+and returns a function that accepts a StringWriter (such as `*out*`) and the column values.
+
+`write-rows` takes the function provided by `format-columns`, plus a set of functions to extract column values,
+plus a seq of rows. In most cases, the rows are maps, and the extraction functions are keywords (isn't Clojure
+magical that way?).
+
+Here's an example, from the exception namespace:
+
+```
+(defn- write-stack-trace
+  [writer exception]
+  (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
+        formatter (c/format-columns [:right (max-value-length elements :formatted-name)]
+                                    "  " (:source *fonts*)
+                                    [:right (max-value-length elements :file)]
+                                    2
+                                    [:right (->> elements (map :line) (map str) max-length)]
+                                    (:reset *fonts*))]
+    (c/write-rows writer formatter [:formatted-name
+                                    :file
+                                    #(if (:line %) ": ")
+                                    :line] elements)))
+```
 
 
