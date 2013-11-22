@@ -22,7 +22,7 @@
   (write-string [this ^CharSequence string] (.print this string))
   (flush-writer [this] (.flush this)))
 
-(def endline
+(def ^:private endline
   "End-of-line terminator, platform specific."
   (System/getProperty "line.separator"))
 
