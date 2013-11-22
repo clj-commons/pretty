@@ -1,25 +1,33 @@
 (ns io.aviso.writer
-  "The Writer protocol is used as the target of any written output.")
+  "The StringWriter protocol is used as the target of any written output."
+  (:import
+    [java.io Writer]))
 
-(defprotocol Writer
+(defprotocol StringWriter
   "May receive strings, which are printed, or stored.
 
   Writer is extended onto java.lang.Appendable, a common interface implemented by both PrintWriter and StringBuilder (among
   many others)"
 
-  (write-string [this string] "Writes the string to the Writer."))
+  (write-string [this string] "Writes the string to the Writer.")
+  (flush-writer [this] "Flushes output to the Writer, we appropriate."))
 
-(extend-protocol Writer
-  ;; Appendable is implemented by StringBuilder and PrintWriter.
-  Appendable
-  (write-string [this ^CharSequence string] (.append this string)))
+(extend-protocol StringWriter
+  StringBuilder
+  (write-string [this ^CharSequence string] (.append this string))
+  (flush-writer [this] nil))
+
+(extend-protocol StringWriter
+  Writer
+  (write-string [this ^CharSequence string] (.print this string))
+  (flush-writer [this] (.flush this)))
 
 (def endline
   "End-of-line terminator, platform specific."
   (System/getProperty "line.separator"))
 
 (defn write
-  "Constructs a string from the values (with no seperator) and writes the string to the Writer.
+  "Constructs a string from the values (with no seperator) and writes the string to the StringWriter.
 
   This is used to get around the fact that protocols do not support varadic parameters."
   ([writer value]
@@ -27,16 +35,17 @@
   ([writer value & values]
    (write writer value)
    (doseq [value values]
-     (write writer value))))
+          (write writer value))))
 
 (defn writeln
-  "Constructs a string from the values (with no seperator) and writes the string to the Writer,
+  "Constructs a string from the values (with no seperator) and writes the string to the StringWriter,
   followed by an end-of-line terminator."
   ([writer]
-   (write-string writer endline))
+   (write-string writer endline)
+   (flush-writer writer))
   ([writer & values]
    (apply write writer values)
-   (write-string writer endline)))
+   (writeln writer)))
 
 (defn writef
   "Writes formatted data."
