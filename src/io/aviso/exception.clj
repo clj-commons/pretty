@@ -210,17 +210,21 @@
         formatter (c/format-columns [:right (max-value-length elements :formatted-name)]
                                     "  " (:source *fonts*)
                                     [:right (max-value-length elements :file)]
-                                    ": "
+                                    2
                                     [:right (->> elements (map :line) (map str) max-length)]
                                     (:reset *fonts*))]
-    (c/write-rows writer formatter [:formatted-name :file :line] elements)))
+    (c/write-rows writer formatter [:formatted-name
+                                    :file
+                                    #(if (:line %) ": ")
+                                    :line] elements)))
 
 (defn- format-property-value
   [value]
   (pp/write value :stream nil :length (or *print-length* 10)))
 
 (defn write-exception
-  "Writes a formatted version of the exception to the writer.
+  "Writes a formatted version of the exception to the writer. By default, writes to *out* and includes
+  the stack trace.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
@@ -228,7 +232,8 @@
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception] (write-exception *out* exception))
-  ([writer exception]
+  ([exception exception] (write-exception *out* exception true))
+  ([writer exception stack-trace?]
    (let [exception-font (:exception *fonts*)
          message-font (:message *fonts*)
          property-font (:property *fonts*)
@@ -240,28 +245,30 @@
                                                ": "
                                                :none)]
      (doseq [e exception-stack]
-       (let [^Throwable exception (-> e :exception)
-             class-name (:name e)
-             message (.getMessage exception)
-             properties (update-keys (:properties e) name)
-             prop-keys (keys properties)
-             ;; Allow for the width of the exception class name, and some extra
-             ;; indentation.
-             property-formatter (c/format-columns "    "
-                                                  [:right (max-length prop-keys)]
-                                                  ": "
-                                                  :none)]
-         (exception-formatter writer
-                              (str exception-font class-name reset-font)
-                              (str message-font message reset-font))
-         (doseq [k (sort prop-keys)]
-           (property-formatter writer
-                               (str property-font k reset-font)
-                               (-> properties (get k) format-property-value)))
-         (if (:root e)
-           (write-stack-trace writer exception)))))))
+            (let [^Throwable exception (-> e :exception)
+                  class-name (:name e)
+                  message (.getMessage exception)
+                  properties (update-keys (:properties e) name)
+                  prop-keys (keys properties)
+                  ;; Allow for the width of the exception class name, and some extra
+                  ;; indentation.
+                  property-formatter (c/format-columns "    "
+                                                       [:right (max-length prop-keys)]
+                                                       ": "
+                                                       :none)]
+              (exception-formatter writer
+                                   (str exception-font class-name reset-font)
+                                   (str message-font message reset-font))
+              (doseq [k (sort prop-keys)]
+                     (property-formatter writer
+                                         (str property-font k reset-font)
+                                         (-> properties (get k) format-property-value)))
+              (if (and stack-trace? (:root e))
+                (write-stack-trace writer exception)))))))
 
 (defn format-exception
   "Formats an exception as a multi-line string using write-exception."
-  [exception]
-  (w/into-string write-exception exception))
+  ([exception]
+   (format-exception exception true))
+  ([exception stack-trace?]
+   (w/into-string write-exception exception stack-trace?)))
