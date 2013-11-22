@@ -216,7 +216,8 @@
     (c/write-rows writer formatter [:formatted-name
                                     :file
                                     #(if (:line %) ": ")
-                                    :line] elements)))
+                                    :line]
+                  elements)))
 
 (defn- format-property-value
   [value]

@@ -176,7 +176,8 @@ Here's an example, from the exception namespace:
     (c/write-rows writer formatter [:formatted-name
                                     :file
                                     #(if (:line %) ": ")
-                                    :line] elements)))
+                                    :line]
+                  elements)))
 ```
 
 
