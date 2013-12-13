@@ -149,19 +149,6 @@ The related function, `format-exception`, produces the same output, but returns 
 
 For both `format-exception` and `write-exception`, output of the stack trace is optional.
 
-### Leiningen
-If you use Leiningen, you can make `write-exception` the default stack trace printer. Just add the
-following to `~/.lein/profiles.clj`:
-```clj
-{:user {:dependencies [[io.aviso/pretty "0.1.6"]]
-        :injections [(let [orig (ns-resolve (doto 'clojure.stacktrace require)
-                                            'print-stack-trace)
-                           new (ns-resolve (doto 'io.aviso.exception require)
-                                           'write-exception)]
-                       (alter-var-root orig (constantly (deref new))))]}}
-```
-The :injections clause replaces the built-in stack trace printing function with `write-exception`.
-
 # io.aviso.columns
 
 The columns namespace is what's used by the exceptions namespace to format the exceptions, properties, and stack
