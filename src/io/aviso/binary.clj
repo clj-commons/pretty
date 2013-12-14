@@ -3,6 +3,7 @@
   (:import (java.lang StringBuilder))
   (:require [io.aviso
              [ansi :as ansi]
+             [columns :as c]
              [writer :as w]]))
 
 (defprotocol BinaryData
@@ -33,38 +34,84 @@
   (byte-at [this index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
 
 (def ^:private ^:const bytes-per-diff-line 16)
+(def ^:private ^:const bytes-per-ascii-line 16)
 (def ^:private ^:const bytes-per-line (* 2 bytes-per-diff-line))
 
+(def ^:private printable-chars
+      (into #{}
+            (map byte (str "abcdefghijklmnopqrstuvwyz"
+                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                           "0123456789"
+                           " !@#$%^&*()-_=+[]{}\\|'\";:,./<>?`~"))))
+
+(def ^:private nonprintable-placeholder (ansi/bold-magenta-bg " "))
+
+(defn- to-ascii [b]
+  (if (printable-chars b)
+    (char b)
+    nonprintable-placeholder))
+
 (defn- write-line
-  [writer offset data line-count]
-  (w/writef writer "%04X:" offset)
-  (doseq [i (range line-count)]
-    (w/writef writer " %02X" (byte-at data (+ offset i))))
-  (w/writeln writer))
+  [writer formatter write-ascii? offset data line-count]
+  (let [line-bytes (for [i (range line-count)]
+                     (byte-at data (+ offset i)))]
+    (formatter writer
+               (format "%04X" offset)
+               (apply str (interpose " "
+                            (map #(format "%02X" %) line-bytes)))
+               (if write-ascii?
+                 (apply str (map to-ascii line-bytes))))))
+
+(def ^:private standard-binary-columns
+  [4
+   ": "
+   :none])
+
+(def ^:private ascii-binary-columns
+  [4
+   ": "
+   48
+   "|"
+   16
+   "|"
+   ])
 
 (defn write-binary
   "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
 
-  0000: 4E 6F 77 20 69 73 20 74 68 65 20 74 69 6D 65 20 66 6F 72 20 61 6C 6C 20 67 6F 6F 64 20 6D 65 6E
-  0020: 20 74 6F 20 63 6F 6D 65 20 74 6F 20 74 68 65 20 61 69 64 20 6F 66 20 74 68 65 69 72 20 63 6F 75
-  0040: 6E 74 72 79
+  0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65
+  0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F 75 2E
 
-  (32 bytes per line)
+  The full version specifies:
+  - writer to which to write output
+  - data to write
+  - option keys and values; currently the only option is :ascii, which can be set to true for ASCII mode
 
-  ... that is, a four-byte offset, then up-to 32 bytes (depending on the length of the data)."
+  In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
+
+  0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C |Choose immutabil|
+  0010: 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65 |ity, and see whe|
+  0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F |re that takes yo|
+  0030: 75 2E                                           |u.              |
+
+  A placeholder character (a space with magenta background) is used for any non-printable
+  character."
   ([data]
    (write-binary *out* data))
-  ([writer data]
-   (loop [offset 0]
-     (let [remaining (- (data-length data) offset)]
-       (when (pos? remaining)
-         (write-line writer offset data (min bytes-per-line remaining))
-         (recur (+ bytes-per-line offset)))))))
+  ([writer data & {show-ascii? :ascii}]
+   (let [per-line (if show-ascii? bytes-per-ascii-line bytes-per-line)
+         formatter (apply c/format-columns
+                          (if show-ascii? ascii-binary-columns standard-binary-columns))]
+     (loop [offset 0]
+       (let [remaining (- (data-length data) offset)]
+         (when (pos? remaining)
+           (write-line writer formatter show-ascii? offset data (min per-line remaining))
+           (recur (+ per-line offset))))))))
 
 (defn format-binary
   "Formats the data as with write-binary and returns the result as a string."
-  [data]
-  (w/into-string write-binary data))
+  [data & options]
+  (apply w/into-string write-binary data options))
 
 (defn- match?
   [byte-offset data-length data alternate-length alternate]
