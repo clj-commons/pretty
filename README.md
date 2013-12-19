@@ -67,7 +67,9 @@ BinaryData is simply a randomly accessible collection of bytes, with a known len
 0020: 65 20 69 74 20 74 61 6B 65 73 20 79 6F 75 2E
 ```
 
-`write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as defined by `io.aviso.writer/Writer` protocol)
+`write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as defined by `io.aviso.writer/Writer` protocol).  The full version explicitly specified where to write to, as well as options:
+
+![](https://www.evernote.com/shard/s54/sh/4211f62b-dec6-4134-be0b-5c7f9261a84f/c488966c5ea16355ce50445401a965e9/deep/0/exception.clj----pretty----pretty------workspaces-annadale-pretty-.png)
 
 Alternately, `format-binary` will return the formatted binary output string.
 
