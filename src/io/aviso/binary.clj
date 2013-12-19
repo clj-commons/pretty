@@ -67,12 +67,12 @@
    ": "
    :none])
 
-(def ^:private ascii-binary-columns
+(defn- ascii-binary-columns [per-line]
   [4
    ": "
-   48
+   (* 3 per-line)
    "|"
-   16
+   per-line
    "|"
    ])
 
@@ -85,7 +85,9 @@
   The full version specifies:
   - writer to which to write output
   - data to write
-  - option keys and values; currently the only option is :ascii, which can be set to true for ASCII mode
+  - option keys and value
+    - :ascii boolean - true to enable ASCII mode
+    - :line-bytes - number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
 
   In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
 
@@ -98,10 +100,15 @@
   character."
   ([data]
    (write-binary *out* data))
-  ([writer data & {show-ascii? :ascii}]
-   (let [per-line (if show-ascii? bytes-per-ascii-line bytes-per-line)
+  ([writer data & {show-ascii? :ascii
+                   per-line-option :line-bytes}]
+   (let [per-line (or per-line-option
+                      (if show-ascii? bytes-per-ascii-line bytes-per-line))
          formatter (apply c/format-columns
-                          (if show-ascii? ascii-binary-columns standard-binary-columns))]
+                          (if show-ascii?
+                            (ascii-binary-columns per-line)
+                            standard-binary-columns))]
+     (assert (pos? per-line) "Must be at least one byte per line.")
      (loop [offset 0]
        (let [remaining (- (data-length data) offset)]
          (when (pos? remaining)
