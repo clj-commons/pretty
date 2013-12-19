@@ -213,15 +213,15 @@
   (pp/write value :stream nil :length (or *print-length* 10)))
 
 (defn write-exception
-  "Writes a formatted version of the exception to the writer. By default, writes to *out* and includes
+  "Writes a formatted version of the exception to the writer. By default, writes to *err* and includes
   the stack trace.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
-  This is to ensure that infinite lists do not cause exception writing to loop endlessly.
+  This is to ensure that infinite lists do not cause exceptions by writing endlessly.
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
-  ([exception] (write-exception *out* exception))
+  ([exception] (write-exception *err* exception))
   ([exception exception] (write-exception *out* exception true))
   ([writer exception stack-trace?]
    (let [exception-font (:exception *fonts*)
