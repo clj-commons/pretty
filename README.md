@@ -26,7 +26,9 @@ This namespace defines a number of functions and constants for producing [ANSI e
 (println (str "The following text will be " (bold-red "bold and red") "."))
 ```
 
-For each of the supported colors (black, red, green, yellow, blue, magenta, cyan, and white) there will be four functions and two constants:
+![](https://www.evernote.com/shard/s54/sh/117a76f7-9642-41b2-bb4f-35dfc72b9e43/c493c67632b35e2adac8e1f44ee30be6/deep/0/ansi.clj----pretty----pretty------workspaces-annadale-pretty-.png)
+
+For each of the supported colors (black, red, green, yellow, blue, magenta, cyan, and white) there will be four functions and four constants:
 
 * _color_ - function to set text color
 * _color_-bg - function to set background color
