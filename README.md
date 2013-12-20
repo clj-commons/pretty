@@ -149,6 +149,20 @@ The related function, `format-exception`, produces the same output, but returns 
 
 For both `format-exception` and `write-exception`, output of the stack trace is optional.
 
+# REPL and nREPL Support
+
+To enable pretty exceptions when using the REPL under [Leinigen](https://github.com/technomancy/leiningen), add the following
+to your project (or to `~/.lein/profiles.clj`):
+
+```clojure
+  :repl-options {
+    :nrepl-middleware [io.aviso.nrepl/pretty-middleware]
+  }
+```
+
+This adds nREPL middleware to enable pretty exception reporting. When exceptions occur in the REPL, they are printed out
+without a stack trace. The `clojure.repl/pst` function is overridden to print the exception _with_ a stack trace.
+
 # io.aviso.columns
 
 The columns namespace is what's used by the exceptions namespace to format the exceptions, properties, and stack
