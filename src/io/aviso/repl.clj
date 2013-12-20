@@ -29,6 +29,8 @@
 
   Caught exceptions do not print the stack trace; the pst replacement does."
   []
+  ;; TODO: Not exactly sure why this works, because clojure.main/repl should be resolving the var to its contained
+  ;; function, so the override should not be visible. I'm missing something.
   (reset-var! #'main/repl-caught pretty-repl-caught)
   (reset-var! #'repl/pst pretty-pst)
   nil)
