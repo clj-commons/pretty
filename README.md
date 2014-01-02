@@ -151,7 +151,7 @@ For both `format-exception` and `write-exception`, output of the stack trace is 
 
 # REPL and nREPL Support
 
-To enable pretty exceptions when using the REPL under [Leinigen](https://github.com/technomancy/leiningen), add the following
+To enable pretty exceptions when using the REPL under [leiningen](https://github.com/technomancy/leiningen), add the following
 to your project (or to `~/.lein/profiles.clj`):
 
 ```clojure
