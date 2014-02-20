@@ -194,19 +194,20 @@
                           (:function-name *fonts*) (last names) (:reset *fonts*))))))
 
 (defn- write-stack-trace
-  [writer exception]
+  [writer exception frame-limit]
   (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
-        formatter (c/format-columns [:right (c/max-value-length elements :formatted-name)]
+        elements' (if frame-limit (take frame-limit elements) elements)
+        formatter (c/format-columns [:right (c/max-value-length elements' :formatted-name)]
                                     "  " (:source *fonts*)
-                                    [:right (c/max-value-length elements :file)]
+                                    [:right (c/max-value-length elements' :file)]
                                     2
-                                    [:right (->> elements (map :line) (map str) c/max-length)]
+                                    [:right (->> elements' (map :line) (map str) c/max-length)]
                                     (:reset *fonts*))]
     (c/write-rows writer formatter [:formatted-name
                                     :file
                                     #(if (:line %) ": ")
                                     :line]
-                  elements)))
+                  elements')))
 
 (defn- format-property-value
   [value]
@@ -214,16 +215,19 @@
 
 (defn write-exception
   "Writes a formatted version of the exception to the writer. By default, writes to *out* and includes
-  the stack trace.
+  the stack trace, with no frame limit.
+
+  When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outer-most
+  stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
+  the exception stack).
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
   to configure pretty-printing; however, if *print-length* is left as its default (nil), the print length will be set to 10.
-  This is to ensure that infinite lists do not cause exceptions by writing endlessly.
+  This is to ensure that infinite lists do not cause endless output or other exceptions.
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception] (write-exception *out* exception))
-  ([writer exception & {stack-trace? :stack-trace
-                        :or          {stack-trace? true}}]
+  ([writer exception & {:keys [frame-limit]}]
    (let [exception-font (:exception *fonts*)
          message-font (:message *fonts*)
          property-font (:property *fonts*)
@@ -253,8 +257,8 @@
            (property-formatter writer
                                (str property-font k reset-font)
                                (-> properties (get k) format-property-value)))
-         (if (and stack-trace? (:root e))
-           (write-stack-trace writer exception)))))))
+         (if (:root e)
+           (write-stack-trace writer exception frame-limit)))))))
 
 (defn format-exception
   "Formats an exception as a multi-line string using write-exception."

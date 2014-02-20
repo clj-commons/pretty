@@ -5,7 +5,8 @@
   (:require
     [clojure
      [main :as main]
-     [repl :as repl]]))
+     [repl :as repl]
+     [stacktrace :as st]]))
 
 (defn- reset-var!
   [v override]
@@ -22,10 +23,15 @@
   ([] (pretty-pst *e))
   ([e] (write-exception e)))
 
+(defn pretty-print-stack-trace
+  "Replacement for clojure.stracktrace/print-stack-trace and print-cause-trace."
+  ([tr] (pretty-print-stack-trace tr nil))
+  ([tr n]
+   (write-exception *out* tr :frame-limit n)))
 
 (defn install-pretty-exceptions
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides
-  clojure.repl/pst.
+  clojure.repl/pst and clojure.stacktrace/.
 
   Caught exceptions do not print the stack trace; the pst replacement does."
   []
@@ -33,4 +39,6 @@
   ;; function, so the override should not be visible. I'm missing something.
   (reset-var! #'main/repl-caught pretty-repl-caught)
   (reset-var! #'repl/pst pretty-pst)
+  (reset-var! #'st/print-stack-trace pretty-print-stack-trace)
+  (reset-var! #'st/print-cause-trace pretty-print-stack-trace)
   nil)

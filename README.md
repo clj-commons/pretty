@@ -1,9 +1,10 @@
-Sometimes, neatness counts. 
+*Sometimes, neatness counts.*
+
 If you are trying to puzzle out a stack trace, 
 pick a critical line of text out of a long stream of console output,
 or compare two streams of binary data, a little bit of formatting can go a long way.
 
-Thats what _pretty_ is for.  It adds support for pretty output where it counts:
+That's what _pretty_ is for.  It adds support for pretty output where it counts:
 
 * ANSI font and background color support
 * Hex dump of binary data
@@ -147,7 +148,8 @@ or Java class and method, and the right columns presenting the file name and lin
 
 The related function, `format-exception`, produces the same output, but returns it as a string.
 
-For both `format-exception` and `write-exception`, output of the stack trace is optional.
+For both `format-exception` and `write-exception`, output of the stack trace is optional, or can be limited to a certain
+number of stack frames.
 
 # REPL and nREPL Support
 
@@ -162,6 +164,9 @@ to your project (or to `~/.lein/profiles.clj`):
 
 This adds nREPL middleware to enable pretty exception reporting. When exceptions occur in the REPL, they are printed out
 without a stack trace. The `clojure.repl/pst` function is overridden to print the exception _with_ a stack trace.
+
+In addition, `clojure.stacktrace/print-stack-trace` and `clojure.stacktrace/print-cause-trace` are overwritten; these
+are used by `clojure.test`.
 
 # io.aviso.columns
 
