@@ -227,7 +227,9 @@
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception] (write-exception *out* exception))
-  ([writer exception & {:keys [frame-limit]}]
+  ([writer exception & {show-properties? :properties
+                        frame-limit      :frame-limit
+                        :or              {show-properties? true}}]
    (let [exception-font (:exception *fonts*)
          message-font (:message *fonts*)
          property-font (:property *fonts*)
@@ -241,22 +243,23 @@
      (doseq [e exception-stack]
        (let [^Throwable exception (-> e :exception)
              class-name (:name e)
-             message (.getMessage exception)
-             properties (update-keys (:properties e) name)
-             prop-keys (keys properties)
-             ;; Allow for the width of the exception class name, and some extra
-             ;; indentation.
-             property-formatter (c/format-columns "    "
-                                                  [:right (c/max-length prop-keys)]
-                                                  ": "
-                                                  :none)]
+             message (.getMessage exception)]
          (exception-formatter writer
                               (str exception-font class-name reset-font)
                               (str message-font message reset-font))
-         (doseq [k (sort prop-keys)]
-           (property-formatter writer
-                               (str property-font k reset-font)
-                               (-> properties (get k) format-property-value)))
+         (when show-properties?
+           (let [properties (update-keys (:properties e) name)
+                 prop-keys (keys properties)
+                 ;; Allow for the width of the exception class name, and some extra
+                 ;; indentation.
+                 property-formatter (c/format-columns "    "
+                                                      [:right (c/max-length prop-keys)]
+                                                      ": "
+                                                      :none)]
+             (doseq [k (sort prop-keys)]
+               (property-formatter writer
+                                   (str property-font k reset-font)
+                                   (-> properties (get k) format-property-value)))))
          (if (:root e)
            (write-stack-trace writer exception frame-limit)))))))
 
