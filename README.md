@@ -74,7 +74,7 @@ Alternately, `format-binary` will return the formatted binary output string.
 
 You can also compare two binary data values with `write-binary-delta`:
 
-![](https://www.evernote.com/shard/s54/sh/dc407aa4-a81e-4851-abed-3ca2949efba1/dfa5d033da855b1a97dd899682ea01fd/deep/0/README.md%20-%20%5Bpretty%5D%20-%20pretty%20-%20%5B~/workspaces/annadale/pretty%5D%20and%20stages.clj%20-%20%5Bswitch%5D%20-%20nexus%20-%20%5B~/workspaces/annadale/nexus%5D.png)
+![](https://www.evernote.com/shard/s54/sh/05f24753-85e7-49a5-a3f1-99e5a2ba1208/b552e99f243ce5a2dc35a734379a0b9b/deep/0/io.aviso.binary----pretty----pretty------workspaces-annadale-pretty-.png)
 
 If the two data are of different lengths, the shorter one is padded with `--` to make up the difference.
 

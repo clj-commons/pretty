@@ -154,6 +154,7 @@
                         (min bytes-per-diff-line (- actual-length offset)))]
     (w/writef writer "%04X:" offset)
     (write-byte-deltas writer ansi/bold-green true offset expected-length expected actual-length actual)
+    (w/write writer " | ")
     (write-byte-deltas writer ansi/bold-red false offset actual-length actual expected-length expected)
     (w/writeln writer)))
 
