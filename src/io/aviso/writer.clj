@@ -19,7 +19,7 @@
 
 (extend-protocol StringWriter
   Writer
-  (write-string [this ^CharSequence string] (.print this string))
+  (write-string [this ^CharSequence string] (.append this string))
   (flush-writer [this] (.flush this)))
 
 (def ^:private endline
