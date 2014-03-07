@@ -12,22 +12,27 @@
   [v override]
   (alter-var-root v (constantly override)))
 
+(defn- write
+  [e & options]
+  (print (apply format-exception e options))
+  (flush))
+
 (defn pretty-repl-caught
   "A replacement for clojure.main/repl-caught that prints the exception to *err*, without a stack trace."
   [e]
-  (write-exception *out* e :stack-trace false))
+  (write e :stack-trace false))
 
 (defn pretty-pst
   "Used as an override of clojure.repl/pst but uses pretty formatting. The optional parameter must be an exception
   (it can not be a depth, as with the real pst)."
   ([] (pretty-pst *e))
-  ([e] (write-exception e)))
+  ([e] (write e)))
 
 (defn pretty-print-stack-trace
   "Replacement for clojure.stracktrace/print-stack-trace and print-cause-trace."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
-   (write-exception *out* tr :frame-limit n)))
+   (write tr :frame-limit n)))
 
 (defn install-pretty-exceptions
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides
