@@ -261,7 +261,8 @@
                                    (str property-font k reset-font)
                                    (-> properties (get k) format-property-value)))))
          (if (:root e)
-           (write-stack-trace writer exception frame-limit)))))))
+           (write-stack-trace writer exception frame-limit)))))
+   (w/flush-writer writer)))
 
 (defn format-exception
   "Formats an exception as a multi-line string using write-exception."
