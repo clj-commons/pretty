@@ -153,7 +153,8 @@ number of stack frames.
 
 # REPL and nREPL Support
 
-To enable pretty exceptions when using the REPL under [leiningen](https://github.com/technomancy/leiningen), add the following
+To enable pretty exceptions when using the REPL under [leiningen](https://github.com/technomancy/leiningen),
+add `io.aviso:pretty` as a dependency, then add the following
 to your project (or to `~/.lein/profiles.clj`):
 
 ```clojure
@@ -163,10 +164,11 @@ to your project (or to `~/.lein/profiles.clj`):
 ```
 
 This adds nREPL middleware to enable pretty exception reporting. When exceptions occur in the REPL, they are printed out
-without a stack trace. The `clojure.repl/pst` function is overridden to print the exception _with_ a stack trace.
+without a stack trace or properties. The `clojure.repl/pst` function is overridden to fully print the exception
+(_with_ properties and stack trace).
 
 In addition, `clojure.stacktrace/print-stack-trace` and `clojure.stacktrace/print-cause-trace` are overwritten; these
-are used by `clojure.test`.
+are used by `clojure.test`. Both do the same thing, print out the full exception.
 
 # io.aviso.columns
 
