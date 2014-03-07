@@ -18,9 +18,9 @@
   (flush))
 
 (defn pretty-repl-caught
-  "A replacement for clojure.main/repl-caught that prints the exception to *err*, without a stack trace."
+  "A replacement for clojure.main/repl-caught that prints the exception to *err*, without a stack trace or properties."
   [e]
-  (write e :stack-trace false))
+  (write e :frame-limit 0 :properties false))
 
 (defn pretty-pst
   "Used as an override of clojure.repl/pst but uses pretty formatting. The optional parameter must be an exception
