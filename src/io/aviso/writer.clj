@@ -22,7 +22,7 @@
   (write-string [this ^CharSequence string] (.append this string))
   (flush-writer [this] (.flush this)))
 
-(def ^:private endline
+(def eol
   "End-of-line terminator, platform specific."
   (System/getProperty "line.separator"))
 
@@ -41,7 +41,7 @@
   "Constructs a string from the values (with no seperator) and writes the string to the StringWriter,
   followed by an end-of-line terminator."
   ([writer]
-   (write-string writer endline)
+   (write-string writer eol)
    (flush-writer writer))
   ([writer & values]
    (apply write writer values)
