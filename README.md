@@ -66,7 +66,8 @@ BinaryData is simply a randomly accessible collection of bytes, with a known len
 0020: 65 20 69 74 20 74 61 6B 65 73 20 79 6F 75 2E
 ```
 
-`write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as defined by `io.aviso.writer/Writer` protocol).  The full version explicitly specified where to write to, as well as options:
+`write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as
+defined by `io.aviso.writer/StringWriter` protocol).  The full version explicitly specifies where to write to, as well as options:
 
 ![](https://www.evernote.com/shard/s54/sh/4211f62b-dec6-4134-be0b-5c7f9261a84f/c488966c5ea16355ce50445401a965e9/deep/0/exception.clj----pretty----pretty------workspaces-annadale-pretty-.png)
 
@@ -78,7 +79,7 @@ You can also compare two binary data values with `write-binary-delta`:
 
 If the two data are of different lengths, the shorter one is padded with `--` to make up the difference.
 
-As with `write-binary`, there's a `format-binary-delta`, and a three-argument version of `write-binary-delta` for specifying a Writer target.
+As with `write-binary`, there's a `format-binary-delta`, and a three-argument version of `write-binary-delta` for specifying a StringWriter target.
 
 ## io.aviso.exception
 
@@ -133,7 +134,13 @@ failed with ABC123
 	... 25 more
 ```
 
-... and here's the equivalent, via `write-exception`:
+On a good day, the exception messages will include all the details you need to resolve the problem ... even though
+Clojure encourages you to use a `ex-info` which puts important data into properties of the exception, which are not
+normally printed. Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out
+file names and line numbers, and to work backwards from mangled Java names to Clojure names. It's one more bit of cognitive
+load you just don't need in your day.
+
+Instead, here's the equivalent, via `write-exception`:
 
 ![](https://www.evernote.com/shard/s54/sh/9df8600b-adf2-4605-8298-48d78aa93dd7/e0fccbe84d3de74091ccc0fc3c70d411/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png)
 
