@@ -39,8 +39,8 @@ For each of the supported colors (black, red, green, yellow, blue, magenta, cyan
 The functions are passed a string and wrap the string with ANSI codes to enable an ANSI graphic representation for the text, with a reset after the text.
 
 Note that the exact color interpretation of the ANSI codes varies significantly between platforms and applications, and
-is frequently configurable, often using themes. You may need to adjust your application's settings to get an optimum
-display.
+is frequently configurable, often using themes.
+You may need to adjust your application's settings to get an optimum display.
 
 In addition there are functions `bold`, `inverse`, and `italic` and constants `bold-font`, `inverse-font`, `italic-font`, and `reset-font`.
 
@@ -67,7 +67,8 @@ BinaryData is simply a randomly accessible collection of bytes, with a known len
 ```
 
 `write-binary` can write to a `java.io.Writer` (defaulting to `*out*`) or a `StringBuilder`(or other things, as
-defined by `io.aviso.writer/StringWriter` protocol).  The full version explicitly specifies where to write to, as well as options:
+defined by `io.aviso.writer/StringWriter` protocol).
+The full version explicitly specifies where to write to, as well as options:
 
 ![](https://www.evernote.com/shard/s54/sh/4211f62b-dec6-4134-be0b-5c7f9261a84f/c488966c5ea16355ce50445401a965e9/deep/0/exception.clj----pretty----pretty------workspaces-annadale-pretty-.png)
 
@@ -136,17 +137,18 @@ failed with ABC123
 
 On a good day, the exception messages will include all the details you need to resolve the problem ... even though
 Clojure encourages you to use a `ex-info` which puts important data into properties of the exception, which are not
-normally printed. Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out
-file names and line numbers, and to work backwards from mangled Java names to Clojure names. It's one more bit of cognitive
-load you just don't need in your day.
+normally printed.
+Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out file names and line numbers,
+and to work backwards from mangled Java names to Clojure names.
+It's one more bit of cognitive load you just don't need in your day.
 
 Instead, here's the equivalent, via `write-exception`:
 
 ![](https://www.evernote.com/shard/s54/sh/9df8600b-adf2-4605-8298-48d78aa93dd7/e0fccbe84d3de74091ccc0fc3c70d411/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png)
 
-`write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception. It can navigate
-any property that returns a non-nil Throwable type, not just the rootCause property; this makes it properly expand older exceptions
-that do not set the rootCause property.
+`write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception.
+It can navigate any property that returns a non-nil Throwable type, not just the rootCause property;
+this makes it properly expand older exceptions that do not set the rootCause property.
 
 It displays the class name of each exception, its message, and any non-nil properties of the exception.
 
@@ -170,9 +172,9 @@ to your project (or to `~/.lein/profiles.clj`):
   }
 ```
 
-This adds nREPL middleware to enable pretty exception reporting. When exceptions occur in the REPL, they are printed out
-without a stack trace or properties. The `clojure.repl/pst` function is overridden to fully print the exception
-(_with_ properties and stack trace).
+This adds nREPL middleware to enable pretty exception reporting.
+When exceptions occur in the REPL, they are printed out without a stack trace or properties.
+The `clojure.repl/pst` function is overridden to fully print the exception (_with_ properties and stack trace).
 
 In addition, `clojure.stacktrace/print-stack-trace` and `clojure.stacktrace/print-cause-trace` are overwritten; these
 are used by `clojure.test`. Both do the same thing, print out the full exception.
@@ -187,8 +189,8 @@ Some column definitions are just a string to be written for that column, such as
 `format-columns` returns a function that accepts a StringWriter (such as `*out*`) and the column values.
 
 `write-rows` takes the function provided by `format-columns`, plus a set of functions to extract column values,
-plus a seq of rows. In most cases, the rows are maps, and the extraction functions are keywords (isn't Clojure
-magical that way?).
+plus a seq of rows.
+In most cases, the rows are maps, and the extraction functions are keywords (isn't Clojure magical that way?).
 
 Here's an example, from the exception namespace:
 
