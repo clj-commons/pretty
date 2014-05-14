@@ -1,7 +1,8 @@
-(ns user
-  (import (java.sql SQLException))
-  (use [io.aviso ansi binary exception]
+(ns user (import (java.sql SQLException))
+  (use [io.aviso ansi binary exception repl]
        [clojure test pprint]))
+
+(install-pretty-exceptions)
 
 (defn- jdbc-update
   []

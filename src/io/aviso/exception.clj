@@ -55,7 +55,6 @@
 (defn- expand-exception
   [^Throwable exception]
   (let [properties (bean exception)
-        cause (:cause properties)
         nil-property-keys (match-keys properties nil?)
         throwable-property-keys (match-keys properties #(.isInstance Throwable %))
         remove' #(remove %2 %1)
@@ -168,34 +167,73 @@
 
 (def ^:dynamic *fonts*
   "ANSI fonts for different elements in the formatted exception report."
-  {:exception     bold-red-font
-   :reset         reset-font
-   :message       italic-font
-   :property      bold-font
-   :source        green-font
-   :function-name bold-yellow-font
-   :clojure-frame yellow-font
-   :java-frame    white-font})
+  {:exception      bold-red-font
+   :reset          reset-font
+   :message        italic-font
+   :property       bold-font
+   :source         green-font
+   :function-name  bold-yellow-font
+   :clojure-frame  yellow-font
+   :java-frame     white-font
+   :omiitted-frame white-font})
 
 (defn- preformat-stack-frame
-  [element]
-  (let [names (:names element)]
-    (if (-> element :names empty?)
-      ;; Case 1: names is empty, it's a Java frame
-      (let [full-name (str (:class element) "." (:method element))]
-        (assoc element
-          :formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))))
-      ;; Case 2: it's a Clojure name
-      (assoc element
-        :formatted-name (str
-                          (:clojure-frame *fonts*)
-                          (->> names drop-last (str/join "/"))
-                          "/"
-                          (:function-name *fonts*) (last names) (:reset *fonts*))))))
+  [frame]
+  (cond
+    (:omitted frame)
+    (assoc frame :formatted-name (str (:omitted-frame *fonts*) "..." (:reset *fonts*))
+                 :file ""
+                 :line nil)
+
+    ;; When :names is empty, it's a Java (not Clojure) frame
+    (-> frame :names empty?)
+    (let [full-name (str (:class frame) "." (:method frame))
+          formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))]
+      (assoc frame
+        :formatted-name formatted-name))
+
+    :else
+    (let [names (:names frame)
+          formatted-name (str
+                           (:clojure-frame *fonts*)
+                           (->> names drop-last (str/join "/"))
+                           "/"
+                           (:function-name *fonts*) (last names) (:reset *fonts*))]
+      (assoc frame :formatted-name formatted-name))))
+
+(defn- apply-frame-filter
+  [frame-filter frames]
+  (if (nil? frame-filter)
+    frames
+    (loop [result []
+           [frame & more-frames] frames
+           omitting false]
+      (case (if frame (frame-filter frame) :terminate)
+
+        :terminate
+        result
+
+        :show
+        (recur (conj result frame)
+               more-frames
+               false)
+
+        :hide
+        (recur result more-frames omitting)
+
+        :omit
+        (if omitting
+          (recur result more-frames true)
+          (recur (conj result (assoc frame :omitted true))
+                 more-frames
+                 true))))))
 
 (defn- write-stack-trace
-  [writer exception frame-limit]
-  (let [elements (->> exception expand-stack-trace (map preformat-stack-frame))
+  [writer exception frame-limit frame-filter]
+  (let [elements (->> exception
+                      expand-stack-trace
+                      (apply-frame-filter frame-filter)
+                      (map preformat-stack-frame))
         elements' (if frame-limit (take frame-limit elements) elements)
         formatter (c/format-columns [:right (c/max-value-length elements' :formatted-name)]
                                     "  " (:source *fonts*)
@@ -217,19 +255,43 @@
   "Writes a formatted version of the exception to the writer. By default, writes to *out* and includes
   the stack trace, with no frame limit.
 
+  A frame filter may be specified; the frame filter is passed the stack frame maps; for each map
+  it may return one of :show, :hide, :omit, or :terminate.  A stack frame map will have keys :file, :line, :class,
+  :package, :simple-class, :method, :name, and :names.
+
+  :file, :class, :package, :simple-class, :method, and :name are all strings. :line is an integer.  :file and :line
+  are sometimes omitted.
+
+  :name is the Clojure name for the frame, or blank for a Java frame.  :names is a vector of
+  strings representing first the namespace name, then the top-level function name, then nested function names
+  (which are often \"fn\" for anonymous functions). This is broken out primarily for rendering (so that the
+  last function name can be presented in bold), but may still be useful.
+
+  :show is the normal state; display the stack frame.
+  :hide prevents the frame from being displayed, as if it never existed.
+  :omit replaces the frame with a \"...\" placeholder; multiple consecutive :omits will be collapsed to a single line.
+  Use :omit for \"uninteresting\" stack frames.
+  :terminate hides the frame AND all later frames.
+
+  The default is no filter; however the io.aviso.repl namespace does supply a standard filter.
+
   When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outer-most
   stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
-  the exception stack).
+  the exception stack).  The frame limit applies after the frame filter has been applied.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
   to configure pretty-printing; however, if *print-length* is left as its default (nil), the print length will be set to 10.
   This is to ensure that infinite lists do not cause endless output or other exceptions.
 
   The *fonts* var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
-  ([exception] (write-exception *out* exception))
-  ([writer exception & {show-properties? :properties
-                        frame-limit      :frame-limit
-                        :or              {show-properties? true}}]
+  ([exception]
+   (write-exception *out* exception))
+  ([writer exception]
+   (write-exception writer exception nil))
+  ([writer exception {show-properties? :properties
+                      frame-limit      :frame-limit
+                      frame-filter     :filter
+                      :or              {show-properties? true}}]
    (let [exception-font (:exception *fonts*)
          message-font (:message *fonts*)
          property-font (:property *fonts*)
@@ -261,10 +323,12 @@
                                    (str property-font k reset-font)
                                    (-> properties (get k) format-property-value)))))
          (if (:root e)
-           (write-stack-trace writer exception frame-limit)))))
+           (write-stack-trace writer exception frame-limit frame-filter)))))
    (w/flush-writer writer)))
 
 (defn format-exception
   "Formats an exception as a multi-line string using write-exception."
-  [exception & options]
-  (apply w/into-string write-exception exception options))
+  ([exception]
+   (format-exception exception nil))
+  ([exception options]
+   (w/into-string write-exception exception options)))
