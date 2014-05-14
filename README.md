@@ -183,7 +183,7 @@ The columns namespace is what's used by the exceptions namespace to format the e
 traces.
 
 The `format-columns` function is provided with a number of column definitions, each of which describes the width and justification of a column. 
-Some column definitions are just a string to be written for that column, such as a column seperator.
+Some column definitions are just a string to be written for that column, such as a column separator.
 `format-columns` returns a function that accepts a StringWriter (such as `*out*`) and the column values.
 
 `write-rows` takes the function provided by `format-columns`, plus a set of functions to extract column values,
