@@ -6,11 +6,11 @@
 (defprotocol StringWriter
   "May receive strings, which are printed, or stored.
 
-  Writer is extended onto java.lang.Appendable, a common interface implemented by both PrintWriter and StringBuilder (among
+  StringWriter is extended onto java.lang.Appendable, a common interface implemented by both PrintWriter and StringBuilder (among
   many others)"
 
-  (write-string [this string] "Writes the string to the Writer.")
-  (flush-writer [this] "Flushes output to the Writer, we appropriate."))
+  (write-string [this string] "Writes the string to the StringWriter.")
+  (flush-writer [this] "Flushes output to the StringWriter, where appropriate."))
 
 (extend-protocol StringWriter
   StringBuilder
