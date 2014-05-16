@@ -11,7 +11,7 @@
 (defn standard-frame-filter
   "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang` package,
   and terminates the stack trace at the read-eval-print loop frame. This tends to be very concise; you can use
-  `(write-exception *e)` to display the full stack trace."
+  `(io.aviso.exception/write-exception *e)` to display the full stack trace without filtering."
   [frame]
   (cond
     (-> frame :package (= "clojure.lang"))
@@ -33,25 +33,25 @@
   (flush))
 
 (defn pretty-repl-caught
-  "A replacement for clojure.main/repl-caught that prints the exception to *err*, without a stack trace or properties."
+  "A replacement for `clojure.main/repl-caught` that prints the exception to `*err*`, without a stack trace or properties."
   [e]
   (write e {:frame-limit 0 :properties false}))
 
 (defn pretty-pst
-  "Used as an override of clojure.repl/pst but uses pretty formatting. The optional parameter must be an exception
-  (it can not be a depth, as with the real pst)."
+  "Used as an override of `clojure.repl/pst` but uses pretty formatting. The optional parameter must be an exception
+  (it can not be a depth, as with the standard implementation of `pst`)."
   ([] (pretty-pst *e))
   ([e] (write e nil)))
 
 (defn pretty-print-stack-trace
-  "Replacement for clojure.stracktrace/print-stack-trace and print-cause-trace."
+  "Replacement for `clojure.stracktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
    (write tr {:frame-limit n})))
 
 (defn install-pretty-exceptions
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides
-  clojure.repl/pst and clojure.stacktrace/.
+  `clojure.repl/pst`, `clojure.stacktrace/print-stack-trace`, `clojure.stacktrace/print-cause-trace`.
 
   Caught exceptions do not print the stack trace; the pst replacement does."
   []

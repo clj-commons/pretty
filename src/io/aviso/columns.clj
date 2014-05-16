@@ -1,8 +1,8 @@
 (ns io.aviso.columns
-  "Assistance for formatting data into columns. Each columns has a width, and data within the column
+  "Assistance for formatting data into columns. Each column has a width, and data within the column
   may be left or right justified. Generally, columns are sized to the largest item in the column.
   When a value is provided in a column, it may be associated with an explicit width which is helpful
-  when the value contains non-printing characters (such as those defined in the io.aviso.ansi namespace)."
+  when the value contains non-printing characters (such as those defined in the `io.aviso.ansi` namespace)."
   (:require
     [clojure.string :as str]
     [io.aviso
@@ -90,19 +90,21 @@
   character or two, to seperate columns.
   - a number, to indicate a consuming column that outputs a left justified value of the given width.
   - a vector containing a keyword and a number; the number is the width, the keyword is the justification.
-  - :none, to indicate a consuming column with no explicit width
-  - nil, which is treated like an empty string
+  - `:none`, to indicate a consuming column with no explicit width
+  - `nil`, which is treated like an empty string
 
-  With explicit justification, the keyword may be :left, :right, or :none.  :left justification
-  pads the column with spaces after the value; :right justification pads the column with spaces
-  before the value. :none does not pad with spaces at all, and should only be used in the final column.
+  With explicit justification, the keyword may be `:left`, `:right`, or `:none`.
 
-  :left and :right justified columns will truncate long values; :left truncates from the right (e.g.,
-  display initial characters, discard trailing characters)
-  and :right truncates from the left (e.g., discards initial characters, display trailing characters).
+  * `:left` - Pads the column with spaces after the value. Truncates long values from the right, displaying
+  initial character and discarding trailing characters.
+
+  * `:right` - Pads the column with spaces before the value. Truncates long values from the left.
+
+  * `:none` - Does not pad with spaces at all, and should only be used in the final column.
+
   Generally speaking, truncation does not occur because columns are sized to fit their contents.
 
-  An column width is required for :left or :right. Column width is optional and ignored for :none.
+  A column width is required for `:left` or `:right`. Column width is optional and ignored for `:none`.
 
   Values are normally string, but any type is accepted and will be converted to a string.
   This code is aware of ANSI codes and ignores them to calculate the length of a value for formatting and
@@ -110,8 +112,8 @@
 
   There will likely be problems if a long string with ANSI codes is truncated, however.
 
-  The returned function accepts a Writer and the column values and writes each column value, with appropriate
-  padding, to the Writer."
+  The returned function accepts a `Writer` and the column values and writes each column value, with appropriate
+  padding, to the `Writer`."
   [& column-defs]
   (let [column-fns (map column-def-to-fn column-defs)]
     (fn [writer & column-values]
@@ -147,8 +149,8 @@
 (defn max-value-length
   "A convinience for computing the maximum length of one string property from a collection of values.
 
-  coll - collection of values
-  key - key that is passed one value and returns the property, typically a keyword when the values are maps"
+  - coll - collection of values
+  - key - key that is passed one value and returns the property, typically a keyword when the values are maps"
   [coll key]
   (max-length (map key coll)))
 

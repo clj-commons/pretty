@@ -1,10 +1,12 @@
 (ns io.aviso.ansi
   "Help with generating textual output that includes ANSI escape codes for formatting."
-  (:import [java.util.regex Pattern])
-  (:require [clojure.string :as str]))
+  (:import
+    [java.util.regex Pattern])
+  (:require
+    [clojure.string :as str]))
 
 (def ^:const csi
-  "The control sequence initiator: ESC ["
+  "The control sequence initiator: `ESC [`"
   "\u001b[")
 
 ;; select graphic rendition

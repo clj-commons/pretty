@@ -6,5 +6,5 @@
   ;; Normally we don't AOT compile; only when tracking down reflection warnings.
   :dependencies [[org.clojure/clojure "1.6.0"]]
   :codox {:src-dir-uri               "https://github.com/AvisoNovate/pretty/blob/master/"
-          :src-linenum-anchor-prefix "L"}
-  )
+          :src-linenum-anchor-prefix "L"
+          :defaults                  {:doc/format :markdown}})

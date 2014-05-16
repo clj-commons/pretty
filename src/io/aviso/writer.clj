@@ -6,11 +6,11 @@
 (defprotocol StringWriter
   "May receive strings, which are printed, or stored.
 
-  StringWriter is extended onto java.lang.Appendable, a common interface implemented by both PrintWriter and StringBuilder (among
+  `StringWriter` is extended onto `java.lang.Appendable`, a common interface implemented by both `PrintWriter` and `StringBuilder` (among
   many others)"
 
-  (write-string [this string] "Writes the string to the StringWriter.")
-  (flush-writer [this] "Flushes output to the StringWriter, where appropriate."))
+  (write-string [this string] "Writes the string to the `StringWriter`.")
+  (flush-writer [this] "Flushes output to the `StringWriter`, where supported."))
 
 (extend-protocol StringWriter
   StringBuilder
@@ -38,8 +38,8 @@
           (write writer value))))
 
 (defn writeln
-  "Constructs a string from the values (with no seperator) and writes the string to the StringWriter,
-  followed by an end-of-line terminator."
+  "Constructs a string from the values (with no seperator) and writes the string to the `StringWriter`,
+  followed by an end-of-line terminator, then flushes the writer."
   ([writer]
    (write-string writer eol)
    (flush-writer writer))
@@ -53,9 +53,9 @@
   (write-string writer (apply format fmt values)))
 
 (defn into-string
-  "Creates a StringBuilder and passes that as the first parameter to the function, along with the other parameters.
+  "Creates a `StringBuilder` and passes that as the first parameter to the function, along with the other parameters.
 
-  Returns the value of the StringBuilder after invoking the function."
+  Returns the value of the `StringBuilder` after invoking the function."
   [f & params]
   (let [sb (StringBuilder. 2000)]
     (apply f sb params)

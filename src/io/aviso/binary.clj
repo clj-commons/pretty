@@ -10,7 +10,7 @@
   "Allows various data sources to be treated as a byte-array data type that
   supports a length and random access to individual bytes.
 
-  BinaryData is extended onto byte arrays, onto String, and onto nil."
+  BinaryData is extended onto byte arrays, onto `String`, and onto `nil`."
 
   (data-length [this] "The total number of bytes available.")
   (byte-at [this index] "The byte value at a specific offset."))
@@ -79,22 +79,23 @@
 (defn write-binary
   "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
 
-  0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65
-  0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F 75 2E
+      0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65
+      0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F 75 2E
 
   The full version specifies:
+
   - writer to which to write output
   - data to write
-  - option keys and value
-    - :ascii boolean - true to enable ASCII mode
-    - :line-bytes - number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
+  - option keys and values:
+      - `:ascii` boolean - true to enable ASCII mode
+      - `:line-bytes` - number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
 
   In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
 
-  0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C |Choose immutabil|
-  0010: 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65 |ity, and see whe|
-  0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F |re that takes yo|
-  0030: 75 2E                                           |u.              |
+      0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C |Choose immutabil|
+      0010: 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65 |ity, and see whe|
+      0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F |re that takes yo|
+      0030: 75 2E                                           |u.              |
 
   A placeholder character (a space with magenta background) is used for any non-printable
   character."
@@ -116,7 +117,7 @@
            (recur (+ per-line offset))))))))
 
 (defn format-binary
-  "Formats the data as with write-binary and returns the result as a string."
+  "Formats the data using [write-binary][#var-write-binary] and returns the result as a string."
   [data & options]
   (apply w/into-string write-binary data options))
 
@@ -161,11 +162,11 @@
 (defn write-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
   that do not match are highlighted in green on the expected side, and red on the actual side.
-  When one side is shorter than the other, it is padded with -- placeholders to make this
+  When one side is shorter than the other, it is padded with `--` placeholders to make this
   more clearly visible.
 
-  expected - ByteData
-  actual - ByteData
+  - expected - `BinaryData`
+  - actual - `BinaryData`
 
   Display 16 bytes (from each data set) per line."
   ([expected actual] (write-binary-delta *out* expected actual))
@@ -179,14 +180,6 @@
          (recur (+ bytes-per-diff-line offset)))))))
 
 (defn format-binary-delta
-  "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
-  that do not match are highlighted in green on the expected side, and red on the actual side.
-  When one side is shorter than the other, it is padded with -- placeholders to make this
-  more clearly visible.
-
-  expected - BinaryData
-  actual - BinaryData
-
-  Display 16 bytes (from each data set) per line."
+  "Formattings the delta using [write-binary-delta](#var-write-binary-delta) and returns the result as a string."
   [expected actual]
   (w/into-string write-binary-delta expected actual))
