@@ -117,7 +117,7 @@
            (recur (+ per-line offset))))))))
 
 (defn format-binary
-  "Formats the data using [write-binary][#var-write-binary] and returns the result as a string."
+  "Formats the data using [write-binary](#var-write-binary) and returns the result as a string."
   [data & options]
   (apply w/into-string write-binary data options))
 
