@@ -117,7 +117,7 @@
            (recur (+ per-line offset))))))))
 
 (defn format-binary
-  "Formats the data using [write-binary](#var-write-binary) and returns the result as a string."
+  "Formats the data using [[write-binary]] and returns the result as a string."
   [data & options]
   (apply w/into-string write-binary data options))
 
@@ -151,13 +151,11 @@
 
 (defn- write-delta-line
   [writer offset expected-length ^bytes expected actual-length actual]
-  (let [line-count (max (min bytes-per-diff-line (- expected-length offset))
-                        (min bytes-per-diff-line (- actual-length offset)))]
-    (w/writef writer "%04X:" offset)
-    (write-byte-deltas writer ansi/bold-green true offset expected-length expected actual-length actual)
-    (w/write writer " | ")
-    (write-byte-deltas writer ansi/bold-red false offset actual-length actual expected-length expected)
-    (w/writeln writer)))
+  (w/writef writer "%04X:" offset)
+  (write-byte-deltas writer ansi/bold-green true offset expected-length expected actual-length actual)
+  (w/write writer " | ")
+  (write-byte-deltas writer ansi/bold-red false offset actual-length actual expected-length expected)
+  (w/writeln writer))
 
 (defn write-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
@@ -180,6 +178,6 @@
          (recur (+ bytes-per-diff-line offset)))))))
 
 (defn format-binary-delta
-  "Formattings the delta using [write-binary-delta](#var-write-binary-delta) and returns the result as a string."
+  "Formats the delta using [[write-binary-delta]] and returns the result as a string."
   [expected actual]
   (w/into-string write-binary-delta expected actual))
