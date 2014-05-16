@@ -91,7 +91,7 @@
   - a number, to indicate a consuming column that outputs a left justified value of the given width.
   - a vector containing a keyword and a number; the number is the width, the keyword is the justification.
   - `:none`, to indicate a consuming column with no explicit width
-  - `nil`, which is treated like an empty string
+  - nil, which is treated like an empty string
 
   With explicit justification, the keyword may be `:left`, `:right`, or `:none`.
 

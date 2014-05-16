@@ -273,10 +273,10 @@
   the exception stack).  The frame limit is applied after the frame filter.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
-  to configure pretty-printing; however, if `*print-length*` is left as its default (`nil`), the print length will be set to 10.
+  to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
   This is to ensure that infinite lists do not cause endless output or other exceptions.
 
-  The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to `nil` to remove ANSI formatting entirely."
+  The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception]
    (write-exception *out* exception))
   ([writer exception]
