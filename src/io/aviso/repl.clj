@@ -17,7 +17,7 @@
     (-> frame :package (= "clojure.lang"))
     :omit
 
-    (-> frame :name (.startsWith "clojure.main/repl/read-eval-print/"))
+    (.startsWith ^String (:name frame) "clojure.main/repl/read-eval-print/")
     :terminate
 
     :else
