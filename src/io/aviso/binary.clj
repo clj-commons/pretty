@@ -84,11 +84,15 @@
 
   The full version specifies:
 
-  - writer to which to write output
-  - data to write
+  - [[StringWriter]] to which to write output
+  - [[BinaryData]] to write
   - option keys and values:
-      - `:ascii` boolean - true to enable ASCII mode
-      - `:line-bytes` - number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
+
+      `:ascii` boolean
+      : true to enable ASCII mode
+
+      `:line-bytes` number
+      : number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
 
   In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
 
@@ -163,8 +167,7 @@
   When one side is shorter than the other, it is padded with `--` placeholders to make this
   more clearly visible.
 
-  - expected - `BinaryData`
-  - actual - `BinaryData`
+  expected and actual are [[BinaryData]].
 
   Display 16 bytes (from each data set) per line."
   ([expected actual] (write-binary-delta *out* expected actual))

@@ -7,7 +7,7 @@
   "May receive strings, which are printed, or stored.
 
   `StringWriter` is extended onto `java.lang.Appendable`, a common interface implemented by both `PrintWriter` and `StringBuilder` (among
-  many others)"
+  many others)."
 
   (write-string [this string] "Writes the string to the `StringWriter`.")
   (flush-writer [this] "Flushes output to the `StringWriter`, where supported."))

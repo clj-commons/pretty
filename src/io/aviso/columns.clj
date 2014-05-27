@@ -95,12 +95,15 @@
 
   With explicit justification, the keyword may be `:left`, `:right`, or `:none`.
 
-  * `:left` - Pads the column with spaces after the value. Truncates long values from the right, displaying
-  initial character and discarding trailing characters.
+  `:left`
+  : Pads the column with spaces after the value. Truncates long values from the right, displaying
+    initial character and discarding trailing characters.
 
-  * `:right` - Pads the column with spaces before the value. Truncates long values from the left.
+  `:right`
+  : Pads the column with spaces before the value. Truncates long values from the left.
 
-  * `:none` - Does not pad with spaces at all, and should only be used in the final column.
+  `:none`
+  : Does not pad with spaces at all, and should only be used in the final column.
 
   Generally speaking, truncation does not occur because columns are sized to fit their contents.
 
@@ -112,8 +115,8 @@
 
   There will likely be problems if a long string with ANSI codes is truncated, however.
 
-  The returned function accepts a `Writer` and the column values and writes each column value, with appropriate
-  padding, to the `Writer`."
+  The returned function accepts a [[StringWriter]] and the column values and writes each column value, with appropriate
+  padding, to the [[StringWriter]]."
   [& column-defs]
   (let [column-fns (map column-def-to-fn column-defs)]
     (fn [writer & column-values]
@@ -129,7 +132,7 @@
 (defn write-rows
   "A convienience for writing rows of columns using a prepared column formatter.
 
-  - writer - target of output
+  - writer - [[StringWriter]] target of output
   - column-formatter - formatter function created by format-columns
   - extractors - seq of functions that extract a column value from a row; typically a keyword when the row is a map
   - row-data - a seq of row data"
