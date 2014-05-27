@@ -9,19 +9,27 @@
      [stacktrace :as st]]))
 
 (defn standard-frame-filter
-  "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang` package,
+  "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang`
+  and `java.lang.reflect` package, hide frames in the `sun.reflect` package,
   and terminates the stack trace at the read-eval-print loop frame. This tends to be very concise; you can use
   `(io.aviso.exception/write-exception *e)` to display the full stack trace without filtering."
   [frame]
-  (cond
-    (-> frame :package (= "clojure.lang"))
-    :omit
+  (let [package (-> frame :package str)]
+    (cond
+      (= package "clojure.lang")
+      :omit
 
-    (.startsWith ^String (:name frame) "clojure.main/repl/read-eval-print/")
-    :terminate
+      (.startsWith package "sun.reflect")
+      :hide
 
-    :else
-    :show))
+      (= package "java.lang.reflect")
+      :omit
+
+      (.startsWith ^String (:name frame) "clojure.main/repl/read-eval-print")
+      :terminate
+
+      :else
+      :show)))
 
 (defn- reset-var!
   [v override]
