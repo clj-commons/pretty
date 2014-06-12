@@ -1,3 +1,5 @@
+[![Clojars Project](http://clojars.org/io.aviso/pretty/latest-version.svg)](http://clojars.org/io.aviso/pretty)
+
 *Sometimes, neatness counts.*
 
 If you are trying to puzzle out a stack trace, 
@@ -13,9 +15,6 @@ That's what _pretty_ is for.  It adds support for pretty output where it counts:
 * Formatting data into columns
 
 pretty is released under the terms of the Apache Software License 2.0.
-
-pretty is available from the Clojars artifact repository as `io.aviso:pretty`.
-Follow [these instructions](https://clojars.org/io.aviso/pretty) to configure the dependency in your build tool.
 
 [API Documentation](http://howardlewisship.com/io.aviso/pretty/)
 
