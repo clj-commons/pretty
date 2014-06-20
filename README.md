@@ -8,10 +8,10 @@ or compare two streams of binary data, a little bit of formatting can go a long 
 
 That's what _pretty_ is for.  It adds support for pretty output where it counts:
 
+* Readable output for exceptions
 * ANSI font and background color support
 * Hex dump of binary data
 * Hex dump of binary deltas
-* Readable output for exceptions
 * Formatting data into columns
 
 pretty is released under the terms of the Apache Software License 2.0.
