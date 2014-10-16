@@ -1,0 +1,11 @@
+{:name        "Pretty Manual"
+ :description "Sometimes, neatness counts."
+ :github      "AvisoNovate/pretty"
+ :api         "http://howardlewisship.com/io.aviso/pretty"
+ :pages       ["index"Move
+               "exceptions"
+               "repl"
+               "ansi"
+               "binary"
+               "columns"
+               ]}

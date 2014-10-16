@@ -1,0 +1,11 @@
+docs:
+    - "*/*.ad|jinja|yamlargs|asciidoctor|soups":
+        - asciidoctor: { ext : .html , args: '-s' }
+        - apply-ws-to-content: True
+        - code
+
+meta:
+    - "*/meta.edn":
+        - output: True
+code:
+    - "*/*.clj"

@@ -1,0 +1,78 @@
+title: Exceptions
+---
+
+Exceptions in Clojure are extremely painful for many reasons:
+
+* They are often nested (wrapped and rethrown)
+* Stack frames reference the JVM class for Clojure functions, leaving the user to de-mangle the name back to the Clojure name
+* Stack traces are output for every exception, which clogs output without providing useful detail
+* Stack traces are often truncated, requiring the user to manually re-assemble the stack trace from several pieces
+* Many stack frames represent implementation details of Clojure that are not relevant
+
+This is addressed by the `write-exception` function; it take an exception formats it neatly to a Writer, again `*out*` by default.
+
+This is best explained by example; here's a `SQLException` wrapped inside two `RuntimeException`s, and printed normally:
+
+```
+(.printStackTrace e)
+java.lang.RuntimeException: Request handling exception
+  at user$make_exception.invoke(user.clj:30)
+  at user$eval1322.invoke(NO_SOURCE_FILE:1)
+  at clojure.lang.Compiler.eval(Compiler.java:6619)
+  at clojure.lang.Compiler.eval(Compiler.java:6582)
+  at clojure.core$eval.invoke(core.clj:2852)
+  at clojure.main$repl$read_eval_print__6588$fn__6591.invoke(main.clj:259)
+  at clojure.main$repl$read_eval_print__6588.invoke(main.clj:259)
+  at clojure.main$repl$fn__6597.invoke(main.clj:277)
+  at clojure.main$repl.doInvoke(main.clj:277)
+  at clojure.lang.RestFn.invoke(RestFn.java:1096)
+  at clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__808.invoke(interruptible_eval.clj:56)
+  at clojure.lang.AFn.applyToHelper(AFn.java:159)
+  at clojure.lang.AFn.applyTo(AFn.java:151)
+  at clojure.core$apply.invoke(core.clj:617)
+  at clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)
+  at clojure.lang.RestFn.invoke(RestFn.java:425)
+  at clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:41)
+  at clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__849$fn__852.invoke(interruptible_eval.clj:171)
+  at clojure.core$comp$fn__4154.invoke(core.clj:2330)
+  at clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__842.invoke(interruptible_eval.clj:138)
+  at clojure.lang.AFn.run(AFn.java:24)
+  at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1110)
+  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:603)
+  at java.lang.Thread.run(Thread.java:722)
+Caused by: java.lang.RuntimeException: Failure updating row
+  at user$update_row.invoke(user.clj:22)
+  ... 24 more
+Caused by: java.sql.SQLException: Database failure
+SELECT FOO, BAR, BAZ
+FROM GNIP
+failed with ABC123
+  at user$jdbc_update.invoke(user.clj:6)
+  at user$make_jdbc_update_worker$reify__214.do_work(user.clj:17)
+  ... 25 more
+```
+
+On a good day, the exception messages will include all the details you need to resolve the problem ... even though
+Clojure encourages you to use a `ex-info` which puts important data into properties of the exception, which are not
+normally printed.
+Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out file names and line numbers,
+and to work backwards from mangled Java names to Clojure names.
+It's one more bit of cognitive load you just don't need in your day.
+
+
+Instead, here's the equivalent, via `io.aviso.exception/write-exception`:
+
+image::https://www.evernote.com/shard/s54/sh/9df8600b-adf2-4605-8298-48d78aa93dd7/e0fccbe84d3de74091ccc0fc3c70d411/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png[]
+
+`write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception.
+It can navigate any property that returns a non-nil Throwable type, not just the rootCause property;
+this makes it properly expand older exceptions that do not set the rootCause property.
+
+It displays the class name of each exception, its message, and any non-nil properties of the exception.
+
+The all-important stack trace is carefully formatted for readability, with the left-most column identifying Clojure functions
+or Java class and method, and the right columns presenting the file name and line number.
+
+The related function, `format-exception`, produces the same output, but returns it as a string.
+
+For both `format-exception` and `write-exception`, output of the stack trace is optional, or can be limited to a certain number of stack frames ... it can even be filtered by supplying a function.
