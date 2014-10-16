@@ -2,7 +2,7 @@
  :description "Sometimes, neatness counts."
  :github      "AvisoNovate/pretty"
  :api         "http://howardlewisship.com/io.aviso/pretty"
- :pages       ["index"Move
+ :pages       ["index"
                "exceptions"
                "repl"
                "ansi"
