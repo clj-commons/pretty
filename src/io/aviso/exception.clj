@@ -270,9 +270,17 @@
                                     :line]
                   elements')))
 
+(defmulti exception-dispatch
+  "The pretty print dispatch function used by exception."
+  class)
+
+(let [f (.getDeclaredField clojure.lang.MultiFn "methodTable")]
+  (.setAccessible f true)
+  (.set f exception-dispatch (methods pp/simple-dispatch)))
+
 (defn- format-property-value
   [value]
-  (pp/write value :stream nil :length (or *print-length* 10)))
+  (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
 
 (defn write-exception
   "Writes a formatted version of the exception to the [[StringWriter]]. By default, writes to `*out*` and includes
