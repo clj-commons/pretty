@@ -8,3 +8,6 @@ pom.xml
 .idea/
 doc
 .dexy
+.lein-failures
+.lein-repl-history
+.nrepl-port
