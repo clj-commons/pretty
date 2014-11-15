@@ -1,15 +1,18 @@
 (ns io.aviso.exception
   "Format and present exceptions in pretty (structured, formatted) way."
-  (:import [java.lang StringBuilder StackTraceElement]
-           [clojure.lang Compiler])
+  (:import
+    [java.lang StringBuilder StackTraceElement]
+    [clojure.lang Compiler MultiFn]
+    [java.lang.reflect Field])
   (:use io.aviso.ansi)
-  (:require [clojure
-             [pprint :as pp]
-             [set :as set]
-             [string :as str]]
-            [io.aviso
-             [columns :as c]
-             [writer :as w]]))
+  (:require
+    [clojure
+     [pprint :as pp]
+     [set :as set]
+     [string :as str]]
+    [io.aviso
+     [columns :as c]
+     [writer :as w]]))
 
 (defn- length [^String s] (.length s))
 
@@ -205,15 +208,15 @@
   (cond
     (:omitted frame)
     (assoc frame :formatted-name (str (:omitted-frame *fonts*) "..." (:reset *fonts*))
-                 :file ""
-                 :line nil)
+           :file ""
+           :line nil)
 
     ;; When :names is empty, it's a Java (not Clojure) frame
     (-> frame :names empty?)
     (let [full-name (str (:class frame) "." (:method frame))
           formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))]
       (assoc frame
-        :formatted-name formatted-name))
+             :formatted-name formatted-name))
 
     :else
     (let [names (:names frame)
@@ -271,10 +274,27 @@
                   elements')))
 
 (defmulti exception-dispatch
-  "The pretty print dispatch function used by exception."
-  class)
+          "The pretty print dispatch function used when formatting exception output (specifically, when
+          printing the properties of an exception). Normally, this is the same as the simple-dispatch
+          (in clojure.pprint) but can be extended for specific cases:
 
-(let [f (.getDeclaredField clojure.lang.MultiFn "methodTable")]
+              (import com.stuartsierra.component.SystemMap)
+
+              (defmethod exception-dispatch SystemMap [system-map] (print \"#<SystemMap>\"))
+
+          This ensures that the SystemMap record, wherever it appears in the exception output,
+          is represented as the string `#<SystemMap>`; normally it would print as a deeply nested
+          set of maps.
+
+          This same approach can be adapted to any class or type whose structure is problematic
+          for presenting in the exception output, whether for size and complexity reasons, or due to
+          security concerns."
+          class)
+
+;; Not totally happy about this approach as it feels a bit hackish, and has the problem that it
+;; takes a snapshot of pp/simple-dispatch *at some point*.
+
+(let [^Field f (.getDeclaredField MultiFn "methodTable")]
   (.setAccessible f true)
   (.set f exception-dispatch (methods pp/simple-dispatch)))
 
