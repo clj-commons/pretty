@@ -30,8 +30,8 @@
 
 (extend-type nil
   BinaryData
-  (data-length [this] 0)
-  (byte-at [this index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
+  (data-length [_] 0)
+  (byte-at [_ index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
 
 (def ^:private ^:const bytes-per-diff-line 16)
 (def ^:private ^:const bytes-per-ascii-line 16)
@@ -39,7 +39,7 @@
 
 (def ^:private printable-chars
       (into #{}
-            (map byte (str "abcdefghijklmnopqrstuvwyz"
+            (map byte (str "abcdefghijklmnopqrstuvwxyz"
                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                            "0123456789"
                            " !@#$%^&*()-_=+[]{}\\|'\";:,./<>?`~"))))
