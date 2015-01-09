@@ -1,3 +1,7 @@
+## 0.1.14 - 9 Jan 2014
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=is%3Aissue+milestone%3A0.1.14+is%3Aclosed)
+
 ## 0.1.13 - 14 Nov 2014
 
 It is now possible to control how particular types are formatted when printing the
