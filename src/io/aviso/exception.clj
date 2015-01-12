@@ -201,7 +201,7 @@
    :function-name  bold-yellow-font
    :clojure-frame  yellow-font
    :java-frame     white-font
-   :omiitted-frame white-font})
+   :omitted-frame white-font})
 
 (defn- preformat-stack-frame
   [frame]
