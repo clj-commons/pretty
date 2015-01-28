@@ -24,7 +24,7 @@ package, and terminates output when the frames for the REPL are reached.
 
 ## 0.1.11 - 14 May 2014
 
-It is not possible to specify a _filter_ for stack frames in the exception output.
+It is now possible to specify a _filter_ for stack frames in the exception output.
 Frames can be hidden (not displayed at all), or omitted (replaced with '...').
 
 This can remove _significant_ clutter from the exception output, making it that much easier
