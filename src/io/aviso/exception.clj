@@ -1,18 +1,16 @@
 (ns io.aviso.exception
   "Format and present exceptions in pretty (structured, formatted) way."
-  (:import
-    [java.lang StringBuilder StackTraceElement]
-    [clojure.lang Compiler MultiFn]
-    [java.lang.reflect Field])
   (:use io.aviso.ansi)
-  (:require
-    [clojure
-     [pprint :as pp]
-     [set :as set]
-     [string :as str]]
-    [io.aviso
-     [columns :as c]
-     [writer :as w]]))
+  (:require [clojure
+             [pprint :as pp]
+             [set :as set]
+             [string :as str]]
+            [io.aviso
+             [columns :as c]
+             [writer :as w]])
+  (:import [java.lang StringBuilder StackTraceElement]
+           [clojure.lang Compiler MultiFn]
+           [java.lang.reflect Field]))
 
 (defn- length [^String s] (.length s))
 
@@ -193,14 +191,14 @@
 
 (def ^:dynamic *fonts*
   "ANSI fonts for different elements in the formatted exception report."
-  {:exception      bold-red-font
-   :reset          reset-font
-   :message        italic-font
-   :property       bold-font
-   :source         green-font
-   :function-name  bold-yellow-font
-   :clojure-frame  yellow-font
-   :java-frame     white-font
+  {:exception     bold-red-font
+   :reset         reset-font
+   :message       italic-font
+   :property      bold-font
+   :source        green-font
+   :function-name bold-yellow-font
+   :clojure-frame yellow-font
+   :java-frame    white-font
    :omitted-frame white-font})
 
 (defn- preformat-stack-frame
@@ -208,15 +206,15 @@
   (cond
     (:omitted frame)
     (assoc frame :formatted-name (str (:omitted-frame *fonts*) "..." (:reset *fonts*))
-           :file ""
-           :line nil)
+                 :file ""
+                 :line nil)
 
     ;; When :names is empty, it's a Java (not Clojure) frame
     (-> frame :names empty?)
     (let [full-name (str (:class frame) "." (:method frame))
           formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))]
       (assoc frame
-             :formatted-name formatted-name))
+        :formatted-name formatted-name))
 
     :else
     (let [names (:names frame)
@@ -335,50 +333,50 @@
 
   The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception]
-   (write-exception *out* exception))
+    (write-exception *out* exception))
   ([writer exception]
-   (write-exception writer exception nil))
+    (write-exception writer exception nil))
   ([writer exception {show-properties? :properties
                       frame-limit      :frame-limit
                       frame-filter     :filter
                       :or              {show-properties? true}}]
-   (let [exception-font (:exception *fonts*)
-         message-font (:message *fonts*)
-         property-font (:property *fonts*)
-         reset-font (:reset *fonts* "")
-         exception-stack (->> exception
-                              analyze-exception
-                              (map #(assoc % :name (-> % :exception class .getName))))
-         exception-formatter (c/format-columns [:right (c/max-value-length exception-stack :name)]
-                                               ": "
-                                               :none)]
-     (doseq [e exception-stack]
-       (let [^Throwable exception (-> e :exception)
-             class-name (:name e)
-             message (.getMessage exception)]
-         (exception-formatter writer
-                              (str exception-font class-name reset-font)
-                              (str message-font message reset-font))
-         (when show-properties?
-           (let [properties (update-keys (:properties e) name)
-                 prop-keys (keys properties)
-                 ;; Allow for the width of the exception class name, and some extra
-                 ;; indentation.
-                 property-formatter (c/format-columns "    "
-                                                      [:right (c/max-length prop-keys)]
-                                                      ": "
-                                                      :none)]
-             (doseq [k (sort prop-keys)]
-               (property-formatter writer
-                                   (str property-font k reset-font)
-                                   (-> properties (get k) format-property-value)))))
-         (if (:root e)
-           (write-stack-trace writer exception frame-limit frame-filter)))))
-   (w/flush-writer writer)))
+    (let [exception-font (:exception *fonts*)
+          message-font (:message *fonts*)
+          property-font (:property *fonts*)
+          reset-font (:reset *fonts* "")
+          exception-stack (->> exception
+                               analyze-exception
+                               (map #(assoc % :name (-> % :exception class .getName))))
+          exception-formatter (c/format-columns [:right (c/max-value-length exception-stack :name)]
+                                                ": "
+                                                :none)]
+      (doseq [e exception-stack]
+        (let [^Throwable exception (-> e :exception)
+              class-name (:name e)
+              message (.getMessage exception)]
+          (exception-formatter writer
+                               (str exception-font class-name reset-font)
+                               (str message-font message reset-font))
+          (when show-properties?
+            (let [properties (update-keys (:properties e) name)
+                  prop-keys (keys properties)
+                  ;; Allow for the width of the exception class name, and some extra
+                  ;; indentation.
+                  property-formatter (c/format-columns "    "
+                                                       [:right (c/max-length prop-keys)]
+                                                       ": "
+                                                       :none)]
+              (doseq [k (sort prop-keys)]
+                (property-formatter writer
+                                    (str property-font k reset-font)
+                                    (-> properties (get k) format-property-value)))))
+          (if (:root e)
+            (write-stack-trace writer exception frame-limit frame-filter)))))
+    (w/flush-writer writer)))
 
 (defn format-exception
   "Formats an exception as a multi-line string using [[write-exception]]."
   ([exception]
-   (format-exception exception nil))
+    (format-exception exception nil))
   ([exception options]
-   (w/into-string write-exception exception options)))
+    (w/into-string write-exception exception options)))
