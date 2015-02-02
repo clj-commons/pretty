@@ -1,4 +1,4 @@
-## 0.1.15 - UNRELEASED
+## 0.1.15 - 2 Feb 2015
 
 Starting in this release, the exception report layout has changed significantly; however, the old
 behavior is still available via the io.aviso.exceptions/*traditional* dynamic var.
