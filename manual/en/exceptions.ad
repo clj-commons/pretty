@@ -59,20 +59,23 @@ Meanwhile, you will have to mentally scan and parse the above text explosion, to
 and to work backwards from mangled Java names to Clojure names.
 It's one more bit of cognitive load you just don't need in your day.
 
+Instead, here's the equivalent, using a _hooked_ version of Clojure's *pst*, modified to use io.aviso.exception/write-exception.
 
-Instead, here's the equivalent, via `io.aviso.exception/write-exception`:
+image::images/example-exception.png[]
 
-image::https://www.evernote.com/shard/s54/sh/9df8600b-adf2-4605-8298-48d78aa93dd7/e0fccbe84d3de74091ccc0fc3c70d411/deep/0/README.md----pretty----pretty------workspaces-annadale-pretty-.png[]
+`write-exception` flips around the traditional order, providing a chronologically sequential view:
 
-`write-exception` navigates down the exception hierarchy; it only presents the stack trace for the deepest, or root, exception.
-It can navigate any property that returns a non-nil Throwable type, not just the rootCause property;
-this makes it properly expand older exceptions that do not set the rootCause property.
+* The stack trace leading to the root exception comes first, and is ordered outermost frame to innermost frame.
 
-It displays the class name of each exception, its message, and any non-nil properties of the exception.
+* The exception stack comes after the stack trace, and is ordered root exception (innermost) to outermost, reflecting how the
+  stack has unwound, and the root exception was wrapped in new exceptions and rethrown.
 
-The all-important stack trace is carefully formatted for readability, with the left-most column identifying Clojure functions
+The stack trace is carefully formatted for readability, with the left-most column identifying Clojure functions
 or Java class and method, and the right columns presenting the file name and line number.
+
+The stack frames themselves are filtered to remove details that are not relevant.
+This filtering is via an optional function, so you can define filters that make sense for your code.
 
 The related function, `format-exception`, produces the same output, but returns it as a string.
 
-For both `format-exception` and `write-exception`, output of the stack trace is optional, or can be limited to a certain number of stack frames ... it can even be filtered by supplying a function.
+For both `format-exception` and `write-exception`, output of the stack trace is optional, or can be limited to a certain number of stack frames.

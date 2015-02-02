@@ -3,6 +3,7 @@ docs:
         - asciidoctor: { ext : .html , args: '-s' }
         - apply-ws-to-content: True
         - code
+        - "*/*.png"
 
 meta:
     - "*/meta.edn":

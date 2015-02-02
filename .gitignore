@@ -12,3 +12,4 @@ doc
 .lein-repl-history
 .nrepl-port
 pom.xml*
+manual/output-site
