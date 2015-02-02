@@ -3,6 +3,9 @@
 Starting in this release, the exception report layout has changed significantly; however, the old
 behavior is still available via the io.aviso.exceptions/*traditional* dynamic var.
 
+A new namespace, io.aviso.logging, includes code to setup clojure.tools.logging to make use of pretty
+exception output.
+
 [Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.15+is%3Aclosed)
 
 ## 0.1.14 - 9 Jan 2015

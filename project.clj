@@ -4,7 +4,8 @@
             :license {:name "Apache Sofware License 2.0"
                       :url  "http://www.apache.org/licenses/LICENSE-2.0.html"}
             ;; Normally we don't AOT compile; only when tracking down reflection warnings.
-            :dependencies [[org.clojure/clojure "1.6.0"]]
+            :dependencies [[org.clojure/clojure "1.6.0"]
+                           [org.clojure/tools.logging "0.3.1" :optional true]]
             :plugins [[lein-shell "0.4.0"]]
             :shell {:commands {"scp" {:dir "doc"}}}
             :aliases {"deploy-doc" ["shell"

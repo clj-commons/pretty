@@ -81,3 +81,13 @@ This filtering is via an optional function, so you can define filters that make 
 The related function, `format-exception`, produces the same output, but returns it as a string.
 
 For both `format-exception` and `write-exception`, output of the stack trace is optional, or can be limited to a certain number of stack frames.
+
+== io.aviso.repl
+
+This namespace includes a function, install-pretty-exceptions, used to
+hooks into all the common ways that exceptions are output in Clojure and redirects them to use write-exception.
+
+== io.aviso.logging
+
+This namespace includes functions to change clojure.tools.logging to use Pretty to output exceptions, and to add a
+default Thread.UncaughtExceptionHandler that uses clojure.tools.logging.
