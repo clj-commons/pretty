@@ -59,9 +59,11 @@ Meanwhile, you will have to mentally scan and parse the above text explosion, to
 and to work backwards from mangled Java names to Clojure names.
 It's one more bit of cognitive load you just don't need in your day.
 
-Instead, here's the equivalent, using a _hooked_ version of Clojure's *pst*, modified to use io.aviso.exception/write-exception.
+Instead, here's the equivalent, using a _hooked_ version of Clojure's *clojure.repl/pst*, modified to use write-exception.
 
 image::images/example-exception.png[]
+
+As you can see, this lets you focus in on the exact cause and location of your problem.
 
 `write-exception` flips around the traditional order, providing a chronologically sequential view:
 
