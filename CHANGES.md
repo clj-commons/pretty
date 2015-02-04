@@ -1,3 +1,5 @@
+## 0.1.17 - UNRELEASED
+
 ## 0.1.16 - 4 Feb 2015
 
 io.aviso.exception/*default-frame-filter* has been added, and acts as the default frame filter for
