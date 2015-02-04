@@ -91,6 +91,31 @@
       :properties retained-properties}
      nested-exception]))
 
+
+(defn *default-frame-filter*
+  "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang`
+  and `java.lang.reflect` package, hide frames in the `sun.reflect` package,
+  and terminates the stack trace at the read-eval-print loop frame."
+  {:added   "0.1.16"
+   :dynamic true}
+  [frame]
+  (let [package (-> frame :package str)]
+    (cond
+      (= package "clojure.lang")
+      :omit
+
+      (.startsWith package "sun.reflect")
+      :hide
+
+      (= package "java.lang.reflect")
+      :omit
+
+      (.startsWith ^String (:name frame) "clojure.main/repl/read-eval-print")
+      :terminate
+
+      :else
+      :show)))
+
 (defn analyze-exception
   "Converts an exception into a seq of maps representing nested exceptions. Each map
   contains:
@@ -344,7 +369,7 @@
   `:terminate`
   : hides the frame AND all later frames.
 
-  The default is no filter; however the `io.aviso.repl` namespace does supply a standard filter.
+  The default filter is [[*default-frame-filter*]].  An explicit filter of nil will display all stack frames.
 
   When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outermost
   stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
@@ -362,7 +387,8 @@
   ([writer exception {show-properties? :properties
                       frame-limit      :frame-limit
                       frame-filter     :filter
-                      :or              {show-properties? true}}]
+                      :or              {show-properties? true
+                                        frame-filter     *default-frame-filter*}}]
     (let [exception-font (:exception *fonts*)
           message-font (:message *fonts*)
           property-font (:property *fonts*)

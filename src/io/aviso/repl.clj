@@ -1,35 +1,17 @@
 (ns io.aviso.repl
   "Utilities to assist with REPL-oriented development"
   (:use
-    [io.aviso.exception])
+  [io.aviso.exception])
   (:require
     [clojure
      [main :as main]
      [repl :as repl]
      [stacktrace :as st]]))
 
-(defn standard-frame-filter
-  "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang`
-  and `java.lang.reflect` package, hide frames in the `sun.reflect` package,
-  and terminates the stack trace at the read-eval-print loop frame. This tends to be very concise; you can use
-  `(io.aviso.exception/write-exception *e)` to display the full stack trace without filtering."
-  [frame]
-  (let [package (-> frame :package str)]
-    (cond
-      (= package "clojure.lang")
-      :omit
-
-      (.startsWith package "sun.reflect")
-      :hide
-
-      (= package "java.lang.reflect")
-      :omit
-
-      (.startsWith ^String (:name frame) "clojure.main/repl/read-eval-print")
-      :terminate
-
-      :else
-      :show)))
+(def ^{:deprecated "0.1.16"}
+     standard-frame-filter
+  "An alias for [[*default-frame-filter*]], to be removed in an upcoming release."
+  *default-frame-filter*)
 
 (defn- reset-var!
   [v override]
@@ -37,7 +19,7 @@
 
 (defn- write
   [e options]
-  (print (format-exception e (assoc options :filter standard-frame-filter)))
+  (print (format-exception e options))
   (flush))
 
 (defn pretty-repl-caught
@@ -55,7 +37,7 @@
   "Replacement for `clojure.stracktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
-   (write tr {:frame-limit n})))
+    (write tr {:frame-limit n})))
 
 (defn install-pretty-exceptions
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides

@@ -1,5 +1,10 @@
 ## 0.1.16 - UNRELEASED
 
+io.aviso.exception/*default-frame-filter* has been added, and acts as the default frame filter for
+write-exception (previously there was no default).
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.16+is%3Aclosed)
+
 ## 0.1.15 - 2 Feb 2015
 
 Starting in this release, the exception report layout has changed significantly; however, the old
