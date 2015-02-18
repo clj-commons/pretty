@@ -1,5 +1,13 @@
 ## 0.1.17 - UNRELEASED
 
+Changed io.aviso.logging to always use the current value of *default-logging-filter* rather than capturing
+its value when install-pretty-logging is invoked.
+
+Sometimes, the file name of a stack trace element is a complete path (this occurs with some
+testing frameworks); in that case, Pretty will now strip off the prefix from the path, when
+it matches the current directory path.
+This keeps the file name column as narrow as possible.
+
 ## 0.1.16 - 4 Feb 2015
 
 io.aviso.exception/*default-frame-filter* has been added, and acts as the default frame filter for

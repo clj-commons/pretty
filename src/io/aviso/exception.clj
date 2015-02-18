@@ -15,11 +15,24 @@
 
 (def ^{:dynamic true
        :added   "0.1.15"}
-     *traditional*
+*traditional*
   "If bound to true, then exceptions will be formatted the traditional way (the only option prior to 0.1.15)."
   false)
 
 (defn- length [^String s] (.length s))
+
+(defn- strip-prefix
+  [^String prefix ^String input]
+  (let [prefix-len (.length prefix)]
+    (if (and (.startsWith input prefix)
+             (< prefix-len (.length input)))
+      (.substring input prefix-len)
+      input)))
+
+(defn- current-dir-prefix
+  "Convert the current directory (via property 'user.dir') into a prefix to be omitted from file names."
+  []
+  (str (System/getProperty "user.dir") "/"))
 
 (defn- ?reverse
   [reverse? coll]
@@ -49,7 +62,7 @@
   back into simple characters."
   [^String s]
   (let [in-length (.length s)
-        result (StringBuilder. in-length)]
+        result    (StringBuilder. in-length)]
     (loop [i 0]
       (cond
         (>= i in-length) (.toString result)
@@ -68,23 +81,23 @@
 
 (defn- expand-exception
   [^Throwable exception]
-  (let [properties (bean exception)
-        nil-property-keys (match-keys properties nil?)
+  (let [properties              (bean exception)
+        nil-property-keys       (match-keys properties nil?)
         throwable-property-keys (match-keys properties #(.isInstance Throwable %))
-        remove' #(remove %2 %1)
-        nested-exception (-> properties
-                             (select-keys throwable-property-keys)
-                             vals
-                             (remove' nil?)
-                             ;; Avoid infinite loop!
-                             (remove' #(= % exception))
-                             first)
+        remove'                 #(remove %2 %1)
+        nested-exception        (-> properties
+                                    (select-keys throwable-property-keys)
+                                    vals
+                                    (remove' nil?)
+                                    ;; Avoid infinite loop!
+                                    (remove' #(= % exception))
+                                    first)
         ;; Ignore basic properties of Throwable, any nil properties, and any properties
         ;; that are themselves Throwables
-        discarded-keys (concat [:suppressed :message :localizedMessage :class :stackTrace]
-                               nil-property-keys
-                               throwable-property-keys)
-        retained-properties (apply dissoc properties discarded-keys)]
+        discarded-keys          (concat [:suppressed :message :localizedMessage :class :stackTrace]
+                                        nil-property-keys
+                                        throwable-property-keys)
+        retained-properties     (apply dissoc properties discarded-keys)]
     [{:exception  exception
       :class-name (-> exception .getClass .getName)
       :message    (.getMessage exception)
@@ -137,7 +150,7 @@
   The first property that is assignable to type `Throwable` (not necessarily the `rootCause` property)
   will be used as the nested exception (for the next map in the sequence)."
   [^Throwable e]
-  (loop [result []
+  (loop [result  []
          current e]
     (let [[expanded nested] (expand-exception current)]
       (if nested
@@ -155,9 +168,9 @@
         function-ids (map #(str/replace % #"__\d+" "") raw-function-ids)
         ;; In a degenerate case, a protocol method could be called "invoke" or "doInvoke"; we're ignoring
         ;; that possibility here and assuming it's the IFn.invoke() or doInvoke().
-        all-ids (if (#{"invoke" "doInvoke"} method-name)
-                  function-ids
-                  (-> function-ids vec (conj method-name)))]
+        all-ids      (if (#{"invoke" "doInvoke"} method-name)
+                       function-ids
+                       (-> function-ids vec (conj method-name)))]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
     ;; are name-mangled dashes).
     (->>
@@ -165,16 +178,16 @@
       (map demangle))))
 
 (defn- expand-stack-trace-element
-  [^StackTraceElement element]
-  (let [class-name (.getClassName element)
+  [file-name-prefix ^StackTraceElement element]
+  (let [class-name  (.getClassName element)
         method-name (.getMethodName element)
-        dotx (.lastIndexOf class-name ".")
-        file-name (or (.getFileName element) "")
+        dotx        (.lastIndexOf class-name ".")
+        file-name   (or (.getFileName element) "")
         is-clojure? (.endsWith file-name ".clj")
-        names (if is-clojure? (convert-to-clojure class-name method-name) [])
-        name (str/join "/" names)
-        line (-> element .getLineNumber)]
-    {:file         file-name
+        names       (if is-clojure? (convert-to-clojure class-name method-name) [])
+        name        (str/join "/" names)
+        line        (-> element .getLineNumber)]
+    {:file         (strip-prefix file-name-prefix file-name)
      :line         (if (pos? line) line)
      :class        class-name
      :package      (if (pos? dotx) (.substring class-name 0 dotx))
@@ -217,7 +230,7 @@
   `:names` seq of String
   : Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
-  (let [elements (map expand-stack-trace-element (.getStackTrace exception))]
+  (let [elements (map (partial expand-stack-trace-element (current-dir-prefix)) (.getStackTrace exception))]
     (when (empty? elements)
       (binding [*out* *err*]
         (println empty-stack-trace-warning)
@@ -246,13 +259,13 @@
 
     ;; When :names is empty, it's a Java (not Clojure) frame
     (-> frame :names empty?)
-    (let [full-name (str (:class frame) "." (:method frame))
+    (let [full-name      (str (:class frame) "." (:method frame))
           formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))]
       (assoc frame
         :formatted-name formatted-name))
 
     :else
-    (let [names (:names frame)
+    (let [names          (:names frame)
           formatted-name (str
                            (:clojure-frame *fonts*)
                            (->> names drop-last (str/join "/"))
@@ -264,7 +277,7 @@
   [frame-filter frames]
   (if (nil? frame-filter)
     frames
-    (loop [result []
+    (loop [result   []
            [frame & more-frames] frames
            omitting false]
       (case (if frame (frame-filter frame) :terminate)
@@ -289,10 +302,10 @@
 
 (defn- write-stack-trace
   [writer exception frame-limit frame-filter modern?]
-  (let [elements (->> exception
-                      expand-stack-trace
-                      (apply-frame-filter frame-filter)
-                      (map preformat-stack-frame))
+  (let [elements  (->> exception
+                       expand-stack-trace
+                       (apply-frame-filter frame-filter)
+                       (map preformat-stack-frame))
         elements' (if frame-limit (take frame-limit elements) elements)
         formatter (c/format-columns [:right (c/max-value-length elements' :formatted-name)]
                                     "  " (:source *fonts*)
@@ -381,58 +394,58 @@
 
   The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception]
-    (write-exception *out* exception))
+   (write-exception *out* exception))
   ([writer exception]
-    (write-exception writer exception nil))
+   (write-exception writer exception nil))
   ([writer exception {show-properties? :properties
                       frame-limit      :frame-limit
                       frame-filter     :filter
                       :or              {show-properties? true
                                         frame-filter     *default-frame-filter*}}]
-    (let [exception-font (:exception *fonts*)
-          message-font (:message *fonts*)
-          property-font (:property *fonts*)
-          reset-font (:reset *fonts* "")
-          modern? (not *traditional*)
-          exception-stack (->> exception
-                               analyze-exception
-                               (map #(assoc % :name (-> % :exception class .getName))))
-          exception-formatter (c/format-columns [:right (c/max-value-length exception-stack :name)]
-                                                ": "
-                                                :none)
-          write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
-                                  (let [^Throwable exception (-> e :exception)
-                                        class-name (:name e)
-                                        message (.getMessage exception)]
-                                    (exception-formatter writer
-                                                         (str exception-font class-name reset-font)
-                                                         (str message-font message reset-font))
-                                    (when show-properties?
-                                      (let [properties (update-keys (:properties e) name)
-                                            prop-keys (keys properties)
-                                            ;; Allow for the width of the exception class name, and some extra
-                                            ;; indentation.
-                                            property-formatter (c/format-columns "    "
-                                                                                 [:right (c/max-length prop-keys)]
-                                                                                 ": "
-                                                                                 :none)]
-                                        (doseq [k (sort prop-keys)]
-                                          (property-formatter writer
-                                                              (str property-font k reset-font)
-                                                              (-> properties (get k) format-property-value)))))))
-          root-exception (-> exception-stack last :exception)]
+   (let [exception-font        (:exception *fonts*)
+         message-font          (:message *fonts*)
+         property-font         (:property *fonts*)
+         reset-font            (:reset *fonts* "")
+         modern?               (not *traditional*)
+         exception-stack       (->> exception
+                                    analyze-exception
+                                    (map #(assoc % :name (-> % :exception class .getName))))
+         exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :name)]
+                                                 ": "
+                                                 :none)
+         write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
+                                 (let [^Throwable exception (-> e :exception)
+                                       class-name           (:name e)
+                                       message              (.getMessage exception)]
+                                   (exception-formatter writer
+                                                        (str exception-font class-name reset-font)
+                                                        (str message-font message reset-font))
+                                   (when show-properties?
+                                     (let [properties         (update-keys (:properties e) name)
+                                           prop-keys          (keys properties)
+                                           ;; Allow for the width of the exception class name, and some extra
+                                           ;; indentation.
+                                           property-formatter (c/format-columns "    "
+                                                                                [:right (c/max-length prop-keys)]
+                                                                                ": "
+                                                                                :none)]
+                                       (doseq [k (sort prop-keys)]
+                                         (property-formatter writer
+                                                             (str property-font k reset-font)
+                                                             (-> properties (get k) format-property-value)))))))
+         root-exception        (-> exception-stack last :exception)]
 
-      (if *traditional*
-        (write-exception-stack))
-      (write-stack-trace writer root-exception frame-limit frame-filter modern?)
-      (if modern?
-        (write-exception-stack)))
+     (if *traditional*
+       (write-exception-stack))
+     (write-stack-trace writer root-exception frame-limit frame-filter modern?)
+     (if modern?
+       (write-exception-stack)))
 
-    (w/flush-writer writer)))
+   (w/flush-writer writer)))
 
 (defn format-exception
   "Formats an exception as a multi-line string using [[write-exception]]."
   ([exception]
-    (format-exception exception nil))
+   (format-exception exception nil))
   ([exception options]
-    (w/into-string write-exception exception options)))
+   (w/into-string write-exception exception options)))
