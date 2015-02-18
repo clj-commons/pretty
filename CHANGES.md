@@ -1,4 +1,4 @@
-## 0.1.17 - UNRELEASED
+## 0.1.17 - 18 Feb 2015
 
 Changed io.aviso.logging to always use the current value of *default-logging-filter* rather than capturing
 its value when install-pretty-logging is invoked.
