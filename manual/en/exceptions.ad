@@ -61,7 +61,7 @@ It's one more bit of cognitive load you just don't need in your day.
 
 Instead, here's the equivalent, using a _hooked_ version of Clojure's *clojure.repl/pst*, modified to use write-exception.
 
-image::images/example-exception.png[]
+image::https://www.evernote.com/shard/s54/sh/c1e8edca-261e-452d-84b0-eadb60101ba8/ef58a24501f716f799f05ea6190c10b4/deep/0/exceptions.ad----pretty----pretty------workspaces-annadale-pretty-.png[]
 
 As you can see, this lets you focus in on the exact cause and location of your problem.
 
@@ -77,6 +77,14 @@ or Java class and method, and the right columns presenting the file name and lin
 
 The stack frames themselves are filtered to remove details that are not relevant.
 This filtering is via an optional function, so you can define filters that make sense for your code.
+For example, the default filter omits frames in the clojure.lang package (they are reduced to ellipses), and truncates the
+stack trace when when it reaches clojure.main/repl/read-eval-print.
+
+The inverted (from Java norms) ordering has several benefits:
+
+* Chronological order is maintained, whereas a Java stack trace is in reverse chronological order.
+
+* The most relevant details are at (or near) the _bottom_ not the _top_; this means less "scrolling back to see what happened".
 
 The related function, `format-exception`, produces the same output, but returns it as a string.
 
@@ -84,7 +92,7 @@ For both `format-exception` and `write-exception`, output of the stack trace is 
 
 == io.aviso.repl
 
-This namespace includes a function, install-pretty-exceptions, used to
+This namespace includes a function, install-pretty-exceptions, which
 hooks into all the common ways that exceptions are output in Clojure and redirects them to use write-exception.
 
 == io.aviso.logging
