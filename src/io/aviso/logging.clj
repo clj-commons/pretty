@@ -38,7 +38,7 @@
                           message)))))))
 
 (defn uncaught-exception-handler
-  "Creates a reified UncaughtExceptionHandler that uses clojure.tools.logging/error (rather than
+  "Creates a reified UncaughtExceptionHandler that uses clojure.tools.logging/error, rather than
   simplying printing the exception, which is the default behavior."
   []
   (reify Thread$UncaughtExceptionHandler
