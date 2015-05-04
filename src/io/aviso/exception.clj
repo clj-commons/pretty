@@ -1,5 +1,5 @@
 (ns io.aviso.exception
-  "Format and present exceptions in pretty (structured, formatted) way."
+  "Format and present exceptions in a pretty (structured, formatted) way."
   (:use io.aviso.ansi)
   (:require [clojure
              [pprint :as pp]
@@ -10,7 +10,8 @@
              [writer :as w]])
   (:import [java.lang StringBuilder StackTraceElement]
            [clojure.lang Compiler MultiFn]
-           [java.lang.reflect Field]))
+           [java.lang.reflect Field]
+           [java.util.regex Pattern]))
 
 
 (def ^{:dynamic true
@@ -104,6 +105,38 @@
      nested-exception]))
 
 
+(def ^{:added "0.1.18"
+       :dynamic true}
+*default-frame-rules*
+  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector or vectors.
+
+  Each rule is three values:
+
+  * A function that extracts the value from the stack frame map (typically, this is a keyword such
+  as :package or :name). The value is converted to a string.
+
+  * A string or regexp used for matching.
+  
+  * A resulting frame visibility (:hide, :omit, :terminate, or :show)."
+  [[:package "clojure.lang" :omit]
+   [:package #"sun\.reflect.*" :hide]
+   [:package "java.lang.reflect" :omit]
+   [:name #"clojure\.main/repl/read-eval-print.*" :terminate]])
+
+(defn- apply-rule
+  [frame [f match visibility :as rule]]
+  (let [value (str (f frame))]
+    (cond
+      (string? match)
+      (if (= match value) visibility)
+
+      (instance? Pattern match)
+      (if (re-matches match value) visibility)
+
+      :else
+      (throw (ex-info "Unexpected match type in rule."
+                      {:rule rule})))))
+
 (defn *default-frame-filter*
   "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang`
   and `java.lang.reflect` package, hide frames in the `sun.reflect` package,
@@ -111,22 +144,9 @@
   {:added   "0.1.16"
    :dynamic true}
   [frame]
-  (let [package (-> frame :package str)]
-    (cond
-      (= package "clojure.lang")
-      :omit
-
-      (.startsWith package "sun.reflect")
-      :hide
-
-      (= package "java.lang.reflect")
-      :omit
-
-      (.startsWith ^String (:name frame) "clojure.main/repl/read-eval-print")
-      :terminate
-
-      :else
-      :show)))
+  (-> (keep #(apply-rule frame %) *default-frame-rules*)
+      first
+      (or :show)))
 
 (defn analyze-exception
   "Converts an exception into a seq of maps representing nested exceptions. Each map
