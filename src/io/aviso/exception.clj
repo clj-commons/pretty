@@ -368,17 +368,17 @@
 
   The filter must return one of the following values:
 
-  `:show`
+  :show
   : is the normal state; display the stack frame.
 
-  `:hide`
+  :hide
   : prevents the frame from being displayed, as if it never existed.
 
-  `:omit`
-  : replaces the frame with a \"...\" placeholder; multiple consecutive `:omit`s will be collapsed to a single line.
-    Use `:omit` for \"uninteresting\" stack frames.
+  :omit
+  : replaces the frame with a \"...\" placeholder; multiple consecutive :omits will be collapsed to a single line.
+    Use :omit for \"uninteresting\" stack frames.
 
-  `:terminate`
+  :terminate
   : hides the frame AND all later frames.
 
   The default filter is [[*default-frame-filter*]].  An explicit filter of nil will display all stack frames.
