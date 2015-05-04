@@ -29,10 +29,9 @@
       (.substring input prefix-len)
       input)))
 
-(defn- current-dir-prefix
+(def ^:private current-dir-prefix
   "Convert the current directory (via property 'user.dir') into a prefix to be omitted from file names."
-  []
-  (str (System/getProperty "user.dir") "/"))
+  (delay (str (System/getProperty "user.dir") "/")))
 
 (defn- ?reverse
   [reverse? coll]
@@ -230,7 +229,7 @@
   `:names` seq of String
   : Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
-  (let [elements (map (partial expand-stack-trace-element (current-dir-prefix)) (.getStackTrace exception))]
+  (let [elements (map (partial expand-stack-trace-element @current-dir-prefix) (.getStackTrace exception))]
     (when (empty? elements)
       (binding [*out* *err*]
         (println empty-stack-trace-warning)
