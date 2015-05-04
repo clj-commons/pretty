@@ -1,17 +1,10 @@
 (ns io.aviso.repl
   "Utilities to assist with REPL-oriented development"
-  (:use
-  [io.aviso.exception])
-  (:require
-    [clojure
-     [main :as main]
-     [repl :as repl]
-     [stacktrace :as st]]))
-
-(def ^{:deprecated "0.1.16"}
-     standard-frame-filter
-  "An alias for [[*default-frame-filter*]], to be removed in an upcoming release."
-  *default-frame-filter*)
+  (:use [io.aviso.exception])
+  (:require [clojure
+             [main :as main]
+             [repl :as repl]
+             [stacktrace :as st]]))
 
 (defn- reset-var!
   [v override]
@@ -49,7 +42,7 @@
   "Replacement for `clojure.stracktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
-    (write tr {:frame-limit n})))
+   (write tr {:frame-limit n})))
 
 (defn install-pretty-exceptions
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides
