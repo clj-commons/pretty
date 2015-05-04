@@ -27,6 +27,18 @@
   [e]
   (write e {:frame-limit 0 :properties false}))
 
+(defn uncaught-exception-handler
+  "Creates a reified UncaughtExceptionHandler that uses clojure.tools.logging/error, rather than
+  simplying printing the exception, which is the default behavior."
+  {:added "0.1.18"}
+  []
+  (reify Thread$UncaughtExceptionHandler
+    (uncaughtException [_ _ t]
+      (binding [*out* *err*]
+        (printf "Uncaught exception in thread %s:%n" (-> (Thread/currentThread) .getName))
+        (write-exception t)))))
+
+
 (defn pretty-pst
   "Used as an override of `clojure.repl/pst` but uses pretty formatting. The optional parameter must be an exception
   (it can not be a depth, as with the standard implementation of `pst`)."
@@ -51,4 +63,6 @@
   (reset-var! #'repl/pst pretty-pst)
   (reset-var! #'st/print-stack-trace pretty-print-stack-trace)
   (reset-var! #'st/print-cause-trace pretty-print-stack-trace)
+
+  (Thread/setDefaultUncaughtExceptionHandler (uncaught-exception-handler))
   nil)

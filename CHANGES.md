@@ -1,3 +1,7 @@
+## 0.1.18 - UNRELEASED
+
+io.aviso.repl/install-pretty-logging now installs a default Thread uncaughtExceptionHandler.
+
 ## 0.1.17 - 18 Feb 2015
 
 Changed io.aviso.logging to always use the current value of *default-logging-filter* rather than capturing
@@ -35,8 +39,6 @@ It is now possible to control how particular types are formatted when printing t
 properties of an exception. 
 This can be very useful when using (for example) Stuart Sierra's [component](https://github.com/stuartsierra/component)
 library.
-
-The new documentation site will be available soon.
 
 ## 0.1.12 - 27 May 2014
 
