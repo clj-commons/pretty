@@ -147,7 +147,7 @@
   [coll]
   (if (empty? coll)
     0
-    (apply max (map ansi/visual-length coll))))
+    (reduce max (map ansi/visual-length coll))))
 
 (defn max-value-length
   "A convinience for computing the maximum length of one string property from a collection of values.
@@ -156,4 +156,3 @@
   - key - key that is passed one value and returns the property, typically a keyword when the values are maps"
   [coll key]
   (max-length (map key coll)))
-
