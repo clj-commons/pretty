@@ -132,21 +132,21 @@
   "Converts an exception into a seq of maps representing nested exceptions. Each map
   contains:
 
-  `:exception` Throwable
-  : the original `Throwable` instance
+  :exception Throwable
+  : the original Throwable instance
 
-  `:class-name` String
+  :class-name String
   : name of the Java class for the exception
 
-  `:message` String
-  : value of the exception's `message` property (possibly nil)
+  :message String
+  : value of the exception's message property (possibly nil)
 
-  `:properties` Map
+  :properties Map
   : map of properties to present
 
-  The `:properties` map does not include any properties that are assignable to type `Throwable`.
+  The :properties map does not include any properties that are assignable to type Throwable.
 
-  The first property that is assignable to type `Throwable` (not necessarily the `rootCause` property)
+  The first property that is assignable to type Throwable (not necessarily the rootCause property)
   will be used as the nested exception (for the next map in the sequence)."
   [^Throwable e]
   (loop [result  []
@@ -205,28 +205,28 @@
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
 
-  `:file` String
+  :file String
   : file name
 
-  `:line` Integer
+  :line Integer
   : line number as an integer, or nil
 
-  `:class` String
+  :class String
   : complete Java class name
 
-  `:package` String
+  :package String
   : Java package name, or nil for root package
 
-  `:simple-class` String
+  :simple-class String
   : simple name of Java class (without package prefix)
 
-  `:method` String
+  :method String
   : Java method name
 
-  `:name` String
+  :name String
   : Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
 
-  `:names` seq of String
+  :names seq of String
   : Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
   (let [elements (map (partial expand-stack-trace-element @current-dir-prefix) (.getStackTrace exception))]
@@ -350,7 +350,7 @@
 
 
 (defn write-exception
-  "Writes a formatted version of the exception to the [[StringWriter]]. By default, writes to `*out*` and includes
+  "Writes a formatted version of the exception to the [[StringWriter]]. By default, writes to *out* and includes
   the stack trace, with no frame limit.
 
   Output may be traditional or modern, as controlled by [[*traditional*]].
