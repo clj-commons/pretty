@@ -129,18 +129,6 @@
                 [new-indent remaining-values] (cf writer current-indent values)]
             (recur new-indent (rest column-fns) remaining-values)))))))
 
-(defn write-rows
-  "A convienience for writing rows of columns using a prepared column formatter.
-
-  - writer - [[StringWriter]] target of output
-  - column-formatter - formatter function created by format-columns
-  - extractors - seq of functions that extract a column value from a row; typically a keyword when the row is a map
-  - row-data - a seq of row data"
-  [writer column-formatter extractors row-data]
-  (let [column-data-extractor (apply juxt extractors)]
-    (doseq [row row-data]
-           (apply column-formatter writer (column-data-extractor row)))))
-
 (defn max-length
   "Find the maximum length of the strings in the collection, based on their visual length (that is,
   omitting ANSI escape codes)."
@@ -156,3 +144,15 @@
   - key - key that is passed one value and returns the property, typically a keyword when the values are maps"
   [coll key]
   (max-length (map key coll)))
+
+(defn write-rows
+  "A convienience for writing rows of columns using a prepared column formatter.
+
+  - writer - [[StringWriter]] target of output
+  - column-formatter - formatter function created by format-columns
+  - extractors - seq of functions that extract a column value from a row; typically a keyword when the row is a map
+  - row-data - a seq of row data"
+  [writer column-formatter extractors row-data]
+  (let [column-data-extractor (apply juxt extractors)]
+    (doseq [row row-data]
+      (apply column-formatter writer (column-data-extractor row)))))
