@@ -9,7 +9,7 @@
              [columns :as c]
              [writer :as w]])
   (:import [java.lang StringBuilder StackTraceElement]
-           [clojure.lang Compiler MultiFn]
+           [clojure.lang Compiler MultiFn ExceptionInfo]
            [java.lang.reflect Field]
            [java.util.regex Pattern]))
 
@@ -79,30 +79,36 @@
   ;; (seq m) is necessary because the source is via (bean), which returns an odd implementation of map
   (reduce (fn [result [k v]] (if (f v) (conj result k) result)) [] (seq m)))
 
+(defn- wrap-exception
+  [^Throwable exception properties next-exception]
+  [{:exception  exception
+    :class-name (-> exception .getClass .getName)
+    :message    (.getMessage exception)
+    :properties properties}
+   next-exception])
+
 (defn- expand-exception
   [^Throwable exception]
-  (let [properties              (bean exception)
-        nil-property-keys       (match-keys properties nil?)
-        throwable-property-keys (match-keys properties #(.isInstance Throwable %))
-        remove'                 #(remove %2 %1)
-        nested-exception        (-> properties
-                                    (select-keys throwable-property-keys)
-                                    vals
-                                    (remove' nil?)
-                                    ;; Avoid infinite loop!
-                                    (remove' #(= % exception))
-                                    first)
-        ;; Ignore basic properties of Throwable, any nil properties, and any properties
-        ;; that are themselves Throwables
-        discarded-keys          (concat [:suppressed :message :localizedMessage :class :stackTrace]
-                                        nil-property-keys
-                                        throwable-property-keys)
-        retained-properties     (apply dissoc properties discarded-keys)]
-    [{:exception  exception
-      :class-name (-> exception .getClass .getName)
-      :message    (.getMessage exception)
-      :properties retained-properties}
-     nested-exception]))
+  (if (instance? ExceptionInfo exception)
+    (wrap-exception exception (.getData ^ExceptionInfo exception) (.getCause exception))
+    (let [properties              (bean exception)
+          nil-property-keys       (match-keys properties nil?)
+          throwable-property-keys (match-keys properties #(.isInstance Throwable %))
+          remove'                 #(remove %2 %1)
+          nested-exception        (-> properties
+                                      (select-keys throwable-property-keys)
+                                      vals
+                                      (remove' nil?)
+                                      ;; Avoid infinite loop!
+                                      (remove' #(= % exception))
+                                      first)
+          ;; Ignore basic properties of Throwable, any nil properties, and any properties
+          ;; that are themselves Throwables
+          discarded-keys          (concat [:suppressed :message :localizedMessage :class :stackTrace]
+                                          nil-property-keys
+                                          throwable-property-keys)
+          retained-properties     (apply dissoc properties discarded-keys)]
+      (wrap-exception exception retained-properties nested-exception))))
 
 
 (def ^{:added   "0.1.18"
