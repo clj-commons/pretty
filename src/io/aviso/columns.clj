@@ -25,7 +25,7 @@
 
 (defn- write-none-column [writer current-indent column-value]
   (loop [first-line true
-         lines (-> column-value str str/split-lines)]
+         lines      (-> column-value str str/split-lines)]
     (when-not (empty? lines)
       (when-not first-line
         (w/writeln writer)
@@ -41,13 +41,13 @@
   (if (= :none justification)
     write-none-column
     (fn column-writer [writer current-indent column-value]
-      (let [value-string (str column-value)
-            value-width (ansi/visual-length value-string)
-            indent-amount (max 0 (- width value-width))
+      (let [value-string    (str column-value)
+            value-width     (ansi/visual-length value-string)
+            indent-amount   (max 0 (- width value-width))
             truncate-amount (max 0 (- value-width width))
             ;; This isn't aware of ANSI escape codes and will do the wrong thing when truncating a string with
             ;; such codes.
-            truncated (truncate justification value-string truncate-amount)]
+            truncated       (truncate justification value-string truncate-amount)]
         (if (= justification :right)
           (indent writer indent-amount))
         (w/write writer truncated)
@@ -121,8 +121,8 @@
   (let [column-fns (map column-def-to-fn column-defs)]
     (fn [writer & column-values]
       (loop [current-indent 0
-             column-fns column-fns
-             values column-values]
+             column-fns     column-fns
+             values         column-values]
         (if (empty? column-fns)
           (w/writeln writer)
           (let [cf (first column-fns)
