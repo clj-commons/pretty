@@ -21,8 +21,7 @@
   (write e {:frame-limit 0 :properties false}))
 
 (defn uncaught-exception-handler
-  "Creates a reified UncaughtExceptionHandler that uses clojure.tools.logging/error, rather than
-  simplying printing the exception, which is the default behavior."
+  "Creates a reified UncaughtExceptionHandler that prints the formatted exception to `*err*`."
   {:added "0.1.18"}
   []
   (reify Thread$UncaughtExceptionHandler
