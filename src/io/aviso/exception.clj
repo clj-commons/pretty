@@ -105,7 +105,7 @@
      nested-exception]))
 
 
-(def ^{:added "0.1.18"
+(def ^{:added   "0.1.18"
        :dynamic true}
 *default-frame-rules*
   "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector or vectors.
@@ -325,17 +325,14 @@
                        expand-stack-trace
                        (apply-frame-filter frame-filter)
                        (map preformat-stack-frame))
-        elements' (if frame-limit (take frame-limit elements) elements)
-        formatter (c/format-columns [:right (c/max-value-length elements' :formatted-name)]
-                                    "  " (:source *fonts*)
-                                    [:right (c/max-value-length elements' :file)]
-                                    2
-                                    [:right (->> elements' (map :line) (map str) c/max-length)]
-                                    (:reset *fonts*))]
-    (c/write-rows writer formatter [:formatted-name
-                                    :file
-                                    #(if (:line %) ": ")
-                                    :line]
+        elements' (if frame-limit (take frame-limit elements) elements)]
+    (c/write-rows writer [:formatted-name
+                          "  "
+                          (:source *fonts*)
+                          :file
+                          [#(if (:line %) ": ") :left 2]
+                          #(-> % :line str)
+                          (:reset *fonts*)]
                   (?reverse modern? elements'))))
 
 (defmulti exception-dispatch
