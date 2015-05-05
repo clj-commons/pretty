@@ -1,6 +1,14 @@
-## 0.1.18 - UNRELEASED
+## 0.1.18 - 5 May 2015
 
 io.aviso.repl/install-pretty-logging now installs a default Thread uncaughtExceptionHandler.
+
+There's a new arity of io.aviso.columns/write-rows that streamlines the whole process (it can
+calculate column widths automatically).
+
+The Clojure ExceptionInfo exception is now treated specially.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.18+is%3Aclosed)
+
 
 ## 0.1.17 - 18 Feb 2015
 
