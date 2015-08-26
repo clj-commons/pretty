@@ -1,10 +1,13 @@
 ## 0.1.19 - UNRELEASED
 
 Print a blank line before the exception output, when reporting a clojure.test exeception.
-Previously, the first line was was on the sam eline as the "actual:" label, which 
+Previously, the first line was was on the same line as the "actual:" label, which 
 interfered with columnar output.
 
 The built in stack frame filtering rules are now better documented, and speclj.* is now included as :terminate.
+
+You may now add pretty to your Leiningen :plugins list; it will automatically invoke
+io.aviso.repl/install-pretty-exceptions.
 
 ## 0.1.18 - 5 May 2015
 
