@@ -4,6 +4,8 @@ Print a blank line before the exception output, when reporting a clojure.test ex
 Previously, the first line was was on the sam eline as the "actual:" label, which 
 interfered with columnar output.
 
+The built in stack frame filtering rules are now better documented, and speclj.* is now included as :terminate.
+
 ## 0.1.18 - 5 May 2015
 
 io.aviso.repl/install-pretty-logging now installs a default Thread uncaughtExceptionHandler.

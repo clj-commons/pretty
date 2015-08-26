@@ -123,10 +123,18 @@
 
   * A string or regexp used for matching.
   
-  * A resulting frame visibility (:hide, :omit, :terminate, or :show)."
+  * A resulting frame visibility (:hide, :omit, :terminate, or :show).
+
+  The default rules:
+
+  * omit everything in clojure.lang and java.lang.reflect.
+  * hide everything in sun.reflect
+  * terminate at speclj.* or clojure.main/repl/read-eval-print
+  "
   [[:package "clojure.lang" :omit]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
+   [:name #"speclj\..*" :terminate]
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]])
 
 (defn- apply-rule
