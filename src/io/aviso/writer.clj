@@ -15,9 +15,8 @@
 (extend-protocol StringWriter
   StringBuilder
   (write-string [this ^CharSequence string] (.append this string))
-  (flush-writer [this] nil))
+  (flush-writer [this] nil)
 
-(extend-protocol StringWriter
   Writer
   (write-string [this ^CharSequence string] (.append this string))
   (flush-writer [this] (.flush this)))
