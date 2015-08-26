@@ -48,6 +48,10 @@
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides
   `clojure.repl/pst`, `clojure.stacktrace/print-stack-trace`, `clojure.stacktrace/print-cause-trace`.
 
+  In addition, installs a [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
+  will be printed reasonably. See [[io.aviso.logging]] for a better handler, used when clojure.tools.logging
+  is available.
+
   Caught exceptions do not print the stack trace; the pst replacement does."
   []
   ;; TODO: Not exactly sure why this works, because clojure.main/repl should be resolving the var to its contained
