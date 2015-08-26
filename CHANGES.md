@@ -1,3 +1,9 @@
+## 0.1.19 - UNRELEASED
+
+Print a blank line before the exception output, when reporting a clojure.test exeception.
+Previously, the first line was was on the sam eline as the "actual:" label, which 
+interfered with columnar output.
+
 ## 0.1.18 - 5 May 2015
 
 io.aviso.repl/install-pretty-logging now installs a default Thread uncaughtExceptionHandler.

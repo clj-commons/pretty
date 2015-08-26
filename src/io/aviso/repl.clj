@@ -41,6 +41,7 @@
   "Replacement for `clojure.stracktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
+   (println)
    (write tr {:frame-limit n})))
 
 (defn install-pretty-exceptions
