@@ -2,15 +2,13 @@
 title: REPL Support
 ---
 
-To enable pretty exceptions when using the REPL under 
+To enable pretty exceptions when using the REPL under
 https://github.com/technomancy/leiningen[leiningen],
-add `io.aviso:pretty` as a dependency, then add the following
-to your project (or to `~/.lein/profiles.clj`):
+add `io.aviso:pretty` as to the :plugins list either in your project,
+or to `~/.lein/profiles.clj`:
 
 ```clojure
-  :repl-options {
-    :nrepl-middleware [io.aviso.nrepl/pretty-middleware]
-  }
+  :profiles [[io.aviso/pretty "0.1.19"]]
 ```
 
 This adds nREPL middleware to enable pretty exception reporting.

@@ -6,8 +6,11 @@ interfered with columnar output.
 
 The built in stack frame filtering rules are now better documented, and speclj.* is now included as :terminate.
 
-You may now add pretty to your Leiningen :plugins list; it will automatically invoke
-io.aviso.repl/install-pretty-exceptions.
+You may now add pretty to your Leiningen :plugins list; it will automatically add the Pretty nREPL
+middleware.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.19+is%3Aclosed)
+
 
 ## 0.1.18 - 5 May 2015
 
