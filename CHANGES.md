@@ -1,4 +1,4 @@
-## 0.1.19 - UNRELEASED
+## 0.1.19 - 27 Aug 2015
 
 Print a blank line before the exception output, when reporting a clojure.test exception.
 Previously, the first line was was on the same line as the "actual:" label, which 
