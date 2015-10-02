@@ -8,8 +8,14 @@ add `io.aviso:pretty` as to the :plugins list either in your project,
 or to `~/.lein/profiles.clj`:
 
 ```clojure
-  :profiles [[io.aviso/pretty "0.1.19"]]
+{:user    {:plugins             [[codox "0.8.13"]
+                                 [lein-ancient "0.6.7"]
+                                 [lein-try "0.4.3"]
+                                 [lein-pprint "1.1.1"]
+                                 [io.aviso/pretty "0.1.19"]]}}
 ```
+
+codox and the other plugins are not required, they ares just present for a more realistic example.
 
 This adds nREPL middleware to enable pretty exception reporting.
 When exceptions occur in the REPL, they are printed out without a stack trace or properties.
