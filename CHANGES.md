@@ -1,3 +1,8 @@
+## 0.1.20 - UNRELEASED
+
+Pretty will identify repeating stack frames (for example, from an infinite loop)
+and only print the stack frame once, but append the number of times it repeats.
+
 ## 0.1.19 - 27 Aug 2015
 
 Print a blank line before the exception output, when reporting a clojure.test exception.

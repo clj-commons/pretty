@@ -32,3 +32,13 @@
     (catch Throwable e
       ;; Return it, not rethrow it.
       (RuntimeException. "Request handling exception" e))))
+
+(defn infinite-loop
+  []
+  (infinite-loop))
+
+(defn countdown
+  [n]
+  (if (zero? n)
+    (throw (RuntimeException. "Boom!"))
+    (countdown (dec n))))

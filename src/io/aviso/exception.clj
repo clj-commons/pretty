@@ -333,12 +333,41 @@
                  more-frames
                  true))))))
 
+(defn- is-repeat?
+  [left-frame right-frame]
+  (and (= (:formatted-name left-frame)
+          (:formatted-name right-frame))
+       (= (:line left-frame)
+          (:line right-frame))))
+
+(defn- repeating-frame-reducer
+  [output-frames frame]
+  (let [output-count      (count output-frames)
+        last-output-index (dec output-count)]
+    (cond
+      (zero? output-count)
+      (conj output-frames frame)
+
+      (is-repeat? (output-frames last-output-index) frame)
+      (update-in output-frames [last-output-index :repeats]
+                 (fnil inc 1))
+
+      :else
+      (conj output-frames frame))))
+
+
+(defn- format-repeats
+  [{:keys [repeats]}]
+  (if repeats
+    (format " (repeats %,d times)" repeats)))
+
 (defn- write-stack-trace
   [writer exception frame-limit frame-filter modern?]
   (let [elements  (->> exception
                        expand-stack-trace
                        (apply-frame-filter frame-filter)
-                       (map preformat-stack-frame))
+                       (map preformat-stack-frame)
+                       (reduce repeating-frame-reducer []))
         elements' (if frame-limit (take frame-limit elements) elements)]
     (c/write-rows writer [:formatted-name
                           "  "
@@ -346,6 +375,7 @@
                           :file
                           [#(if (:line %) ": ") :left 2]
                           #(-> % :line str)
+                          [format-repeats :none]
                           (:reset *fonts*)]
                   (?reverse modern? elements'))))
 
@@ -414,9 +444,14 @@
 
   The default filter is [[*default-frame-filter*]].  An explicit filter of nil will display all stack frames.
 
+  Repeating lines are collapsed to a single line, with a repeat count. Typically, this is the result of
+  an endless loop that terminates with a StackOverflowException.
+
   When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outermost
   stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
-  the exception stack).  The frame limit is applied after the frame filter.
+  the exception stack).  The frame limit is applied after the frame filter (which may hide or omit frames) and
+  after repeating stack frames have been identified and coallesced ... :frame-limit is really the number
+  of _output_ lines to present.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.

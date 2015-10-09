@@ -80,6 +80,10 @@ This filtering is via an optional function, so you can define filters that make 
 For example, the default filter omits frames in the clojure.lang package (they are reduced to ellipses), and truncates the
 stack trace when when it reaches clojure.main/repl/read-eval-print.
 
+Repeating stack frames are also identified and reduced to a single line (that identifies the number of frames).
+This allows your infinite loop that terminates with a StackOverflowException to be reported in just a few lines, not
+thousands.
+
 The inverted (from Java norms) ordering has several benefits:
 
 * Chronological order is maintained, whereas a Java stack trace is in reverse chronological order.
