@@ -3,7 +3,7 @@
   :url "https://github.com/AvisoNovate/pretty"
   :license {:name "Apache Sofware License 2.0"
             :url  "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.5.0"]
                  [org.clojure/tools.logging "0.3.1" :optional true]]
   :plugins [[lein-shell "0.4.0"]
             [lein-codox "0.9.0"]]

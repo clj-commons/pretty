@@ -186,7 +186,7 @@
                  (conj output-defs justification)
                  (conj extractors extractor))
 
-          (some? width)
+          (not (nil? width))                                ; Clojure 1.5 compatibility
           (recur more-defs
                  (conj output-defs [justification width])
                  (conj extractors extractor))
