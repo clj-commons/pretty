@@ -200,8 +200,9 @@
         ;; Clojure adds __1234 unique ids to the ends of things, remove those.
         function-ids (map #(str/replace % #"__\d+" "") raw-function-ids)
         ;; In a degenerate case, a protocol method could be called "invoke" or "doInvoke"; we're ignoring
-        ;; that possibility here and assuming it's the IFn.invoke() or doInvoke().
-        all-ids      (if (#{"invoke" "doInvoke"} method-name)
+        ;; that possibility here and assuming it's the IFn.invoke(), doInvoke() or
+        ;; the invokeStatic method introduced with direct linking in Clojure 1.8.
+        all-ids      (if (#{"invoke" "doInvoke" "invokeStatic"} method-name)
                        function-ids
                        (-> function-ids vec (conj method-name)))]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
