@@ -259,6 +259,10 @@
   :method String
   : Java method name
 
+  :is-clojure?
+  : true if this represents a Clojure function call, rather than a Java
+    method invocation.
+
   :name String
   : Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
 
