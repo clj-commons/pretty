@@ -99,6 +99,8 @@ For both `format-exception` and `write-exception`, output of the stack trace is 
 This namespace includes a function, install-pretty-exceptions, which
 hooks into all the common ways that exceptions are output in Clojure and redirects them to use write-exception.
 
+You may not need to invoke this directly, as link:repl.html[Pretty can act as a Leiningen plugin].
+
 == io.aviso.logging
 
 This namespace includes functions to change clojure.tools.logging to use Pretty to output exceptions, and to add a

@@ -5,6 +5,10 @@ and only print the stack frame once, but append the number of times it repeats.
 
 Made an adjustment for Clojure 1.8's new direct linking feature.
 
+Improved the way Pretty acts as a Leiningen plugin.
+
+The io.aviso.nrepl namespace has been removed.
+
 ## 0.1.19 - 27 Aug 2015
 
 Print a blank line before the exception output, when reporting a clojure.test exception.

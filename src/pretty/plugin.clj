@@ -4,15 +4,16 @@
   (:require [io.aviso.repl :as repl]))
 
 (defn hooks
-  "Enables pretty printing of exceptions during the session. This is evaluated in the Leinigen classpath, not the project's
+  "Enables pretty printing of exceptions within Leiningen. This is evaluated in the Leinigen classpath, not the project's
   (if any)."
   []
   (repl/install-pretty-exceptions))
 
 (defn middleware
-  "Automatically adds the nREPL middleware that enables Pretty."
+  "Automatically adds the :injections that enable Pretty."
   [project]
-  (update-in project [:repl-options :nrepl-middleware]
-             (fnil conj [])
-             'io.aviso.nrepl/pretty-middleware))
+  (update-in project [:injections]
+             (fnil into [])
+             ['(require 'io.aviso.repl)
+              '(io.aviso.repl/install-pretty-exceptions)]))
 
