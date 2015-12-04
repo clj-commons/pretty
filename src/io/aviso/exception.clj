@@ -225,6 +225,7 @@
      :line         (if (pos? line) line)
      :class        class-name
      :package      (if (pos? dotx) (.substring class-name 0 dotx))
+     :is-clojure?  is-clojure?
      :simple-class (if (pos? dotx)
                      (.substring class-name (inc dotx))
                      class-name)
@@ -311,16 +312,16 @@
   [frame-filter frames]
   (if (nil? frame-filter)
     frames
-    (loop [result   []
+    (loop [result   (transient [])
            [frame & more-frames] frames
            omitting false]
       (case (if frame (frame-filter frame) :terminate)
 
         :terminate
-        result
+        (persistent! result)
 
         :show
-        (recur (conj result frame)
+        (recur (conj! result frame)
                more-frames
                false)
 
@@ -330,9 +331,35 @@
         :omit
         (if omitting
           (recur result more-frames true)
-          (recur (conj result (assoc frame :omitted true))
+          (recur (conj! result (assoc frame :omitted true))
                  more-frames
                  true))))))
+
+(defn- remove-direct-link-frames
+  "With Clojure 1.8, in code (such as clojure.core) that is direct linked,
+  you'll often see an invokeStatic() frame invoked from an invoke() frame
+  of the same class (the class being a compiled function). That ends up looking
+  like a two-frame repeat, which is not accurate.
+
+  This function filters out the .invoke frames so that a single Clojure
+  function call is represented in the output as a single stack frame."
+  [elements]
+  (loop [filtered   (transient [])
+         prev-frame nil
+         remaining  elements]
+    (if (empty? remaining)
+      (persistent! filtered)
+      (let [[this-frame & rest] remaining]
+        (if (and prev-frame
+                 (:is-clojure? prev-frame)
+                 (:is-clojure? this-frame)
+                 (= (:class prev-frame) (:class this-frame))
+                 (= "invokeStatic" (:method prev-frame))
+                 (= "invoke" (:method this-frame)))
+          (recur filtered this-frame rest)
+          (recur (conj! filtered this-frame)
+                 this-frame
+                 rest))))))
 
 (defn- is-repeat?
   [left-frame right-frame]
@@ -366,6 +393,7 @@
   [writer exception frame-limit frame-filter modern?]
   (let [elements  (->> exception
                        expand-stack-trace
+                       remove-direct-link-frames
                        (apply-frame-filter frame-filter)
                        (map preformat-stack-frame)
                        (reduce repeating-frame-reducer []))
