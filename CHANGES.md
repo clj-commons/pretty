@@ -1,4 +1,4 @@
-## 0.1.20 - UNRELEASED
+## 0.1.20 - 4 Dec 2015
 
 Pretty will identify repeating stack frames (for example, from an infinite loop)
 and only print the stack frame once, but append the number of times it repeats.
@@ -8,6 +8,8 @@ Made an adjustment for Clojure 1.8's new direct linking feature.
 Improved the way Pretty acts as a Leiningen plugin.
 
 The io.aviso.nrepl namespace has been removed.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.20)
 
 ## 0.1.19 - 27 Aug 2015
 
