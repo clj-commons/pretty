@@ -5,7 +5,8 @@ and only print the stack frame once, but append the number of times it repeats.
 
 Made an adjustment for Clojure 1.8's new direct linking feature.
 
-Improved the way Pretty acts as a Leiningen plugin.
+Improved the way Pretty acts as a Leiningen plugin.  Pretty exceptions reports are now
+produced for both REPL sessions and test executions.
 
 The io.aviso.nrepl namespace has been removed.
 
