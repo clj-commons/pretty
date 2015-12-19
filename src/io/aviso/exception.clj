@@ -505,15 +505,13 @@
          property-font         (:property *fonts*)
          reset-font            (:reset *fonts* "")
          modern?               (not *traditional*)
-         exception-stack       (->> exception
-                                    analyze-exception
-                                    (map #(assoc % :name (-> % :exception class .getName))))
-         exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :name)]
+         exception-stack       (analyze-exception exception)
+         exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :class-name)]
                                                  ": "
                                                  :none)
          write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
                                  (let [^Throwable exception (-> e :exception)
-                                       class-name           (:name e)
+                                       class-name           (:class-name e)
                                        message              (.getMessage exception)]
                                    (exception-formatter writer
                                                         (str exception-font class-name reset-font)
