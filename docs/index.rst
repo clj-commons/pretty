@@ -45,3 +45,7 @@ Pretty is released under the terms of the `Apache Software License 2.0 <http://w
    binary
    columns
 
+
+   API <http://avisonovate.github.io/docs/pretty>
+   GitHub Project <https://github.com/AvisoNovate/pretty>
+
