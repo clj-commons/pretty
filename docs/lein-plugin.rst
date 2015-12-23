@@ -6,7 +6,7 @@ pretty can act as a plugin to
 
 To enable pretty exception reporting automatically, add
 pretty to *both* the :plugins and the :dependencies lists
-of your ``project.clj``.
+of your :file:`project.clj`.
 
 .. code-block:: clojure
 
@@ -22,7 +22,7 @@ Adjust for the current version, "|release|".
 This adds middleware to enable pretty exception reporting when running a REPL, tests,
 or anything else that starts code in the project.
 
-Another option is to add the following to your ``~/.lein/profiles.clj``:
+Another option is to add the following to your :file:`~/.lein/profiles.clj`:
 
 .. code-block:: clojure
 
