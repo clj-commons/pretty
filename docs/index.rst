@@ -36,8 +36,6 @@ License
 
 Pretty is released under the terms of the `Apache Software License 2.0 <http://www.apache.org/licenses/LICENSE-2.0>`_.
 
-----
-
 .. toctree::
    :hidden:
 
@@ -46,7 +44,4 @@ Pretty is released under the terms of the `Apache Software License 2.0 <http://w
    lein-plugin
    binary
    columns
-
-* :ref:`genindex`
-* :ref:`search`
 

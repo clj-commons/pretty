@@ -16,4 +16,4 @@ That's what _pretty_ is for.  It adds support for pretty output where it counts:
 
 pretty is released under the terms of the Apache Software License 2.0.
 
-[Full Documentation](https://portal.aviso.io/#/docs/open-source)
+[Full Documentation](http://ioavisopretty.readthedocs.org/)
