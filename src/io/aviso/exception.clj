@@ -346,7 +346,7 @@
 (defn- wrap-exception
   [^Throwable exception properties next-exception stack-trace]
   [{:class-name  (-> exception .getClass .getName)
-    :message    (.getMessage exception)
+    :message     (.getMessage exception)
     :properties  properties
     :stack-trace stack-trace}
    next-exception])
@@ -463,9 +463,10 @@
   "Contains the main logic for [[write-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function."
   {:added "0.1.21"}
-  [writer exception-stack {show-properties? :properties
-                           :or              {show-properties? true}}]
-  (let [exception-font        (:exception *fonts*)
+  [writer exception-stack options]
+  (let [{show-properties? :properties
+         :or              {show-properties? true}} options
+        exception-font        (:exception *fonts*)
         message-font          (:message *fonts*)
         property-font         (:property *fonts*)
         reset-font            (:reset *fonts* "")
