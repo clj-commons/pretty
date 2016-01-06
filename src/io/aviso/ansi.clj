@@ -69,13 +69,11 @@
 ;; ANSI defines quite a few more, but we're limiting to those that display properly in the
 ;; Cursive REPL.
 
-(def-sgr-fn "bold" 1)
-(def-sgr-fn "italic" 3)
-(def-sgr-fn "inverse" 7)
-
-(def ^:const bold-font (str csi 1 sgr))
-(def ^:const italic-font (str csi 3 sgr))
-(def ^:const inverse-font (str csi 7 sgr))
+(doseq [[font-name code] [['bold 1]
+                          ['italic 3]
+                          ['inverse 7]]]
+  (def-sgr-fn font-name font-name code)
+  (def-sgr-const (str font-name "-font") font-name code))
 
 (def ^:const ^:private ansi-pattern (Pattern/compile "\\e\\[.*?m"))
 
