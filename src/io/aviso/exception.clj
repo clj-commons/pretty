@@ -461,7 +461,7 @@
 
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
-  the exception (via [[analyze-exception]] before invoking this function."
+  the exception (via [[analyze-exception]]) before invoking this function."
   {:added "0.1.21"}
   [writer exception-stack {show-properties? :properties
                            :or              {show-properties? true}}]
