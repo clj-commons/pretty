@@ -2,6 +2,8 @@
 
 Improved docstrings for ANSI font constants and functions.
 
+Source files with extension `.cljc` (introduced in Clojure 1.7) are now recognized as Clojure code.
+
 **Incompatible change:** write-binary now expects an optional map (not a varargs of keys and values)
 for options such as :ascii and :line-bytes.
 

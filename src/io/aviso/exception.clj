@@ -159,13 +159,22 @@
       (cons namespace-name all-ids)
       (map demangle))))
 
+(defn- extension
+  [^String file-name]
+  (let [x (.lastIndexOf file-name ".")]
+    (when (<= 0 x)
+      (subs file-name (inc x)))))
+
+(def ^:private clojure-extensions
+  #{"clj" "cljc"})
+
 (defn- expand-stack-trace-element
   [file-name-prefix ^StackTraceElement element]
   (let [class-name  (.getClassName element)
         method-name (.getMethodName element)
         dotx        (.lastIndexOf class-name ".")
         file-name   (or (.getFileName element) "")
-        is-clojure? (.endsWith file-name ".clj")
+        is-clojure? (->> file-name extension (contains? clojure-extensions))
         names       (if is-clojure? (convert-to-clojure class-name method-name) [])
         name        (str/join "/" names)
         line        (-> element .getLineNumber)]
