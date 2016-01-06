@@ -21,18 +21,21 @@
 
 (defn ^:private def-sgr-const
   "Utility for defining a font-modifying constant."
-  [symbol-name & codes]
+  [symbol-name color-name & codes]
   (eval
-    `(def ^:const ~(symbol symbol-name) ~(str csi (str/join ";" codes) sgr))))
+    `(def ^:const ~(symbol symbol-name)
+       ~(format "Constant for ANSI code to enable %s text." color-name)
+       ~(str csi (str/join ";" codes) sgr))))
 
 (defn ^:private def-sgr-fn
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
   the font after the text."
-  [fn-name & codes]
+  [fn-name color-name & codes]
   (eval
     `(defn ~(symbol fn-name)
-       [text#]
-       (str ~(str csi (str/join ";" codes) sgr) text# reset-font))))
+       ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
+       [~'text]
+       (str ~(str csi (str/join ";" codes) sgr) ~'text ~reset-font))))
 
 ;;; Define functions and constants for each color. The functions accept a string
 ;;; and wrap it with the ANSI codes to set up a rendition before the text,
@@ -53,14 +56,14 @@
 
 (doall
   (map-indexed (fn [index color-name]
-                 (def-sgr-fn color-name (+ 30 index))
-                 (def-sgr-fn (str color-name "-bg") (+ 40 index))
-                 (def-sgr-fn (str "bold-" color-name) 1 (+ 30 index))
-                 (def-sgr-fn (str "bold-" color-name "-bg") 1 (+ 40 index))
-                 (def-sgr-const (str color-name "-font") (+ 30 index))
-                 (def-sgr-const (str color-name "-bg-font") (+ 40 index))
-                 (def-sgr-const (str "bold-" color-name "-font") 1 (+ 30 index))
-                 (def-sgr-const (str "bold-" color-name "-bg-font") 1 (+ 40 index)))
+                 (def-sgr-fn color-name color-name (+ 30 index))
+                 (def-sgr-fn (str color-name "-bg") (str color-name " background") (+ 40 index))
+                 (def-sgr-fn (str "bold-" color-name) (str "bold " color-name) 1 (+ 30 index))
+                 (def-sgr-fn (str "bold-" color-name "-bg") (str "bold " color-name " background") 1 (+ 40 index))
+                 (def-sgr-const (str color-name "-font") color-name (+ 30 index))
+                 (def-sgr-const (str color-name "-bg-font") (str color-name " background") (+ 40 index))
+                 (def-sgr-const (str "bold-" color-name "-font") (str "bold " color-name) 1 (+ 30 index))
+                 (def-sgr-const (str "bold-" color-name "-bg-font") (str "bold " color-name " background") 1 (+ 40 index)))
                ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"]))
 
 ;; ANSI defines quite a few more, but we're limiting to those that display properly in the
