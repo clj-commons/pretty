@@ -1,6 +1,5 @@
 (ns io.aviso.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (:import (java.lang StringBuilder))
   (:require [io.aviso
              [ansi :as ansi]
              [columns :as c]
@@ -88,10 +87,10 @@
   - [[BinaryData]] to write
   - option keys and values:
 
-      `:ascii` boolean
+      :ascii - boolean
       : true to enable ASCII mode
 
-      `:line-bytes` number
+      :line-bytes - number
       : number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
 
   In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
@@ -104,10 +103,11 @@
   A placeholder character (a space with magenta background) is used for any non-printable
   character."
   ([data]
-   (write-binary *out* data))
-  ([writer data & {show-ascii? :ascii
-                   per-line-option :line-bytes}]
-   (let [per-line (or per-line-option
+   (write-binary *out* data nil))
+  ([writer data options]
+   (let [{show-ascii?     :ascii
+          per-line-option :line-bytes} options
+         per-line  (or per-line-option
                       (if show-ascii? bytes-per-ascii-line bytes-per-line))
          formatter (apply c/format-columns
                           (if show-ascii?
@@ -122,8 +122,10 @@
 
 (defn format-binary
   "Formats the data using [[write-binary]] and returns the result as a string."
-  [data & options]
-  (apply w/into-string write-binary data options))
+  ([data]
+   (format-binary data nil))
+  ([data options]
+   (apply w/into-string write-binary data options)))
 
 (defn- match?
   [byte-offset data-length data alternate-length alternate]

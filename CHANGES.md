@@ -2,6 +2,9 @@
 
 Improved docstrings for ANSI font constants and functions.
 
+**Incompatible change:** write-binary now expects an optional map (not a varargs of keys and values)
+for options such as :ascii and :line-bytes.
+
 ## 0.1.20 - 4 Dec 2015
 
 Pretty will identify repeating stack frames (for example, from an infinite loop)
