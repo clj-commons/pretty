@@ -395,7 +395,6 @@
       (wrap-exception exception retained-properties nested-exception stack-trace))))
 
 (defn analyze-exception
-  [^Throwable e options]
   "Converts an exception into a seq of maps representing nested exceptions.
   The order reflects exception nesting; first exception is the most recently
   thrown, last is the deepest, or root, exception ... the initial exception
@@ -422,6 +421,7 @@
 
   The first property that is assignable to type Throwable (not necessarily the rootCause property)
   will be used as the nested exception (for the next map in the sequence)."
+  [^Throwable e options]
   (loop [result  []
          current e]
     (let [[expanded nested] (expand-exception current options)
