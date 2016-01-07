@@ -177,9 +177,16 @@
         is-clojure? (->> file-name extension (contains? clojure-extensions))
         names       (if is-clojure? (convert-to-clojure class-name method-name) [])
         name        (str/join "/" names)
-        line        (-> element .getLineNumber)]
-    {:file         (strip-prefix file-name-prefix file-name)
-     :line         (if (pos? line) line)
+        ; This pattern comes from somewhere inside nREPL, I believe
+        [file line] (if (re-matches #"form-init\d+\.clj" file-name)
+                      ["REPL Input"]
+                      [(strip-prefix file-name-prefix file-name)
+                       (-> element .getLineNumber)])]
+    {:file         file
+     ; line will sometimes be nil
+     :line         (if (and line
+                            (pos? line))
+                     line)
      :class        class-name
      :package      (if (pos? dotx) (.substring class-name 0 dotx))
      :is-clojure?  is-clojure?
@@ -432,8 +439,10 @@
   (c/write-rows writer [:formatted-name
                         "  "
                         (:source *fonts*)
-                        :file
-                        [#(if (:line %) ": ") :left 2]
+                        #(if (:line %)
+                          (str (:file %) ":")
+                          (:file %))
+                        " "
                         #(-> % :line str)
                         [format-repeats :none]
                         (:reset *fonts*)]

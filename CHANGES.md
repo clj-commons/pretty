@@ -5,6 +5,9 @@ Improved docstrings for ANSI font constants and functions.
 Added support for invokePrim() stack frames. 
 These are hidden as with Clojure 1.8 invokeStatic() frames.
 
+Stack frames that represent REPL input now appear as `REPL Input` in the file column, rather than
+something like `form-init9201216130440431126.clj`.
+
 Source files with extension `.cljc` (introduced in Clojure 1.7) are now recognized as Clojure code.
 
 **Incompatible change:** write-binary now expects an optional map (not a varargs of keys and values)
