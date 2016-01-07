@@ -150,7 +150,7 @@
         ;; In a degenerate case, a protocol method could be called "invoke" or "doInvoke"; we're ignoring
         ;; that possibility here and assuming it's the IFn.invoke(), doInvoke() or
         ;; the invokeStatic method introduced with direct linking in Clojure 1.8.
-        all-ids      (if (#{"invoke" "doInvoke" "invokeStatic"} method-name)
+        all-ids      (if (#{"invoke" "doInvoke" "invokeStatic" "invokePrim"} method-name)
                        function-ids
                        (-> function-ids vec (conj method-name)))]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
@@ -225,7 +225,7 @@
 
 (defn- remove-direct-link-frames
   "With Clojure 1.8, in code (such as clojure.core) that is direct linked,
-  you'll often see an invokeStatic() frame invoked from an invoke() frame
+  you'll often see an invokeStatic() and/or invokePrim() frame invoked from an invoke() frame
   of the same class (the class being a compiled function). That ends up looking
   like a two-frame repeat, which is not accurate.
 
@@ -243,7 +243,7 @@
                  (:is-clojure? this-frame)
                  (= (:class prev-frame) (:class this-frame))
                  (= "invokeStatic" (:method prev-frame))
-                 (= "invoke" (:method this-frame)))
+                 (contains? #{"invoke" "invokePrim"} (:method this-frame)))
           (recur filtered this-frame rest)
           (recur (conj! filtered this-frame)
                  this-frame
