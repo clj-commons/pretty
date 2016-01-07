@@ -14,6 +14,8 @@ That's what _pretty_ is for.  It adds support for pretty output where it counts:
 * Hex dump of binary deltas
 * Formatting data into columns
 
+![Example](docs/images/formatted-exception.png)
+
 pretty is released under the terms of the Apache Software License 2.0.
 
 [Full Documentation](http://ioavisopretty.readthedocs.org/)
