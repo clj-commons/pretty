@@ -16,6 +16,9 @@ That's what _pretty_ is for.  It adds support for pretty output where it counts:
 
 ![Example](docs/images/formatted-exception.png)
 
+[Full Documentation](http://ioavisopretty.readthedocs.org/en/0.1.21/)
+
+----
+
 pretty is released under the terms of the Apache Software License 2.0.
 
-[Full Documentation](http://ioavisopretty.readthedocs.org/)
