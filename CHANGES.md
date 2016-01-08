@@ -1,4 +1,4 @@
-## 0.1.21 - UNRELEASED
+## 0.1.21 - 8 Jan 2016
 
 Improved docstrings for ANSI font constants and functions.
 
