@@ -6,7 +6,7 @@ If you are trying to puzzle out a stack trace,
 pick a critical line of text out of a long stream of console output,
 or compare two streams of binary data, a little bit of formatting can go a long way.
 
-That's what _pretty_ is for.  It adds support for pretty output where it counts:
+That's what _io.aviso/pretty_ is for.  It adds support for pretty output where it counts:
 
 * Readable output for exceptions
 * ANSI font and background color support
@@ -20,6 +20,4 @@ That's what _pretty_ is for.  It adds support for pretty output where it counts:
 
 ----
 
-pretty is released under the terms of the Apache Software License 2.0.
-
-A bogus change
+io.aviso/pretty is released under the terms of the Apache Software License 2.0.
