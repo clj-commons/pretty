@@ -345,19 +345,23 @@
                            (:function-name *fonts*) (last names) (:reset *fonts*))]
       (assoc frame :formatted-name formatted-name))))
 
+(defn- transform-stack-trace-elements
+  "Converts a seq of StackTraceElements into a seq of stack trace maps."
+  [elements options]
+  (let [frame-filter (:filter options *default-frame-filter*)
+        frame-limit  (:frame-limit options)
+        elements'    (->> elements
+                          remove-direct-link-frames
+                          (apply-frame-filter frame-filter)
+                          (map preformat-stack-frame)
+                          (reduce repeating-frame-reducer []))]
+    (if frame-limit
+      (take frame-limit elements')
+      elements')))
+
 (defn- extract-stack-trace
   [exception options]
-  (let [frame-filter (:filter options *default-frame-filter*)
-        frame-limit (:frame-limit options)
-        elements (->> exception
-                      expand-stack-trace
-                      remove-direct-link-frames
-                      (apply-frame-filter frame-filter)
-                      (map preformat-stack-frame)
-                      (reduce repeating-frame-reducer []))]
-    (if frame-limit
-      (take frame-limit elements)
-      elements)))
+  (transform-stack-trace-elements (expand-stack-trace exception) options))
 
 (defn- wrap-exception
   [^Throwable exception properties next-exception stack-trace]
@@ -479,7 +483,9 @@
 
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
-  the exception (via [[analyze-exception]]) before invoking this function."
+  the exception (via [[analyze-exception]]) before invoking this function.
+
+  This code was extracted so as to support [[parse-exception]]."
   {:added "0.1.21"}
   [writer exception-stack options]
   (let [{show-properties? :properties
@@ -595,3 +601,126 @@
    (format-exception exception nil))
   ([exception options]
    (w/into-string write-exception exception options)))
+
+
+(defn- assemble-final-stack [exceptions stack-trace stack-trace-batch options]
+  (let [stack-trace' (-> (map (partial expand-stack-trace-element @current-dir-prefix)
+                              (into stack-trace-batch stack-trace))
+                         (transform-stack-trace-elements options))
+        x            (-> exceptions count dec)]
+    (assoc-in exceptions [x :stack-trace] stack-trace')))
+
+(def ^:private re-exception-start
+  "The start of an exception, possibly the outermost exception."
+  #"(Caused by: )?(\w+(\.\w+)*): (.*)"
+  ; Group 2 - exception name
+  ; Group 4 - exception message
+  )
+
+(def ^:private re-stack-frame
+  #"\s+at ([a-zA-Z_.$\d]+)\((.+):(\d+)\).*"
+  ; Group 1 - class and method name
+  ; Group 2 - file name
+  ; Group 3 - line number
+  )
+
+(defn- add-message-text
+  [exceptions line]
+  (let [x (-> exceptions count dec)]
+    (update-in exceptions [x :message]
+               str \newline line)))
+
+(defn- add-to-batch [stack-trace-batch ^String class-and-method ^String file-name ^String line-number]
+  (try
+    (let [x           (.lastIndexOf class-and-method ".")
+          class-name  (subs class-and-method 0 x)
+          method-name (subs class-and-method (inc x))
+          element     (StackTraceElement. class-name method-name file-name (Integer/parseInt line-number))]
+      (conj stack-trace-batch element))
+    (catch Throwable t
+      (throw (ex-info "Unable to create StackTraceElement."
+                      {:class-and-method class-and-method
+                       :file-name        file-name
+                       :line-number      line-number}
+                      t)))))
+
+(defn parse-exception
+  "Given a chunk of text for an exception report (as with `.printStackTrace`), attempts to
+  piece together the same information provided by [[analyze-exception]].  The result
+  is ready to pass to [[write-exception*]].
+
+  This code does not attempt to recreate properties associated with the exceptions; in most
+  exception's cases, this is not necessarily written to the output. For clojure.lang.ExInfo,
+  it is hard to distinguish the message text from the printed exception map.
+
+  The options are used when processing the stack trace and may include the :filter and :frame-limit keys.
+
+  Returns a sequence of exception maps; the final map will include the :stack-trace key (a vector
+  of stack trace element maps).
+
+  This should be considered experimental code; there are many cases where it may not work properly.
+
+  It will work quite poorly with exceptions whose message incorporates a nested exception's
+  .printStackTrace output. This happens too often with JDBC exceptions, for example."
+  {:added "0.1.21"}
+  [exception-text options]
+  (loop [state             :start
+         lines             (str/split-lines exception-text)
+         exceptions        []
+         stack-trace       []
+         stack-trace-batch []]
+    (if (empty? lines)
+      (assemble-final-stack exceptions stack-trace stack-trace-batch options)
+      (let [[line & more-lines] lines]
+        (condp = state
+
+          :start
+          (let [[_ _ exception-class-name _ exception-message] (re-matches re-exception-start line)]
+            (when-not exception-class-name
+              (throw (ex-info "Unable to parse start of exception."
+                              {:line           line
+                               :exception-text exception-text})))
+
+            ;; The exception message may span a couple of lines, so check for that before absorbing
+            ;; more stack trace
+            (recur :exception-message
+                   more-lines
+                   (conj exceptions {:class-name exception-class-name
+                                     :message    exception-message})
+                   stack-trace
+                   stack-trace-batch))
+
+          :exception-message
+          (if (re-matches re-stack-frame line)
+            (recur :stack-frame lines exceptions stack-trace stack-trace-batch)
+            (recur :exception-message
+                   more-lines
+                   (add-message-text exceptions line)
+                   stack-trace
+                   stack-trace-batch))
+
+          :stack-frame
+          (let [[_ class-and-method file-name line-number] (re-matches re-stack-frame line)]
+            (if class-and-method
+              (recur :stack-frame
+                     more-lines
+                     exceptions
+                     stack-trace
+                     (add-to-batch stack-trace-batch class-and-method file-name line-number))
+              (recur :skip-more-line
+                     lines
+                     exceptions
+                     ;; With the weird ordering of the JDK, what we see is
+                     ;; a batch of entries that actually precede frames from earlier
+                     ;; in the output (because JDK tries to present the exceptions outside in).
+                     ;; This inner exception and its abbreviated stack trace represents
+                     ;; progress downward from the previously output exception.
+                     (into stack-trace-batch stack-trace)
+                     [])))
+
+          :skip-more-line
+          (if (re-matches #"\s+\.\.\. \d+ more" line)
+            (recur :start more-lines
+                   exceptions stack-trace stack-trace-batch)
+            (recur :start lines
+                   exceptions stack-trace stack-trace-batch)))))))

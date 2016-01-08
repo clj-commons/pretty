@@ -10,6 +10,11 @@ something like `form-init9201216130440431126.clj`.
 
 Source files with extension `.cljc` (introduced in Clojure 1.7) are now recognized as Clojure code.
 
+It is not possible to parse a block of exception text (say, copied from an output log)
+so that it may be formatted.
+Because of the wide range in which different JDKs may output exceptions, this is considered
+experimental.
+
 **Incompatible change:** write-binary now expects an optional map (not a varargs of keys and values)
 for options such as :ascii and :line-bytes.
 
