@@ -1,3 +1,5 @@
+## 0.1.22 - UNRELEASED
+
 ## 0.1.21 - 8 Jan 2016
 
 Improved docstrings for ANSI font constants and functions.
@@ -10,7 +12,7 @@ something like `form-init9201216130440431126.clj`.
 
 Source files with extension `.cljc` (introduced in Clojure 1.7) are now recognized as Clojure code.
 
-It is not possible to parse a block of exception text (say, copied from an output log)
+It is now possible to parse a block of exception text (say, copied from an output log)
 so that it may be formatted.
 Because of the wide range in which different JDKs may output exceptions, this is considered
 experimental.
