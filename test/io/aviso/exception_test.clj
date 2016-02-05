@@ -207,4 +207,115 @@
                  "\tat com.example.error_monitor.main$_main$fn__705.invoke(main.clj:19)"
                  "\tat com.example.error_monitor.main$_main.doInvoke(main.clj:16)"
                  "\tat clojure.lang.RestFn.applyTo(RestFn.java:137)"
-                 "\tat com.example.error_monitor.main.main(Unknown Source)"]))))
+                 "\tat com.example.error_monitor.main.main(Unknown Source)"]))
+
+      (is (= [{:class-name "java.lang.RuntimeException", :message "Request handling exception"}
+              {:class-name "java.lang.RuntimeException", :message "Failure updating row"}
+              {:class-name  "java.sql.SQLException"
+               :message     "Database failure\nSELECT FOO, BAR, BAZ\nFROM GNIP\nfailed with ABC123"
+               :stack-trace [{:simple-class   "user$jdbc_update"
+                              :package        nil
+                              :is-clojure?    true
+                              :method         "invoke"
+                              :name           "user/jdbc-update"
+                              :formatted-name "user/jdbc-update"
+                              :file           "user.clj"
+                              :line           7
+                              :class          "user$jdbc_update"
+                              :names          '("user" "jdbc-update")}
+                             {:simple-class   "user$make_jdbc_update_worker$reify__497"
+                              :package        nil
+                              :is-clojure?    true
+                              :method         "do_work"
+                              :name           "user/make-jdbc-update-worker/reify/do-work"
+                              :formatted-name "user/make-jdbc-update-worker/reify/do-work"
+                              :file           "user.clj"
+                              :line           18
+                              :class          "user$make_jdbc_update_worker$reify__497"
+                              :names          '("user" "make-jdbc-update-worker" "reify" "do-work")}
+                             {:simple-class   "user$update_row"
+                              :package        nil
+                              :is-clojure?    true
+                              :method         "invoke"
+                              :name           "user/update-row"
+                              :formatted-name "user/update-row"
+                              :file           "user.clj"
+                              :line           23
+                              :class          "user$update_row"
+                              :names          '("user" "update-row")}
+                             {:simple-class   "user$make_exception"
+                              :package        nil
+                              :is-clojure?    true
+                              :method         "invoke"
+                              :name           "user/make-exception"
+                              :formatted-name "user/make-exception"
+                              :file           "user.clj"
+                              :line           31
+                              :class          "user$make_exception"
+                              :names          '("user" "make-exception")}
+                             {:simple-class   "user$eval2018"
+                              :package        nil
+                              :is-clojure?    true
+                              :method         "invoke"
+                              :name           "user/eval2018"
+                              :formatted-name "user/eval2018"
+                              :file           "REPL Input"
+                              :line           nil
+                              :class          "user$eval2018"
+                              :names          '("user" "eval2018")}
+                             {:simple-class   "Compiler"
+                              :package        "clojure.lang"
+                              :omitted        true
+                              :is-clojure?    false
+                              :method         "eval"
+                              :name           ""
+                              :formatted-name "..."
+                              :file           ""
+                              :line           nil
+                              :class          "clojure.lang.Compiler"
+                              :names          []}
+                             {:simple-class   "core$eval"
+                              :package        "clojure"
+                              :is-clojure?    true
+                              :method         "invoke"
+                              :name           "clojure.core/eval"
+                              :formatted-name "clojure.core/eval"
+                              :file           "core.clj"
+                              :line           2852
+                              :class          "clojure.core$eval"
+                              :names          '("clojure.core" "eval")}]}]
+             (parse ["java.lang.RuntimeException: Request handling exception"
+                     "\tat user$make_exception.invoke(user.clj:31)"
+                     "\tat user$eval2018.invoke(form-init1482095333541107022.clj:1)"
+                     "\tat clojure.lang.Compiler.eval(Compiler.java:6619)"
+                     "\tat clojure.lang.Compiler.eval(Compiler.java:6582)"
+                     "\tat clojure.core$eval.invoke(core.clj:2852)"
+                     "\tat clojure.main$repl$read_eval_print__6602$fn__6605.invoke(main.clj:259)"
+                     "\tat clojure.main$repl$read_eval_print__6602.invoke(main.clj:259)"
+                     "\tat clojure.main$repl$fn__6611$fn__6612.invoke(main.clj:277)"
+                     "\tat clojure.main$repl$fn__6611.invoke(main.clj:277)"
+                     "\tat clojure.main$repl.doInvoke(main.clj:275)"
+                     "\tat clojure.lang.RestFn.invoke(RestFn.java:1523)"
+                     "\tat clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1419.invoke(interruptible_eval.clj:72)"
+                     "\tat clojure.lang.AFn.applyToHelper(AFn.java:159)"
+                     "\tat clojure.lang.AFn.applyTo(AFn.java:151)"
+                     "\tat clojure.core$apply.invoke(core.clj:617)"
+                     "\tat clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)"
+                     "\tat clojure.lang.RestFn.invoke(RestFn.java:425)"
+                     "\tat clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:56)"
+                     "\tat clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1461$fn__1464.invoke(interruptible_eval.clj:191)"
+                     "\tat clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1456.invoke(interruptible_eval.clj:159)"
+                     "\tat clojure.lang.AFn.run(AFn.java:24)"
+                     "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)"
+                     "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)"
+                     "\tat java.lang.Thread.run(Thread.java:745)"
+                     "Caused by: java.lang.RuntimeException: Failure updating row"
+                     "\tat user$update_row.invoke(user.clj:23)"
+                     "\t... 24 more"
+                     "Caused by: java.sql.SQLException: Database failure"
+                     "SELECT FOO, BAR, BAZ"
+                     "FROM GNIP"
+                     "failed with ABC123"
+                     "\tat user$jdbc_update.invoke(user.clj:7)"
+                     "\tat user$make_jdbc_update_worker$reify__497.do_work(user.clj:18)"
+                     "\t... 25 more"])))))
