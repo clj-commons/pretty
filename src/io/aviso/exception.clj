@@ -618,10 +618,11 @@
   )
 
 (def ^:private re-stack-frame
-  #"\s+at ([a-zA-Z_.$\d]+)\((.+):(\d+)\).*"
+  ;; Sometimes the file name and line number are replaced with "Unknown source"
+  #"\s+at ([a-zA-Z_.$\d]+)\(((.+):(\d+))?.*\).*"
   ; Group 1 - class and method name
-  ; Group 2 - file name
-  ; Group 3 - line number
+  ; Group 3 - file name (or nil)
+  ; Group 4 - line number (or nil)
   )
 
 (defn- add-message-text
@@ -635,7 +636,9 @@
     (let [x           (.lastIndexOf class-and-method ".")
           class-name  (subs class-and-method 0 x)
           method-name (subs class-and-method (inc x))
-          element     (StackTraceElement. class-name method-name file-name (Integer/parseInt line-number))]
+          element     (StackTraceElement. class-name method-name file-name (if line-number
+                                                                             (Integer/parseInt line-number)
+                                                                             -1))]
       (conj stack-trace-batch element))
     (catch Throwable t
       (throw (ex-info "Unable to create StackTraceElement."
@@ -700,7 +703,7 @@
                    stack-trace-batch))
 
           :stack-frame
-          (let [[_ class-and-method file-name line-number] (re-matches re-stack-frame line)]
+          (let [[_ class-and-method _ file-name line-number] (re-matches re-stack-frame line)]
             (if class-and-method
               (recur :stack-frame
                      more-lines

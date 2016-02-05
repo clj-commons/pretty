@@ -177,7 +177,17 @@
                          :file           ""
                          :line           nil
                          :class          "clojure.lang.RestFn"
-                         :names          []}]}]
+                         :names          []}
+                        {:class          "com.example.error_monitor.main"
+                         :file           ""
+                         :formatted-name "com.example.error_monitor.main.main"
+                         :is-clojure?    false
+                         :line           nil
+                         :method         "main"
+                         :name           ""
+                         :names          []
+                         :package        "com.example.error_monitor"
+                         :simple-class   "main"}]}]
          (parse ["java.lang.IllegalArgumentException: No value supplied for key: {:host \"example.com\"}"
                  "\tat clojure.lang.PersistentHashMap.create(PersistentHashMap.java:77)"
                  "\tat riemann.client$tcp_client.doInvoke(client.clj:90)"
@@ -197,4 +207,4 @@
                  "\tat com.example.error_monitor.main$_main$fn__705.invoke(main.clj:19)"
                  "\tat com.example.error_monitor.main$_main.doInvoke(main.clj:16)"
                  "\tat clojure.lang.RestFn.applyTo(RestFn.java:137)"
-                 #_"\tat com.example.error_monitor.main.main(Unknown Source)"]))))
+                 "\tat com.example.error_monitor.main.main(Unknown Source)"]))))

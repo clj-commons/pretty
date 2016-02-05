@@ -1,5 +1,8 @@
 ## 0.1.22 - UNRELEASED
 
+Fixed a bug where `parse-exception` would fail if the source was "Unknown Source" instead
+of a file name and line number.
+
 ## 0.1.21 - 8 Jan 2016
 
 Improved docstrings for ANSI font constants and functions.
