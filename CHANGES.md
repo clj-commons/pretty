@@ -1,4 +1,4 @@
-## 0.1.22 - UNRELEASED
+## 0.1.22 - 5 Feb 2016
 
 Fixed a bug where `parse-exception` would fail if the source was "Unknown Source" instead
 of a file name and line number.
