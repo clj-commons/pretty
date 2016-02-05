@@ -659,7 +659,8 @@
   The options are used when processing the stack trace and may include the :filter and :frame-limit keys.
 
   Returns a sequence of exception maps; the final map will include the :stack-trace key (a vector
-  of stack trace element maps).
+  of stack trace element maps).  The exception maps are ordered outermost to innermost (that final map
+  is the root exception).
 
   This should be considered experimental code; there are many cases where it may not work properly.
 
