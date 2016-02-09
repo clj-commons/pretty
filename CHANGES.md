@@ -1,7 +1,11 @@
+## 0.1.23 - UNRELEASED
+
 ## 0.1.22 - 5 Feb 2016
 
 Fixed a bug where `parse-exception` would fail if the source was "Unknown Source" instead
 of a file name and line number.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.22)
 
 ## 0.1.21 - 8 Jan 2016
 
