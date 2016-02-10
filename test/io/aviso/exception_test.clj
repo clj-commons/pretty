@@ -1,7 +1,7 @@
 (ns io.aviso.exception-test
   (use clojure.test)
   (:require [clojure.string :as str]
-            [io.aviso.exception :refer [*fonts* parse-exception]]
+            [io.aviso.exception :refer [*fonts* parse-exception write-exception*]]
             [clojure.pprint :refer [pprint]]))
 
 
@@ -546,8 +546,4 @@
                         "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.run(NioClientBoss.java:42) ~store-service.jar:na"
                         "\tat com.datastax.shaded.netty.util.ThreadRenamingRunnable.run(ThreadRenamingRunnable.java:108) ~store-service.jar:na"
                         "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
-                        "\t... 3 common frames omitted"
-
-                        )
-
-                 )))))
+                        "\t... 3 common frames omitted"))))))
