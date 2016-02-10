@@ -1,5 +1,8 @@
 ## 0.1.23 - UNRELEASED
 
+`parse-exception` can now handle method names containing '<' and '>' (used for instance and class
+constructor methods), as well as other cases from real-life stack traces.
+
 ## 0.1.22 - 5 Feb 2016
 
 Fixed a bug where `parse-exception` would fail if the source was "Unknown Source" instead

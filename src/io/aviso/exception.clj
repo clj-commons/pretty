@@ -619,7 +619,7 @@
 
 (def ^:private re-stack-frame
   ;; Sometimes the file name and line number are replaced with "Unknown source"
-  #"\s+at ([a-zA-Z_.$\d]+)\(((.+):(\d+))?.*\).*"
+  #"\s+at ([a-zA-Z_.$\d<>]+)\(((.+):(\d+))?.*\).*"
   ; Group 1 - class and method name
   ; Group 3 - file name (or nil)
   ; Group 4 - line number (or nil)
@@ -723,7 +723,7 @@
                      [])))
 
           :skip-more-line
-          (if (re-matches #"\s+\.\.\. \d+ more" line)
+          (if (re-matches #"\s+\.\.\. \d+ (more|common frames omitted)" line)
             (recur :start more-lines
                    exceptions stack-trace stack-trace-batch)
             (recur :start lines
