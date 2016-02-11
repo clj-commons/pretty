@@ -1,6 +1,9 @@
-(ns user (import (java.sql SQLException))
-  (use [io.aviso ansi binary exception repl]
-       [clojure test pprint]))
+(ns user
+  (:use [io.aviso ansi binary exception repl]
+        [clojure test pprint])
+  (:require [clojure.java.io :as io]
+            [criterium.core :as c])
+  (:import (java.sql SQLException)))
 
 (install-pretty-exceptions)
 
@@ -53,3 +56,19 @@
   (if (zero? n)
     (throw (RuntimeException. "Boom!"))
     (countdown (dec n))))
+
+(comment
+
+  ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
+
+  (let [out (io/writer "target/output.txt")
+        e (make-ex-info)]
+    (c/bench (write-exception out e)))
+
+  ;; 11 Feb 2016 - 213 µs (4 µs std dev) - Clojure 1.8
+
+  (let [e (make-ex-info)]
+    (c/bench (doseq [x (analyze-exception e nil)]
+               (-> x :stack-trace doall))))
+
+  )
