@@ -655,7 +655,7 @@
   is ready to pass to [[write-exception*]].
 
   This code does not attempt to recreate properties associated with the exceptions; in most
-  exception's cases, this is not necessarily written to the output. For clojure.lang.ExInfo,
+  exception's cases, this is not necessarily written to the output. For clojure.lang.ExceptionInfo,
   it is hard to distinguish the message text from the printed exception map.
 
   The options are used when processing the stack trace and may include the :filter and :frame-limit keys.
