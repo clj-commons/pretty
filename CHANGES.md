@@ -3,6 +3,11 @@
 `parse-exception` can now handle method names containing '<' and '>' (used for instance and class
 constructor methods), as well as other cases from real-life stack traces.
 
+Stack traces were omitted when the deepest stack frame was via `ex-info`; this has been corrected.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.23)
+
+
 ## 0.1.22 - 5 Feb 2016
 
 Fixed a bug where `parse-exception` would fail if the source was "Unknown Source" instead

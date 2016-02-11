@@ -33,6 +33,17 @@
       ;; Return it, not rethrow it.
       (RuntimeException. "Request handling exception" e))))
 
+(defn make-ex-info
+  ""
+  []
+  (try
+    (throw (make-exception))
+    (catch Throwable t
+      ;; Return it, not rethrow it.
+      (ex-info "Exception in make-ex-info."
+               {:function 'make-exception}
+               t))))
+
 (defn infinite-loop
   []
   (infinite-loop))

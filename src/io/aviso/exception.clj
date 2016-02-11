@@ -363,40 +363,42 @@
   [exception options]
   (transform-stack-trace-elements (expand-stack-trace exception) options))
 
+(defn- is-throwable? [v]
+  (.isInstance Throwable v))
+
 (defn- wrap-exception
-  [^Throwable exception properties next-exception stack-trace]
-  [{:class-name  (-> exception .getClass .getName)
-    :message     (.getMessage exception)
-    :properties  properties
-    :stack-trace stack-trace}
-   next-exception])
+  [^Throwable exception properties options]
+  (let [throwable-property-keys (match-keys properties is-throwable?)
+        nested-exception        (or (->> (select-keys properties throwable-property-keys)
+                                         vals
+                                         (remove nil?)
+                                         ;; Avoid infinite loop!
+                                         (remove #(= % exception))
+                                         first)
+                                    (.getCause exception))
+        stack-trace             (when-not nested-exception
+                                  (extract-stack-trace exception options))]
+    [{:class-name  (-> exception .getClass .getName)
+      :message     (.getMessage exception)
+      ;; Don't ever want to include throwables since they will wreck the output format.
+      ;; Would only expect a single throwable (either an explicit property, or as the cause)
+      ;; per exception.
+      :properties  (apply dissoc properties throwable-property-keys)
+      :stack-trace stack-trace}
+     nested-exception]))
 
 (defn- expand-exception
   [^Throwable exception options]
   (if (instance? ExceptionInfo exception)
-    (wrap-exception exception (.getData ^ExceptionInfo exception) (.getCause exception) nil)
-    (let [properties              (bean exception)
-          nil-property-keys       (match-keys properties nil?)
-          throwable-property-keys (match-keys properties #(.isInstance Throwable %))
-          remove'                 #(remove %2 %1)
-          nested-exception        (-> properties
-                                      (select-keys throwable-property-keys)
-                                      vals
-                                      (remove' nil?)
-                                      ;; Avoid infinite loop!
-                                      (remove' #(= % exception))
-                                      first)
+    (wrap-exception exception (ex-data exception) options)
+    (let [properties          (bean exception)
           ;; Ignore basic properties of Throwable, any nil properties, and any properties
           ;; that are themselves Throwables
-          discarded-keys          (concat [:suppressed :message :localizedMessage :class :stackTrace]
-                                          nil-property-keys
-                                          throwable-property-keys)
-          retained-properties     (apply dissoc properties discarded-keys)
-          ;; Just extract a stack trace at the root exception (when the nested-exception
-          ;; is nil).
-          stack-trace             (when-not nested-exception
-                                    (extract-stack-trace exception options))]
-      (wrap-exception exception retained-properties nested-exception stack-trace))))
+          discarded-keys      (concat [:suppressed :message :localizedMessage :class :stackTrace :cause]
+                                      (match-keys properties nil?)
+                                      (match-keys properties is-throwable?))
+          retained-properties (apply dissoc properties discarded-keys)]
+      (wrap-exception exception retained-properties options))))
 
 (defn analyze-exception
   "Converts an exception into a seq of maps representing nested exceptions.
