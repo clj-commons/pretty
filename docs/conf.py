@@ -56,7 +56,7 @@ author = u'Howard M. Lewis Ship and others'
 #
 
 # The full version, including alpha/beta/rc tags.
-release = u'0.1.21'
+release = u'0.1.23'
 
 # The short X.Y version.
 version = release

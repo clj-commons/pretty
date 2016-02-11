@@ -1,6 +1,6 @@
-## 0.1.23 - UNRELEASED
+## 0.1.23 - 11 Feb 2016
 
-`parse-exception` can now handle method names containing '<' and '>' (used for instance and class
+`parse-exception` can now handle method names containing `<` and `>` (used for instance and class
 constructor methods), as well as other cases from real-life stack traces.
 
 Stack traces were omitted when the deepest stack frame was via `ex-info`; this has been corrected.

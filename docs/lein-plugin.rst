@@ -11,13 +11,13 @@ of your :file:`project.clj`.
 .. code-block:: clojure
 
   (defproject ...
-   :plugins [[io.aviso/pretty "0.1.20"]]
+   :plugins [[io.aviso/pretty "0.1.23"]]
    :dependencies [...
-                  [io.aviso/pretty "0.1.20"]]
+                  [io.aviso/pretty "0.1.23"]]
    ...)
 
 
-Adjust for the current version, "|release|".
+Adjust if necessary, for the current version, "|release|".
 
 This adds middleware to enable pretty exception reporting when running a REPL, tests,
 or anything else that starts code in the project.
@@ -27,8 +27,8 @@ Another option is to add the following to your :file:`~/.lein/profiles.clj`:
 .. code-block:: clojure
 
    :pretty {
-     :plugins [[io.aviso/pretty "0.1.20"]]
-     :dependencies [[io.aviso/pretty "0.1.20"]]
+     :plugins [[io.aviso/pretty "0.1.23"]]
+     :dependencies [[io.aviso/pretty "0.1.23"]]
    }
 
 This creates an opt-in profile that adds and enables pretty exception reporting.
