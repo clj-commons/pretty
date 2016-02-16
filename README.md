@@ -18,7 +18,7 @@ That's what _io.aviso/pretty_ is for.  It adds support for pretty output where i
 
 [Full Documentation](http://ioavisopretty.readthedocs.org/)
 
-Pretty is also incorporated into the [ultra](https://github.com/venantius/ultra/pulse) plugin.
+Pretty is also incorporated into the [ultra](https://github.com/venantius/ultra/) plugin.
 
 ----
 
