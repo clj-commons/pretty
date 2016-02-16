@@ -18,6 +18,8 @@ That's what _io.aviso/pretty_ is for.  It adds support for pretty output where i
 
 [Full Documentation](http://ioavisopretty.readthedocs.org/)
 
+Pretty is also incorporated into the [ultra](https://github.com/venantius/ultra/pulse) plugin.
+
 ----
 
 io.aviso/pretty is released under the terms of the Apache Software License 2.0.
