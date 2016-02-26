@@ -16,7 +16,7 @@ That's what _io.aviso/pretty_ is for.  It adds support for pretty output where i
 
 ![Example](docs/images/formatted-exception.png)
 
-[Full Documentation](http://ioavisopretty.readthedocs.org/)
+[Full Documentation](http://ioavisopretty.readthedocs.org/en/latest/)
 
 Pretty is also incorporated into the [ultra](https://github.com/venantius/ultra/) plugin.
 
