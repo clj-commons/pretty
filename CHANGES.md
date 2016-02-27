@@ -1,3 +1,7 @@
+## 0.1.24 - 26 Feb 2016
+
+Internal change to how exception properties are pretty-printed.
+
 ## 0.1.23 - 11 Feb 2016
 
 `parse-exception` can now handle method names containing `<` and `>` (used for instance and class
