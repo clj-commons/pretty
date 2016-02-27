@@ -9,8 +9,7 @@
              [columns :as c]
              [writer :as w]])
   (:import [java.lang StringBuilder StackTraceElement]
-           [clojure.lang Compiler MultiFn ExceptionInfo]
-           [java.lang.reflect Field]
+           [clojure.lang Compiler ExceptionInfo]
            [java.util.regex Pattern]))
 
 (def ^:dynamic *fonts*
