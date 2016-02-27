@@ -472,12 +472,13 @@
           security concerns."
           class)
 
-;; Not totally happy about this approach as it feels a bit hackish, and has the problem that it
-;; takes a snapshot of pp/simple-dispatch *at some point*.
+(defmethod exception-dispatch Object
+  [object]
+  (pp/simple-dispatch object))
 
-(let [^Field f (.getDeclaredField MultiFn "methodTable")]
-  (.setAccessible f true)
-  (.set f exception-dispatch (methods pp/simple-dispatch)))
+(defmethod exception-dispatch nil
+  [_]
+  (pp/simple-dispatch nil))
 
 (defn- format-property-value
   [value]
