@@ -1,4 +1,4 @@
-## 0.1.25 - UNRELEASED
+## 0.1.25 - 5 Apr 2016
 
 The writer used in write-exception is now locked and flush on newline is disabled;
 this helps ensure that multiple threads do not write their output interspersed
