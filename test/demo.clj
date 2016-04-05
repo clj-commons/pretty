@@ -1,4 +1,4 @@
-(ns user
+(ns demo
   (:use [io.aviso ansi binary exception repl]
         [clojure test pprint])
   (:require [clojure.java.io :as io]

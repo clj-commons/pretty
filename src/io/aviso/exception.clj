@@ -487,48 +487,54 @@
   "Contains the main logic for [[write-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function.
 
+  The writer is locked for the duration of the function, and `*flush-on-newline*` is
+  bound to false. This helps keep output from multiple threads from interleaving in
+  a quite unreadable way.
+
   This code was extracted so as to support [[parse-exception]]."
   {:added "0.1.21"}
   [writer exception-stack options]
-  (let [{show-properties? :properties
-         :or              {show-properties? true}} options
-        exception-font        (:exception *fonts*)
-        message-font          (:message *fonts*)
-        property-font         (:property *fonts*)
-        reset-font            (:reset *fonts* "")
-        modern?               (not *traditional*)
-        exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :class-name)]
-                                                ": "
-                                                :none)
-        write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
-                                (let [{:keys [class-name message]} e]
-                                  (exception-formatter writer
-                                                       (str exception-font class-name reset-font)
-                                                       (str message-font message reset-font))
-                                  (when show-properties?
-                                    (let [properties         (update-keys (:properties e) name)
-                                          prop-keys          (keys properties)
-                                          ;; Allow for the width of the exception class name, and some extra
-                                          ;; indentation.
-                                          property-formatter (c/format-columns "    "
-                                                                               [:right (c/max-length prop-keys)]
-                                                                               ": "
-                                                                               :none)]
-                                      (doseq [k (sort prop-keys)]
-                                        (property-formatter writer
-                                                            (str property-font k reset-font)
-                                                            (-> properties (get k) format-property-value)))))))
-        root-stack-trace      (-> exception-stack last :stack-trace)]
+  (binding [*flush-on-newline* false]
+    (locking [writer]
+      (let [{show-properties? :properties
+             :or              {show-properties? true}} options
+            exception-font        (:exception *fonts*)
+            message-font          (:message *fonts*)
+            property-font         (:property *fonts*)
+            reset-font            (:reset *fonts* "")
+            modern?               (not *traditional*)
+            exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :class-name)]
+                                                    ": "
+                                                    :none)
+            write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
+                                    (let [{:keys [class-name message]} e]
+                                      (exception-formatter writer
+                                                           (str exception-font class-name reset-font)
+                                                           (str message-font message reset-font))
+                                      (when show-properties?
+                                        (let [properties         (update-keys (:properties e) name)
+                                              prop-keys          (keys properties)
+                                              ;; Allow for the width of the exception class name, and some extra
+                                              ;; indentation.
+                                              property-formatter (c/format-columns "    "
+                                                                                   [:right (c/max-length prop-keys)]
+                                                                                   ": "
+                                                                                   :none)]
+                                          (doseq [k (sort prop-keys)]
+                                            (property-formatter writer
+                                                                (str property-font k reset-font)
+                                                                (-> properties (get k) format-property-value)))))))
+            root-stack-trace      (-> exception-stack last :stack-trace)]
 
-    (if *traditional*
-      (write-exception-stack))
+        (if *traditional*
+          (write-exception-stack))
 
-    (write-stack-trace writer root-stack-trace modern?)
+        (write-stack-trace writer root-stack-trace modern?)
 
-    (if modern?
-      (write-exception-stack))
+        (if modern?
+          (write-exception-stack))
 
-    (w/flush-writer writer)))
+        (w/flush-writer writer)))))
 
 (defn write-exception
   "Writes a formatted version of the exception to the [[StringWriter]]. By default, writes to *out* and includes
