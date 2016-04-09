@@ -479,6 +479,8 @@
   [_]
   (pp/simple-dispatch nil))
 
+(prefer-method exception-dispatch clojure.lang.IPersistentMap clojure.lang.IRecord)
+
 (defn- format-property-value
   [value]
   (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
