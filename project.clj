@@ -1,4 +1,4 @@
-(defproject io.aviso/pretty "0.1.26"
+(defproject io.aviso/pretty "0.1.27"
   :description "Clojure library to help print things, prettily"
   :url "https://github.com/AvisoNovate/pretty"
   :license {:name "Apache Sofware License 2.0"
@@ -12,7 +12,6 @@
   ;; Part of release is currently manual; copy target/docs to the AvisoNovate/docs/pretty folder
   :aliases {"release" ["do"
                        "clean,"
-                       "codox,"
                        "deploy" "clojars"]}
   :codox {:source-uri "https://github.com/AvisoNovate/pretty/blob/master/{filepath}#L{line}"
           :metadata   {:doc/format :markdown}})
