@@ -1,6 +1,9 @@
-## 0.1.26 - UNRELEASED
+## 0.1.26 - 15 Apr 2016
 
+To get around Clojure 1.8 deep linking, `io.aviso.repl/install-pretty-exceptions` now reloads clojure.test
+after overriding other functions (such as `clojure.stacktrace/print-stack-trace`).
 
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.26+is%3Aclosed)
 
 ## 0.1.25 - 5 Apr 2016
 
@@ -20,7 +23,6 @@ constructor methods), as well as other cases from real-life stack traces.
 Stack traces were omitted when the root exception was via `ex-info`; this has been corrected.
 
 [Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.23)
-
 
 ## 0.1.22 - 5 Feb 2016
 
