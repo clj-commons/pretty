@@ -11,13 +11,13 @@ of your :file:`project.clj`.
 .. code-block:: clojure
 
   (defproject ...
-   :plugins [[io.aviso/pretty "0.1.23"]]
+   :plugins [[io.aviso/pretty "1.0.0"]]
    :dependencies [...
-                  [io.aviso/pretty "0.1.23"]]
+                  [io.aviso/pretty "1.0.0"]]
    ...)
 
 
-Adjust if necessary, for the current version, "|release|".
+Adjust the version number for the current version, "|release|".
 
 This adds middleware to enable pretty exception reporting when running a REPL, tests,
 or anything else that starts code in the project.
@@ -27,8 +27,8 @@ Another option is to add the following to your :file:`~/.lein/profiles.clj`:
 .. code-block:: clojure
 
    :pretty {
-     :plugins [[io.aviso/pretty "0.1.23"]]
-     :dependencies [[io.aviso/pretty "0.1.23"]]
+     :plugins [[io.aviso/pretty "1.0.0"]]
+     :dependencies [[io.aviso/pretty "1.0.0"]]
    }
 
 This creates an opt-in profile that adds and enables pretty exception reporting.
@@ -40,11 +40,13 @@ as a dependency, as follows:
 
    lein with-profiles +pretty run
 
-or
-
-::
+or::
 
    lein with-profiles +pretty do clean, test, install
 
+You may also want to add the following to your :file:`~/.bash_profile`::
 
+    alias pretty="lein with-profile +pretty"
+
+At which point, you can use the command ``pretty`` instead of ``lein``.
 

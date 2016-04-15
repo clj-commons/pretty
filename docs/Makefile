@@ -4,12 +4,17 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
+SPHINXAUTOBUILD = sphinx-autobuild
 PAPER         =
 BUILDDIR      = _build
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
 $(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
+endif
+
+ifeq ($(shell which $(SPHINXAUTOBUILD) >/dev/null 2>&1; echo $$?), 1)
+$(error The '$(SPHINXAUTOBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXAUTOBUILD environment variable to point to the full path of the '$(SPHINXAUTOBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
 endif
 
 # Internal variables.
@@ -47,6 +52,7 @@ help:
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
 	@echo "  coverage   to run coverage check of the documentation (if enabled)"
+	@echo "  live       to build html then start autobuild."
 
 clean:
 	rm -rf $(BUILDDIR)/*
@@ -87,9 +93,9 @@ qthelp:
 	@echo
 	@echo "Build finished; now you can run "qcollectiongenerator" with the" \
 	      ".qhcp project file in $(BUILDDIR)/qthelp, like this:"
-	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/ioavisopretty.qhcp"
+	@echo "# qcollectiongenerator $(BUILDDIR)/qthelp/eReceipts.qhcp"
 	@echo "To view the help file:"
-	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/ioavisopretty.qhc"
+	@echo "# assistant -collectionFile $(BUILDDIR)/qthelp/eReceipts.qhc"
 
 applehelp:
 	$(SPHINXBUILD) -b applehelp $(ALLSPHINXOPTS) $(BUILDDIR)/applehelp
@@ -104,8 +110,8 @@ devhelp:
 	@echo
 	@echo "Build finished."
 	@echo "To view the help file:"
-	@echo "# mkdir -p $$HOME/.local/share/devhelp/ioavisopretty"
-	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/ioavisopretty"
+	@echo "# mkdir -p $$HOME/.local/share/devhelp/eReceipts"
+	@echo "# ln -s $(BUILDDIR)/devhelp $$HOME/.local/share/devhelp/eReceipts"
 	@echo "# devhelp"
 
 epub:
@@ -190,3 +196,13 @@ pseudoxml:
 	$(SPHINXBUILD) -b pseudoxml $(ALLSPHINXOPTS) $(BUILDDIR)/pseudoxml
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
+	
+live: clean html
+	$(SPHINXAUTOBUILD) \
+		-i '.git/*' \
+		-i 'meeting-notes/*' \
+		--no-initial \
+		--open-browser \
+		-b html \
+		$(ALLSPHINXOPTS) $(BUILDDIR)/html
+
