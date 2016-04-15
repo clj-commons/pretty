@@ -4,7 +4,8 @@
   (:require [clojure
              [main :as main]
              [repl :as repl]
-             [stacktrace :as st]]))
+             [stacktrace :as st]])
+  (:import [clojure.lang RT]))
 
 (defn- reset-var!
   [v override]
@@ -60,6 +61,10 @@
   (reset-var! #'repl/pst pretty-pst)
   (reset-var! #'st/print-stack-trace pretty-print-stack-trace)
   (reset-var! #'st/print-cause-trace pretty-print-stack-trace)
+
+  ;; This is necessary for Clojure 1.8 and above, due to direct linking
+  ;; (from clojure.test to clojure.stacktrace).
+  (RT/loadResourceScript "clojure/test.clj")
 
   (Thread/setDefaultUncaughtExceptionHandler (uncaught-exception-handler))
   nil)

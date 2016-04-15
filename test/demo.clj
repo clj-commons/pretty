@@ -57,6 +57,10 @@
     (throw (RuntimeException. "Boom!"))
     (countdown (dec n))))
 
+(defn test-failure
+  []
+  (report {:type :error :expected nil :actual (make-ex-info)}))
+
 (comment
 
   ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
