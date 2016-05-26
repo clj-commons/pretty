@@ -27,6 +27,12 @@
   (data-length [s] (.length s))
   (byte-at [s index] (-> s (.charAt index) byte)))
 
+(extend-type StringBuilder
+  BinaryData
+  (data-length [sb] (.length sb))
+  (byte-at [sb index]
+    (-> sb (.charAt index) byte)))
+
 (extend-type nil
   BinaryData
   (data-length [_] 0)
@@ -104,8 +110,8 @@
   character."
   ([data]
    (write-binary *out* data nil))
-  ([data options]
-   (write-binary *out* data options))
+  ([writer data]
+   (write-binary writer data nil))
   ([writer data options]
    (let [{show-ascii?     :ascii
           per-line-option :line-bytes} options
