@@ -78,7 +78,7 @@
         (>= i in-length) (.toString result)
         (= \_ (.charAt s i)) (let [[match replacement] (match-mangled s i)]
                                (.append result replacement)
-                               (recur (+ i (length match))))
+                               (recur (long (+ i (length match)))))
         :else (do
                 (.append result (.charAt s i))
                 (recur (inc i)))))))

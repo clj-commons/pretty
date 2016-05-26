@@ -132,7 +132,7 @@
           (w/writeln writer)
           (let [cf (first column-fns)
                 [new-indent remaining-values] (cf writer current-indent values)]
-            (recur new-indent (rest column-fns) remaining-values)))))))
+            (recur (long new-indent) (rest column-fns) remaining-values)))))))
 
 (defn max-length
   "Find the maximum length of the strings in the collection, based on their visual length (that is,
