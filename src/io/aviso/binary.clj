@@ -104,6 +104,8 @@
   character."
   ([data]
    (write-binary *out* data nil))
+  ([data options]
+   (write-binary *out* data options))
   ([writer data options]
    (let [{show-ascii?     :ascii
           per-line-option :line-bytes} options
