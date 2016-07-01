@@ -1,3 +1,7 @@
+## 0.1.27 - 1 Jul 2016
+
+Qualified keys in exception maps are now printed properly.
+
 ## 0.1.26 - 15 Apr 2016
 
 To get around Clojure 1.8 deep linking, `io.aviso.repl/install-pretty-exceptions` now reloads clojure.test

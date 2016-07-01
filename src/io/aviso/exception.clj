@@ -437,7 +437,10 @@
 
 (defn- update-keys [m f]
   "Builds a map where f has been applied to each key in m."
-  (into {} (map (fn [[k v]] [(f k) v]) m)))
+  (reduce-kv (fn [m k v]
+               (assoc m (f k) v))
+             {}
+             m))
 
 (defn- write-stack-trace
   [writer stack-trace modern?]
@@ -483,6 +486,13 @@
   [value]
   (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
 
+(defn- qualified-name [x]
+  (let [x-ns   (namespace x)
+        x-name (name x)]
+    (if x-ns
+      (str x-ns "/" x-name)
+      x-name)))
+
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function.
@@ -512,7 +522,7 @@
                                                            (str exception-font class-name reset-font)
                                                            (str message-font message reset-font))
                                       (when show-properties?
-                                        (let [properties         (update-keys (:properties e) name)
+                                        (let [properties         (update-keys (:properties e) qualified-name)
                                               prop-keys          (keys properties)
                                               ;; Allow for the width of the exception class name, and some extra
                                               ;; indentation.

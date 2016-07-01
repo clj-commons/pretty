@@ -1,6 +1,6 @@
 (ns demo
   (:use [io.aviso ansi binary exception repl]
-        [clojure test pprint])
+        [clojure test pprint repl])
   (:require [clojure.java.io :as io]
             [criterium.core :as c])
   (:import (java.sql SQLException)))
