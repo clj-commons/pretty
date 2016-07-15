@@ -1,3 +1,10 @@
+## 0.1.28 - 15 Jul 2016 
+
+A warning is now produced when using pretty as a plugin, but it is not a 
+project dependency.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.28+is%3Aclosed)
+
 ## 0.1.27 - 1 Jul 2016
 
 Qualified keys in exception maps are now printed properly.
