@@ -22,9 +22,15 @@
                       set)
                  'io.aviso/pretty)
     (update-in project [:injections]
-               (fnil into [])
-               ['(require 'io.aviso.repl)
-                '(io.aviso.repl/install-pretty-exceptions)])
+               conj
+               `(try
+                  (require 'io.aviso.repl)
+                  (let [install# (resolve 'io.aviso.repl/install-pretty-exceptions)]
+                    (install#))
+                  (catch Throwable t#
+                    (println "Error loading io.aviso/pretty support:"
+                             (or (.getMessage t#)
+                                 (type t#))))))
     (do
       ;; Ugly! But necessary since middleware gets invoked more than once for some unknown reason.
       (when (compare-and-set! warning true false)

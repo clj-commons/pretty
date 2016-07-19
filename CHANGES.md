@@ -1,3 +1,8 @@
+## 0.1.29 - 19 Jul 2016
+
+Fix an issue where the code injected by the plugin could get damaged by other plugins, resulting in a
+ClassNotFoundException.
+
 ## 0.1.28 - 15 Jul 2016 
 
 A warning is now produced when using pretty as a plugin, but it is not a 
