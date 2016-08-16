@@ -1,4 +1,4 @@
-(defproject io.aviso/pretty "0.1.30"
+(defproject io.aviso/pretty "0.1.31-SNAPSHOT"
   :description "Clojure library to help print things, prettily"
   :url "https://github.com/AvisoNovate/pretty"
   :license {:name "Apache Sofware License 2.0"
