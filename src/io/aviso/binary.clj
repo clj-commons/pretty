@@ -16,8 +16,8 @@
 
 (extend-type (Class/forName "[B")
   BinaryData
-  (data-length [ary] (alength ary))
-  (byte-at [ary index] (aget ary index)))
+  (data-length [ary] (alength (bytes ary)))
+  (byte-at [ary index] (aget (bytes ary) index)))
 
 ;;; Extends String as a convenience; assumes that the
 ;;; String is in utf-8.
@@ -25,7 +25,13 @@
 (extend-type String
   BinaryData
   (data-length [s] (.length s))
-  (byte-at [s index] (-> s (.charAt index) byte)))
+  (byte-at [s index] (-> s (.charAt index) int byte)))
+
+(extend-type StringBuilder
+  BinaryData
+  (data-length [sb] (.length sb))
+  (byte-at [sb index]
+    (-> sb (.charAt index) int byte)))
 
 (extend-type nil
   BinaryData
@@ -104,6 +110,8 @@
   character."
   ([data]
    (write-binary *out* data nil))
+  ([writer data]
+   (write-binary writer data nil))
   ([writer data options]
    (let [{show-ascii?     :ascii
           per-line-option :line-bytes} options
@@ -118,7 +126,7 @@
        (let [remaining (- (data-length data) offset)]
          (when (pos? remaining)
            (write-line writer formatter show-ascii? offset data (min per-line remaining))
-           (recur (+ per-line offset))))))))
+           (recur (long (+ per-line offset)))))))))
 
 (defn format-binary
   "Formats the data using [[write-binary]] and returns the result as a string."
@@ -180,7 +188,7 @@
      (loop [offset 0]
        (when (pos? (- target-length offset))
          (write-delta-line writer offset expected-length expected actual-length actual)
-         (recur (+ bytes-per-diff-line offset)))))))
+         (recur (long (+ bytes-per-diff-line offset))))))))
 
 (defn format-binary-delta
   "Formats the delta using [[write-binary-delta]] and returns the result as a string."
