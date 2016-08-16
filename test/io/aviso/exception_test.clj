@@ -1,5 +1,5 @@
 (ns io.aviso.exception-test
-  (use clojure.test)
+  (:use clojure.test)
   (:require [clojure.string :as str]
             [io.aviso.exception :refer [*fonts* parse-exception write-exception*]]
             [clojure.pprint :refer [pprint]]))
