@@ -1,3 +1,14 @@
+## 0.1.31 - 19 Jul 2016
+
+Switch to using macros instead of eval to play nicer with AOT
+Support all arities of `clojure.repl/pst`
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.31+is%3Aclosed)
+
+## 0.1.30 - 19 Jul 2016
+
+Fix bad ns declaration and reflection warnings
+
 ## 0.1.29 - 19 Jul 2016
 
 Fix an issue where the code injected by the plugin could get damaged by other plugins, resulting in a
