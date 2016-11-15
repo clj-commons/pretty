@@ -33,10 +33,13 @@
 
 
 (defn pretty-pst
-  "Used as an override of `clojure.repl/pst` but uses pretty formatting. The optional parameter must be an exception
-  (it can not be a depth, as with the standard implementation of `pst`)."
+  "Used as an override of `clojure.repl/pst` but uses pretty formatting."
   ([] (pretty-pst *e))
-  ([e] (write e nil)))
+  ([e-or-depth]
+   (if (instance? Throwable e-or-depth)
+     (write e-or-depth nil)
+     (pretty-pst *e e-or-depth)))
+  ([e depth] (write e {:frame-limit depth})))
 
 (defn pretty-print-stack-trace
   "Replacement for `clojure.stracktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
