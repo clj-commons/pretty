@@ -1,6 +1,7 @@
 ## 0.1.31 - 15 Nov 2016
 
 Switch to using macros instead of eval to play nicer with AOT
+
 Support all arities of `clojure.repl/pst`
 
 [Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.31+is%3Aclosed)
@@ -120,7 +121,7 @@ The Clojure ExceptionInfo exception is now treated specially.
 
 ## 0.1.17 - 18 Feb 2015
 
-Changed io.aviso.logging to always use the current value of *default-logging-filter* rather than capturing
+Changed io.aviso.logging to always use the current value of \*default-logging-filter\* rather than capturing
 its value when install-pretty-logging is invoked.
 
 Sometimes, the file name of a stack trace element is a complete path (this occurs with some
@@ -130,7 +131,7 @@ This keeps the file name column as narrow as possible.
 
 ## 0.1.16 - 4 Feb 2015
 
-io.aviso.exception/*default-frame-filter* has been added, and acts as the default frame filter for
+io.aviso.exception/\*default-frame-filter\* has been added, and acts as the default frame filter for
 write-exception (previously there was no default).
 
 [Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.16+is%3Aclosed)
@@ -138,7 +139,7 @@ write-exception (previously there was no default).
 ## 0.1.15 - 2 Feb 2015
 
 Starting in this release, the exception report layout has changed significantly; however, the old
-behavior is still available via the io.aviso.exceptions/*traditional* dynamic var.
+behavior is still available via the io.aviso.exceptions/\*traditional\* dynamic var.
 
 A new namespace, io.aviso.logging, includes code to setup clojure.tools.logging to make use of pretty
 exception output.
