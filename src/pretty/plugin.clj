@@ -11,7 +11,9 @@
   (repl/install-pretty-exceptions))
 
 
-(def ^:private warning (atom true))
+;; Ugly! But necessary since middleware gets invoked more than once for some unknown reason.
+(def ^:private print-warning
+  (delay (main/warn "Unable to enable pretty exception reporting, as io.aviso/pretty is not a project dependency.")))
 
 (defn middleware
   "Automatically adds the :injections that enable Pretty."
@@ -31,9 +33,5 @@
                     (println "Error loading io.aviso/pretty support:"
                              (or (.getMessage t#)
                                  (type t#))))))
-    (do
-      ;; Ugly! But necessary since middleware gets invoked more than once for some unknown reason.
-      (when (compare-and-set! warning true false)
-        (main/warn "Unable to enable pretty exception reporting, as io.aviso/pretty is not a project dependency."))
-      project)))
+    (do @print-warning project)))
 
