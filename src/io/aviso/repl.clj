@@ -48,7 +48,7 @@
   ([e depth] (print-exception e {:frame-limit depth})))
 
 (defn pretty-print-stack-trace
-  "Replacement for `clojure.stracktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
+  "Replacement for `clojure.stacktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
    (println)
