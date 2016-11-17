@@ -100,14 +100,15 @@
 (defn pretty-print
   "Pretty-prints the supplied object to a returned string.
 
-  With no arguments, copies from the clipboard, parses as EDN, and returns the pretty-printed string."
+  With no arguments, copies from the clipboard, parses as EDN, and prints the EDN data to `*out*`,
+  returning nil."
   {:added "0.1.33"}
   ([]
-   (-> (copy) edn/read-string pretty-print))
+   (-> (copy) edn/read-string pprint))
   ([object]
-   (print-exception object
-                    :stream nil
-                    :pretty true)))
+   (write object
+          :stream nil
+          :pretty true)))
 
 (defn paste
   "Pastes a string in as the new content of the Clipboard.
@@ -118,14 +119,18 @@
   [^String s]
   (.setContents (clipboard) (StringSelection. s) nil))
 
-(defn reformat-exception
-  "Passed the standard exception text and reformats it using [[parse-exception]] and
+(defn format-exception
+  "Passed the standard exception text and formats it using [[parse-exception]] and
   [[write-exception]], returning the formatted exception text.
 
-  With no arguments, parses the clipboard text and writes that."
+  With no arguments, parses the clipboard text and prints the formatted exception
+  to `*out*` (returning nil)."
   {:added "0.1.33"}
   ([]
-   (reformat-exception (copy)))
+   (e/write-exception* *out*
+                       (-> (copy)
+                           (e/parse-exception nil))
+                       nil))
   ([text]
    (writer/into-string
      e/write-exception* (e/parse-exception text nil) nil)))
