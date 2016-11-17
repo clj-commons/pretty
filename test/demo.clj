@@ -67,7 +67,7 @@
 
   (let [out (io/writer "target/output.txt")
         e (make-ex-info)]
-    (c/bench (write-exception out e)))
+    (c/bench (print-exception out e)))
 
   ;; 11 Feb 2016 - 213 µs (4 µs std dev) - Clojure 1.8
 
