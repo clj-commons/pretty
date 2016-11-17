@@ -30,10 +30,11 @@
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
   the font after the text."
   [fn-name color-name & codes]
-  `(defn ~(symbol fn-name)
-     ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
-     [text#]
-     (str csi ~(str/join ";" codes) sgr text# reset-font)))
+  (let [arg 'text]
+    `(defn ~(symbol fn-name)
+       ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
+       [~arg]
+       (str csi ~(str/join ";" codes) sgr ~arg reset-font))))
 
 ;;; Define functions and constants for each color. The functions accept a string
 ;;; and wrap it with the ANSI codes to set up a rendition before the text,
@@ -52,7 +53,7 @@
 ;;;   - bold-C-font; enable bold text in that color (e.g., "bold-green-font")
 ;;;   - bold-C-bg-font; enable background in that bold color (e.g., "bold-green-bg-font")
 
-(defmacro define-colors
+(defmacro ^:private define-colors
   []
   `(do
      ~@(map-indexed
@@ -73,7 +74,7 @@
 ;; ANSI defines quite a few more, but we're limiting to those that display properly in the
 ;; Cursive REPL.
 
-(defmacro define-fonts
+(defmacro ^:private define-fonts
   []
   `(do
      ~@(for [[font-name code] [['bold 1]
