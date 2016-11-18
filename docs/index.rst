@@ -41,6 +41,7 @@ Pretty is released under the terms of the `Apache Software License 2.0 <http://w
 
    ansi
    exceptions
+   repl
    lein-plugin
    binary
    columns
