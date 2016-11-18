@@ -43,7 +43,7 @@ This will parse a normal Java stack trace and format it for readability.
 paste
 -----
 
-This will copy as string back on to the clipboard, so it can be pasted into
+This will copy a string back on to the clipboard, so it can be pasted into
 another window.
 
 .. code-block:: clojure
