@@ -1,6 +1,6 @@
 ## 0.1.32 - 18 Nov 2016
 
-New functions in io.aviso.repl for copying text from the clipboard,
+New functions in `io.aviso.repl` for copying text from the clipboard,
 and pretty printing it as EDN or as a formatted exception.
 
 ## 0.1.31 - 15 Nov 2016
