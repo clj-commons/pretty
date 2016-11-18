@@ -91,7 +91,7 @@
 
   This makes use of AWT; it will throw java.awt.HeadlessException when AWT is not
   available, for example, when the JVM is launched with `-Djava.awt.headless=true`."
-  {:added "0.1.33"}
+  {:added "0.1.32"}
   []
   (-> (clipboard)
       (.getContents nil)
@@ -102,7 +102,7 @@
 
   With no arguments, copies from the clipboard, parses as EDN, and prints the EDN data to `*out*`,
   returning nil."
-  {:added "0.1.33"}
+  {:added "0.1.32"}
   ([]
    (-> (copy) edn/read-string pprint))
   ([object]
@@ -115,7 +115,7 @@
 
   This can be helpful when, for example, pretty printing some EDN content from a log file
   before pasting it into some other editor."
-  {:added "0.1.33"}
+  {:added "0.1.32"}
   [^String s]
   (.setContents (clipboard) (StringSelection. s) nil))
 
@@ -125,7 +125,7 @@
 
   With no arguments, parses the clipboard text and prints the formatted exception
   to `*out*` (returning nil)."
-  {:added "0.1.33"}
+  {:added "0.1.32"}
   ([]
    (e/write-exception* *out*
                        (-> (copy)
