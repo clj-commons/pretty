@@ -1,4 +1,6 @@
-## 0.1.33 - UNRELEASED
+## 0.1.33 - 28 Nov 2016
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.33+is%3Aclosed)
 
 ## 0.1.32 - 18 Nov 2016
 

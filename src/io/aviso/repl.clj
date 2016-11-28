@@ -1,5 +1,5 @@
 (ns io.aviso.repl
-  "Utilities to assist with REPL-oriented development"
+  "Utilities to assist with REPL-oriented development."
   (:require
     [io.aviso.exception :as e]
     [clojure.pprint :refer [pprint write]]
@@ -9,9 +9,7 @@
     [clojure.edn :as edn]
     [io.aviso.writer :as writer])
   (:import
-    (clojure.lang RT)
-    (java.awt Toolkit)
-    (java.awt.datatransfer Clipboard DataFlavor StringSelection)))
+    (clojure.lang RT)))
 
 (defn- reset-var!
   [v override]
@@ -78,14 +76,6 @@
   (Thread/setDefaultUncaughtExceptionHandler (uncaught-exception-handler))
   nil)
 
-;; This could possibly be modified to work headless (at least on Mac OS X)
-;; by using processes, pipes, and the pbcopy and pbpaste commands.
-
-(defn ^:private ^Clipboard clipboard
-  "Returns the current clipboard."
-  []
-  (.getSystemClipboard (Toolkit/getDefaultToolkit)))
-
 (defn ^String copy
   "Copies the current contents of the Clipboard, returning its contents as a string.
 
@@ -93,9 +83,8 @@
   available, for example, when the JVM is launched with `-Djava.awt.headless=true`."
   {:added "0.1.32"}
   []
-  (-> (clipboard)
-      (.getContents nil)
-      (.getTransferData DataFlavor/stringFlavor)))
+  (require 'io.aviso.clipboard)
+  ((ns-resolve 'io.aviso.clipboard 'copy)))
 
 (defn pretty-print
   "Pretty-prints the supplied object to a returned string.
@@ -117,7 +106,8 @@
   before pasting it into some other editor."
   {:added "0.1.32"}
   [^String s]
-  (.setContents (clipboard) (StringSelection. s) nil))
+  (require 'io.aviso.clipboard)
+  ((ns-resolve 'io.aviso.clipboard 'paste) s))
 
 (defn format-exception
   "Passed the standard exception text and formats it using [[parse-exception]] and
