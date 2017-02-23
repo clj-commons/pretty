@@ -9,7 +9,7 @@
              [columns :as c]
              [writer :as w]])
   (:import [java.lang StringBuilder StackTraceElement]
-           [clojure.lang Compiler ExceptionInfo]
+           [clojure.lang Compiler ExceptionInfo Named]
            [java.util.regex Pattern]))
 
 (def ^:dynamic *fonts*
@@ -487,11 +487,13 @@
   (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
 
 (defn- qualified-name [x]
-  (let [x-ns   (namespace x)
-        x-name (name x)]
-    (if x-ns
-      (str x-ns "/" x-name)
-      x-name)))
+  (if (instance? Named x)
+    (let [x-ns (namespace x)
+         x-name (name x)]
+     (if x-ns
+       (str x-ns "/" x-name)
+       x-name))
+    x))
 
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
