@@ -439,7 +439,7 @@
   "Builds a map where f has been applied to each key in m."
   (reduce-kv (fn [m k v]
                (assoc m (f k) v))
-             {}
+             (empty m)
              m))
 
 (defn- write-stack-trace
@@ -493,6 +493,12 @@
       (str x-ns "/" x-name)
       x-name)))
 
+(defn- props->keys-sorted
+  [properties]
+  (cond-> (keys properties)
+    (not (sorted? properties))
+    (sort)))
+
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function.
@@ -522,15 +528,16 @@
                                                            (str exception-font class-name reset-font)
                                                            (str message-font message reset-font))
                                       (when show-properties?
-                                        (let [properties         (update-keys (:properties e) qualified-name)
-                                              prop-keys          (keys properties)
+                                        (let [properties (update-keys (:properties e) qualified-name)
+                                              prop-keys (props->keys-sorted properties)
+
                                               ;; Allow for the width of the exception class name, and some extra
                                               ;; indentation.
                                               property-formatter (c/format-columns "    "
                                                                                    [:right (c/max-length prop-keys)]
                                                                                    ": "
                                                                                    :none)]
-                                          (doseq [k (sort prop-keys)]
+                                          (doseq [k prop-keys]
                                             (property-formatter writer
                                                                 (str property-font k reset-font)
                                                                 (-> properties (get k) format-property-value)))))))

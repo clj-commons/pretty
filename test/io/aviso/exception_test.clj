@@ -1,7 +1,7 @@
 (ns io.aviso.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
-            [io.aviso.exception :refer [*fonts* parse-exception write-exception*]]
+            [io.aviso.exception :refer [*fonts* parse-exception write-exception*] :as sut]
             [clojure.pprint :refer [pprint]]))
 
 
@@ -547,3 +547,22 @@
                         "\tat com.datastax.shaded.netty.util.ThreadRenamingRunnable.run(ThreadRenamingRunnable.java:108) ~store-service.jar:na"
                         "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
                         "\t... 3 common frames omitted"))))))
+
+
+(deftest maintain-property-order
+  (testing "`update-keys` retains property type"
+    (let [sorted-properties
+          (sorted-map :a 1)]
+
+      (is (= (type sorted-properties)
+             (type (#'sut/update-keys sorted-properties identity))))))
+
+  (testing "`props->keys-sorted` retains sort order"
+    (let [reverse-sort
+          (constantly -1)
+
+          sorted-properties
+          (sorted-map-by reverse-sort 1 "last" 3 "middle" 2 "first")]
+
+      (is (= (keys sorted-properties)
+             (#'sut/props->keys-sorted sorted-properties))))))
