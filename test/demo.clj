@@ -1,8 +1,9 @@
 (ns demo
-  (:use [io.aviso ansi binary exception repl]
+  (:use [io.aviso ansi binary exception]
         [clojure test pprint repl])
   (:require [clojure.java.io :as io]
-            [criterium.core :as c])
+            [criterium.core :as c]
+            [io.aviso.repl :refer :all :exclude [format-exception]])
   (:import (java.sql SQLException)))
 
 (install-pretty-exceptions)
