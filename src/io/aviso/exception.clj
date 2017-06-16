@@ -530,14 +530,16 @@
                                                            (str message-font message reset-font))
                                       (when show-properties?
                                         (let [properties         (update-keys (:properties e) qualified-name)
-                                              prop-keys          (keys properties)
+                                              prop-keys-sorted   (cond-> (keys properties)
+                                                                   (not (sorted? (:properties e)))
+                                                                   (sort))
                                               ;; Allow for the width of the exception class name, and some extra
                                               ;; indentation.
                                               property-formatter (c/format-columns "    "
-                                                                                   [:right (c/max-length prop-keys)]
+                                                                                   [:right (c/max-length prop-keys-sorted)]
                                                                                    ": "
                                                                                    :none)]
-                                          (doseq [k (sort prop-keys)]
+                                          (doseq [k prop-keys-sorted]
                                             (property-formatter writer
                                                                 (str property-font k reset-font)
                                                                 (-> properties (get k) format-property-value)))))))
