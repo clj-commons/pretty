@@ -1,9 +1,21 @@
 (ns io.aviso.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
-            [io.aviso.exception :refer [*fonts* parse-exception write-exception*]]
-            [clojure.pprint :refer [pprint]]))
+            [io.aviso.exception :refer [*fonts* parse-exception write-exception]]
+            [clojure.pprint :refer [pprint]])
+  (:import (java.io StringWriter)))
 
+(defn write-exception-to-str
+  [ex]
+  (let [out (StringWriter.)]
+    (write-exception out ex)
+    (.toString out)))
+
+(deftest write-exceptions
+  (testing "exception properties printing"
+    (testing "Does not fail with ex-info's map keys not implementing clojure.lang.Named"
+      (is (re-find #"string-key.*string-val"
+                   (write-exception-to-str (ex-info "Error" {"string-key" "string-val"})))))))
 
 (defn parse [& text-lines]
   (let [text (str/join \newline text-lines)]
