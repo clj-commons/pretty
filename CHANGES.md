@@ -1,3 +1,10 @@
+## 0.1.34 - 28 Jun 2017
+
+Added possibility to disable default ANSI fonts by setting an environment variable `DISABLE_DEFAULT_PRETTY_FONTS`
+to any value.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.34+is%3Aclosed)
+
 ## 0.1.33 - 28 Nov 2016
 
 [Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.33+is%3Aclosed)
