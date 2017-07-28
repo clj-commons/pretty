@@ -1,3 +1,11 @@
+## 0.1.35 - UNRELEAED
+
+The minimum version number is now 1.7.
+
+The following namespaces may now be used from ClojureScript:
+
+- io.aviso.ansi
+
 ## 0.1.34 - 28 Jun 2017
 
 Added possibility to disable default ANSI fonts by setting an environment variable `DISABLE_DEFAULT_PRETTY_FONTS`

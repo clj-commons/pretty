@@ -1,16 +1,15 @@
-(defproject io.aviso/pretty "0.1.34"
+(defproject io.aviso/pretty "0.1.35"
   :description "Clojure library to help print things, prettily"
   :url "https://github.com/AvisoNovate/pretty"
   :license {:name "Apache Sofware License 2.0"
             :url  "http://www.apache.org/licenses/LICENSE-2.0.html"}
-  :dependencies [[org.clojure/clojure "1.5.0"]
-                 [org.clojure/tools.logging "0.3.1" :optional true]]
-  :plugins [[lein-codox "0.10.1"]]
-  :profiles {:1.7  {:dependencies [[org.clojure/clojure "1.7.0"]]}
-             :1.8  {:dependencies [[org.clojure/clojure "1.8.0"]]}
-             :1.9  {:dependencies [[org.clojure/clojure "1.9.0-alpha10"]]}
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/tools.logging "0.4.0" :optional true]]
+  :plugins [[lein-codox "0.10.3"]]
+  :profiles {:1.8  {:dependencies [[org.clojure/clojure "1.8.0"]]}
+             :1.9  {:dependencies [[org.clojure/clojure "1.9.0-alpha16"]]}
              :dev  {:dependencies [[criterium "0.4.4"]]}
-             :lein {:dependencies [[leiningen "2.6.1"]]}}
+             :lein {:dependencies [[leiningen "2.4.0"]]}}
   ;; Part of release is currently manual; copy target/docs to the AvisoNovate/docs/pretty folder
   :aliases {"release" ["do"
                        "clean,"
