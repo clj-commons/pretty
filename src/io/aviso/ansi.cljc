@@ -23,7 +23,7 @@
 (m/define-colors)
 (m/define-fonts)
 
-(def ^:const ^:private ansi-pattern #"\e\[.*?m")
+(def ^:const ^:private ansi-pattern #"\u001b\[.*?m")
 
 (defn ^String strip-ansi
   "Removes ANSI codes from a string, returning just the raw text."
