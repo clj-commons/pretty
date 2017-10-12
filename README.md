@@ -1,4 +1,4 @@
-[![Clojars Project](http://clojars.org/io.aviso/pretty/latest-version.svg)](http://clojars.org/io.aviso/pretty)
+[![Clojars](https://img.shields.io/clojars/v/io.aviso/pretty.svg)](http://clojars.org/io.aviso/pretty)
 
 *Sometimes, neatness counts.*
 
