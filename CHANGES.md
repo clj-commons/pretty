@@ -1,4 +1,4 @@
-## 0.1.35 - UNRELEASED
+## 0.1.35 - 28 Sep 2018
 
 When printing sorted maps, the keys are presented in map order (not sorted).
 
