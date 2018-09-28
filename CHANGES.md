@@ -1,3 +1,12 @@
+## 0.1.35 - UNRELEASED
+
+When printing sorted maps, the keys are presented in map order (not sorted).
+
+The new namespace, `io.aviso.component`, can be used to produce concise output
+for systems and components that are pretty printed as part of exception output.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.35+is%3Aclosed)
+
 ## 0.1.34 - 28 Jun 2017
 
 Added possibility to disable default ANSI fonts by setting an environment variable `DISABLE_DEFAULT_PRETTY_FONTS`

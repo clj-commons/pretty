@@ -474,6 +474,8 @@
           is represented as the string `#<SystemMap>`; normally it would print as a deeply nested
           set of maps.
 
+          See the [[io.aviso.component]] namespace for more complete example.
+
           This same approach can be adapted to any class or type whose structure is problematic
           for presenting in the exception output, whether for size and complexity reasons, or due to
           security concerns."

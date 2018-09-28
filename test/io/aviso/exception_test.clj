@@ -2,7 +2,11 @@
   (:use clojure.test)
   (:require [clojure.string :as str]
             [io.aviso.exception :refer [*fonts* parse-exception write-exception]]
-            [clojure.pprint :refer [pprint]])
+            [clojure.pprint :refer [pprint]]
+            [com.stuartsierra.component :as component]
+            [com.walmartlabs.test-reporting :refer [reporting]]
+            io.aviso.component
+            [io.aviso.exception :as e])
   (:import (java.io StringWriter)))
 
 (defn write-exception-to-str
@@ -559,3 +563,24 @@
                         "\tat com.datastax.shaded.netty.util.ThreadRenamingRunnable.run(ThreadRenamingRunnable.java:108) ~store-service.jar:na"
                         "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
                         "\t... 3 common frames omitted"))))))
+
+(defrecord MyComponent []
+
+  component/Lifecycle
+  (start [this] this)
+  (stop [this] this))
+
+
+(deftest component-print-behavior
+  (binding [e/*fonts* nil]
+    (let [my-component   (map->MyComponent {})
+          system         (component/system-map
+                           :my-component my-component)
+          sys-exception  (write-exception-to-str (ex-info "System Exception" {:system system}))
+          comp-exception (write-exception-to-str (ex-info "Component Exception" {:component my-component}))]
+
+      (reporting {sys-exception (str/split-lines sys-exception)}
+                 (is (re-find #"system: #<SystemMap>" sys-exception)))
+
+      (reporting {comp-exception (str/split-lines comp-exception)}
+                 (is (re-find #"component: #<Component io.aviso.exception_test.MyComponent>" comp-exception))))))

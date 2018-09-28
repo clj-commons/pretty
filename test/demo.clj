@@ -1,11 +1,14 @@
 (ns demo
-  (:use [io.aviso ansi binary exception repl]
-        [clojure test pprint repl])
-  (:require [clojure.java.io :as io]
-            [criterium.core :as c])
+  (:require
+    [io.aviso.repl :as repl]
+    [io.aviso.exception :as e]
+    io.aviso.component
+    [clojure.java.io :as io]
+    [criterium.core :as c]
+    [clojure.test :refer [report]])
   (:import (java.sql SQLException)))
 
-(install-pretty-exceptions)
+(repl/install-pretty-exceptions)
 
 (defn- jdbc-update
   []
@@ -63,6 +66,11 @@
 
 (comment
 
+  (countdown 10)
+  (infinite-loop)
+  (throw (make-ex-info))
+  (test-failure)
+
   ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
 
   (let [out (io/writer "target/output.txt")
@@ -70,9 +78,10 @@
     (c/bench (print-exception out e)))
 
   ;; 11 Feb 2016 - 213 µs (4 µs std dev) - Clojure 1.8
+  ;; 28 Sep 2018 - 237 µs (8 µs std dev) - Clojure 1.9
 
   (let [e (make-ex-info)]
-    (c/bench (doseq [x (analyze-exception e nil)]
+    (c/bench (doseq [x (e/analyze-exception e nil)]
                (-> x :stack-trace doall))))
 
   )

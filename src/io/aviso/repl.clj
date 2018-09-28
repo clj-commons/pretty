@@ -1,5 +1,8 @@
 (ns io.aviso.repl
-  "Utilities to assist with REPL-oriented development."
+  "Utilities to assist with REPL-oriented development.
+
+  If you are using Stuart Sierra's component library, you may want to also require
+  [[io.aviso.component]]."
   (:require
     [io.aviso.exception :as e]
     [clojure.pprint :refer [pprint write]]
@@ -11,11 +14,11 @@
   (:import
     (clojure.lang RT)))
 
-(defn- reset-var!
+(defn ^:private reset-var!
   [v override]
   (alter-var-root v (constantly override)))
 
-(defn- print-exception
+(defn ^:private print-exception
   [e options]
   (print (e/format-exception e options))
   (flush))
