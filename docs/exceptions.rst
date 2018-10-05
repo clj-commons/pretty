@@ -104,6 +104,26 @@ The related function, ``format-exception``, produces the same output, but return
 
 For both ``format-exception`` and ``write-exception``, output of the stack trace is optional, or can be limited to a certain number of stack frames.
 
+Frames can also be highlighted by customizing ``io.aviso.exception/*app-frame-names*``. This adds extra visual clarity to identify frames that belong in your clojure code vs. library code.
+
+Before:
+
+.. image:: images/without-app-frame-names-exceptions.png
+   :alt: Without app-frame-names
+
+After:
+
+.. image:: images/with-app-frame-names-exception.png
+   :alt: With custom app-frame-names
+
+Notice with custom app-frame-names, the matched frame names are also bolded. This is customized by re-binding or altering
+``*app-frame-names*``, which is a list of string or patterns to match on the frame's name.
+
+::
+
+  ;; marks any frame that begins with demo
+  (alter-var-root #'io.aviso.exception/*app-frame-names* (constantly [#"demo.*"]))
+
 io.aviso.repl
 -------------
 
