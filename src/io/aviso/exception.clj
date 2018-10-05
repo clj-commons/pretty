@@ -19,10 +19,15 @@
    :message       italic-font
    :property      bold-font
    :source        green-font
+   :app-frame     bold-yellow-font
    :function-name bold-yellow-font
    :clojure-frame yellow-font
    :java-frame    white-font
    :omitted-frame white-font})
+
+(def ^:dynamic *app-frame-names*
+  "Set of filters (belong to your applications) to create more visual clarity."
+  nil)
 
 (def ^:dynamic *fonts*
   "Current set of fonts used in exception formatting"
@@ -325,6 +330,17 @@
         (flush)))
     elements))
 
+(defn- clojure-frame-or-app-frame-font
+  "Returns the font to use for a clojure frame.
+
+  When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame
+  "
+  [frame]
+  (let [app-frame-names (map #(vector :name % :app-frame) *app-frame-names*)]
+    (-> (keep #(apply-rule frame %) app-frame-names)
+        first
+        (or :clojure-frame))))
+
 (defn- preformat-stack-frame
   [frame]
   (cond
@@ -343,7 +359,7 @@
     :else
     (let [names          (:names frame)
           formatted-name (str
-                           (:clojure-frame *fonts*)
+                           ((clojure-frame-or-app-frame-font frame) *fonts*)
                            (->> names drop-last (str/join "/"))
                            "/"
                            (:function-name *fonts*) (last names) (:reset *fonts*))]
