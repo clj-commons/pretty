@@ -122,7 +122,7 @@ Notice with custom app-frame-names, the matched frame names are also bolded. Thi
 ::
 
   ;; marks any frame that begins with demo
-  (alter-var-root #'io.aviso.exception/*app-frame-names* (constantly [#"demo.*"]))
+  (alter-var-root #'io.aviso.exception/*app-frame-names* (constantly [#"my-app.*"]))
 
 io.aviso.repl
 -------------
