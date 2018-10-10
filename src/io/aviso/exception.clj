@@ -330,16 +330,15 @@
         (flush)))
     elements))
 
-(defn- clojure-frame-or-app-frame-font
+(defn- clj-frame-font
   "Returns the font to use for a clojure frame.
 
   When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame
   "
   [frame]
-  (let [app-frame-names (map #(vector :name % :app-frame) *app-frame-names*)]
-    (-> (keep #(apply-rule frame %) app-frame-names)
-        first
-        (or :clojure-frame))))
+  (-> (keep #(apply-rule frame [:name % :app-frame]) *app-frame-names*)
+      first
+      (or :clojure-frame)))
 
 (defn- preformat-stack-frame
   [frame]
@@ -359,7 +358,7 @@
     :else
     (let [names          (:names frame)
           formatted-name (str
-                           ((clojure-frame-or-app-frame-font frame) *fonts*)
+                           (get *fonts* (clj-frame-font frame))
                            (->> names drop-last (str/join "/"))
                            "/"
                            (:function-name *fonts*) (last names) (:reset *fonts*))]
