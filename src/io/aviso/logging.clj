@@ -6,7 +6,7 @@
   (:require [clojure.tools.logging :as l]
             [io.aviso.exception :as e]
             [io.aviso.writer :as writer])
-  (:import [java.lang.Thread$UncaughtExceptionHandler]))
+  (:import [java.lang Thread$UncaughtExceptionHandler]))
 
 (defn install-pretty-logging
   "Modifies clojure.tools.logging to use pretty exception logging."
