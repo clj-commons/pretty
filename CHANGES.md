@@ -1,3 +1,11 @@
+## 0.1.36 - 22 Dec 2018
+
+Support Clojure 1.10.
+
+Add support for highlighting application frames using `io.aviso.exception/*app-frame-names*`.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.36+is%3Aclosed)
+
 ## 0.1.35 - 28 Sep 2018
 
 When printing sorted maps, the keys are presented in map order (not sorted).
