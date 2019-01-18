@@ -4,9 +4,10 @@
   You must [add clojure.tools.logging as an explicit dependency](https://github.com/clojure/tools.logging) of your project."
   {:added "0.1.15"}
   (:require [clojure.tools.logging :as l]
-            [io.aviso.exception :as e]
-            [io.aviso.writer :as writer])
+            [io.aviso.exception :as e])
   (:import [java.lang Thread$UncaughtExceptionHandler]))
+
+(def ^:private eol (System/getProperty "line.separator"))
 
 (defn install-pretty-logging
   "Modifies clojure.tools.logging to use pretty exception logging."
@@ -20,7 +21,7 @@
                         nil
                         (if throwable
                           (str message
-                               writer/eol
+                               eol
                                (e/format-exception throwable))
                           message))))))
   ([frame-filter-fn]
@@ -33,13 +34,13 @@
                         nil
                         (if throwable
                           (str message
-                               writer/eol
+                               eol
                                (e/format-exception throwable {:filter frame-filter-fn}))
                           message)))))))
 
 (defn uncaught-exception-handler
   "Creates a reified UncaughtExceptionHandler that uses clojure.tools.logging/error, rather than
-  simplying printing the exception, which is the default behavior."
+  simply printing the exception, which is the default behavior."
   []
   (reify Thread$UncaughtExceptionHandler
     (uncaughtException [_ _ t]

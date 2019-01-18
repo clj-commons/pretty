@@ -9,8 +9,7 @@
     [clojure.main :as main]
     [clojure.repl :as repl]
     [clojure.stacktrace :as st]
-    [clojure.edn :as edn]
-    [io.aviso.writer :as writer])
+    [clojure.edn :as edn])
   (:import
     (clojure.lang RT)))
 
@@ -120,10 +119,7 @@
   to `*out*` (returning nil)."
   {:added "0.1.32"}
   ([]
-   (e/write-exception* *out*
-                       (-> (copy)
-                           (e/parse-exception nil))
-                       nil))
+   (e/write-exception (-> (copy)
+                          (e/parse-exception nil))))
   ([text]
-   (writer/into-string
-     e/write-exception* (e/parse-exception text nil) nil)))
+   (e/format-exception (e/parse-exception text nil))))

@@ -8,8 +8,6 @@
     [clojure.test :refer [report]])
   (:import (java.sql SQLException)))
 
-(repl/install-pretty-exceptions)
-
 (defn- jdbc-update
   []
   (throw (SQLException. "Database failure\nSELECT FOO, BAR, BAZ\nFROM GNIP\nfailed with ABC123" "ABC" 123)))
@@ -65,6 +63,8 @@
   (report {:type :error :expected nil :actual (make-ex-info)}))
 
 (comment
+
+  (repl/install-pretty-exceptions)
 
   (countdown 10)
   (infinite-loop)

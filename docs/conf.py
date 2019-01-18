@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'io.aviso/pretty'
-copyright = u'2013-2016, Aviso'
+copyright = u'2013-2019, Aviso'
 author = u'Howard M. Lewis Ship and others'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -56,7 +56,7 @@ author = u'Howard M. Lewis Ship and others'
 #
 
 # The full version, including alpha/beta/rc tags.
-release = u'0.1.26'
+release = u'0.1.36'
 
 # The short X.Y version.
 version = release

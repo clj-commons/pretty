@@ -5,15 +5,14 @@
   when the value contains non-printing characters (such as those defined in the `io.aviso.ansi` namespace)."
   (:require [clojure.string :as str]
             [io.aviso
-             [ansi :as ansi]
-             [writer :as w]]))
+             [ansi :as ansi]]))
 
-(defn- indent
+(defn ^:private indent
   "Indents sufficient to pad the column value to the column width."
-  [writer indent-amount]
-  (w/write writer (apply str (repeat indent-amount \space))))
+  [indent-amount]
+  (print (apply str (repeat indent-amount \space))))
 
-(defn- truncate
+(defn ^:private truncate
   [justification ^String string amount]
   (cond
     (nil? amount) string
@@ -22,24 +21,24 @@
     (= :right justification) (.substring string amount)
     :else string))
 
-(defn- write-none-column [writer current-indent column-value]
+(defn ^:private write-none-column [current-indent column-value]
   (loop [first-line true
          lines      (-> column-value str str/split-lines)]
     (when-not (empty? lines)
       (when-not first-line
-        (w/writeln writer)
-        (indent writer current-indent))
-      (w/write writer (first lines))
+        (println)
+        (indent current-indent))
+      (print (first lines))
       (recur false (rest lines))))
   ;; :none columns don't have an explicit width, so just return the current indent.
   ;; it shouldn't matter because :none should be the last consuming column.
   current-indent)
 
-(defn- make-column-writer
+(defn ^:private make-column-writer
   [justification width]
   (if (= :none justification)
     write-none-column
-    (fn column-writer [writer current-indent column-value]
+    (fn column-writer [current-indent column-value]
       (let [value-string    (str column-value)
             value-width     (ansi/visual-length value-string)
             indent-amount   (max 0 (- width value-width))
@@ -48,33 +47,33 @@
             ;; such codes.
             truncated       (truncate justification value-string truncate-amount)]
         (if (= justification :right)
-          (indent writer indent-amount))
-        (w/write writer truncated)
+          (indent indent-amount))
+        (print truncated)
         (if (= justification :left)
-          (indent writer indent-amount)))
+          (indent indent-amount)))
       ;; Return the updated indent amount; a :none column doesn't compute
       (+ current-indent width))))
 
-(defn- fixed-column
+(defn ^:private fixed-column
   [fixed-value]
   (let [value-length (ansi/visual-length fixed-value)]
-    (fn [writer indent column-data]
-      (w/write writer fixed-value)
+    (fn [indent column-data]
+      (print fixed-value)
       [(+ indent value-length) column-data])))
 
-(defn- dynamic-column
+(defn ^:private dynamic-column
   "Returns a function that consumes the next column data value and delegates to a column writer function
   to actually write the output for the column."
   [column-writer]
-  (fn [writer indent [column-value & remaining-column-values]]
-    [(column-writer writer indent column-value) remaining-column-values]))
+  (fn [indent [column-value & remaining-column-values]]
+    [(column-writer indent column-value) remaining-column-values]))
 
-(defn- nil-column
+(defn ^:private nil-column
   "Does nothing and returns the indent and column data unchanged."
-  [writer indent column-values]
+  [indent column-values]
   [indent column-values])
 
-(defn- column-def-to-fn [column-def]
+(defn ^:private column-def-to-fn [column-def]
   (cond
     (string? column-def) (fixed-column column-def)
     (number? column-def) (-> (make-column-writer :left column-def) dynamic-column)
@@ -86,7 +85,7 @@
   "Converts a number of column definitions into a formatting function. Each column definition may be:
 
   - a string, to indicate a non-consuming column that outputs a fixed value. This is often just a space
-  character or two, to seperate columns.
+  character or two, to separate columns.
   - a number, to indicate a consuming column that outputs a left justified value of the given width.
   - a vector containing a keyword and a number; the number is the width, the keyword is the justification.
   - :none, to indicate a consuming column with no explicit width
@@ -110,28 +109,28 @@
 
   Values are normally string, but any type is accepted and will be converted to a string.
   This code is aware of ANSI codes and ignores them to calculate the length of a value for formatting and
-  identation purposes.
+  indentation purposes.
 
   There will likely be problems if a long string with ANSI codes is truncated, however.
 
-  The returned function accepts a [[StringWriter]] and the column values and writes each column value, with appropriate
-  padding, to the [[StringWriter]].
+  The returned function accepts the column values and writes each column value, with appropriate
+  padding, to *out*.
 
   Example:
 
       (let [formatter (format-columns [:right 20] \": \" [:right 20] \": \" :none)]
-        (write-rows *out* formatter [:last-name :first-name :age] customers))
+        (write-rows formatter [:last-name :first-name :age] customers))
   "
   [& column-defs]
   (let [column-fns (map column-def-to-fn column-defs)]
-    (fn [writer & column-values]
+    (fn [& column-values]
       (loop [current-indent 0
              column-fns     column-fns
              values         column-values]
         (if (empty? column-fns)
-          (w/writeln writer)
+          (println)
           (let [cf (first column-fns)
-                [new-indent remaining-values] (cf writer current-indent values)]
+                [new-indent remaining-values] (cf current-indent values)]
             (recur (long new-indent) (rest column-fns) remaining-values)))))))
 
 (defn max-length
@@ -143,7 +142,7 @@
     (reduce max (map ansi/visual-length coll))))
 
 (defn max-value-length
-  "A convinience for computing the maximum length of one string property from a collection of values.
+  "A convenience for computing the maximum length of one string property from a collection of values.
 
   coll
   : collection of values
@@ -153,7 +152,7 @@
   [coll key]
   (max-length (map key coll)))
 
-(defn- analyze-extended-columns-defs
+(defn ^:private analyze-extended-columns-defs
   [defs row-data]
   (loop [[column-def & more-defs] defs
          output-defs []
@@ -199,8 +198,7 @@
                  extractors))))))
 
 (defn write-rows
-  "A convienience for writing rows of columns using a prepared column formatter.
-
+  "A convenience for writing rows of columns using a prepared column formatter.
 
   In the 3-arity version of the function, the extended-column-defs is used to
   automatically compute the column-formatter and extractors.
@@ -216,9 +214,6 @@
       - nil, which is ignored
       - otherwise, assumed to be an extractor whose values will be right justified
 
-  writer
-  : [[StringWriter]] target of output
-
   extended-column-defs
   : used to compute column-formatter and extractors taking into account row-data
 
@@ -233,20 +228,19 @@
 
   Example:
 
-      (write-rows *out*
-                  [:last-name \", \" :first-name \": \" [:age :none]]
+      (write-rows [:last-name \", \" :first-name \": \" [:age :none]]
                   customers)
 
-  This will write three columns, seperated by literal text.
+  This will write three columns, separated by literal text.
   The first column will be right justified, and as wide as longest last name.
   The second column will also be right justified, and as wide as the longest first name.
   The final column will not be justified at all, so it will be varying width."
 
-  ([writer column-formatter extractors row-data]
+  ([column-formatter extractors row-data]
    (let [column-data-extractor (apply juxt extractors)]
      (doseq [row row-data]
-       (apply column-formatter writer (column-data-extractor row)))))
-  ([writer extended-columns-defs row-data]
+       (apply column-formatter (column-data-extractor row)))))
+  ([extended-columns-defs row-data]
    (let [[column-defs extractors] (analyze-extended-columns-defs extended-columns-defs row-data)
          column-formatter (apply format-columns column-defs)]
-     (write-rows writer column-formatter extractors row-data))))
+     (write-rows column-formatter extractors row-data))))

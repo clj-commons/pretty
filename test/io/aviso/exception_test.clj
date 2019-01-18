@@ -1,25 +1,17 @@
 (ns io.aviso.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
-            [io.aviso.exception :refer [*fonts* parse-exception write-exception]]
+            [io.aviso.exception :as e :refer [*fonts* parse-exception format-exception]]
             [clojure.pprint :refer [pprint]]
             [com.stuartsierra.component :as component]
             [com.walmartlabs.test-reporting :refer [reporting]]
-            io.aviso.component
-            [io.aviso.exception :as e])
-  (:import (java.io StringWriter)))
-
-(defn write-exception-to-str
-  [ex]
-  (let [out (StringWriter.)]
-    (write-exception out ex)
-    (.toString out)))
+            io.aviso.component))
 
 (deftest write-exceptions
   (testing "exception properties printing"
     (testing "Does not fail with ex-info's map keys not implementing clojure.lang.Named"
       (is (re-find #"string-key.*string-val"
-                   (write-exception-to-str (ex-info "Error" {"string-key" "string-val"})))))))
+                   (format-exception (ex-info "Error" {"string-key" "string-val"})))))))
 
 (defn parse [& text-lines]
   (let [text (str/join \newline text-lines)]
@@ -576,8 +568,8 @@
     (let [my-component   (map->MyComponent {})
           system         (component/system-map
                            :my-component my-component)
-          sys-exception  (write-exception-to-str (ex-info "System Exception" {:system system}))
-          comp-exception (write-exception-to-str (ex-info "Component Exception" {:component my-component}))]
+          sys-exception  (format-exception (ex-info "System Exception" {:system system}))
+          comp-exception (format-exception (ex-info "Component Exception" {:component my-component}))]
 
       (reporting {sys-exception (str/split-lines sys-exception)}
                  (is (re-find #"system: #<SystemMap>" sys-exception)))
