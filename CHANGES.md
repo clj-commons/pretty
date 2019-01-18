@@ -1,4 +1,4 @@
-## 0.1.36 - UNRELEASED
+## 0.1.37 - UNRELEASED
 
 *Incompatible Change*: Remove the `io.aviso.writer` namespace and change many functions
 to simply write to `*out*` rather than take a writer parameter.
