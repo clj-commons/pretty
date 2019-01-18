@@ -28,14 +28,16 @@
   (print-exception e {:frame-limit 0 :properties false}))
 
 (defn uncaught-exception-handler
-  "Creates a reified UncaughtExceptionHandler that prints the formatted exception to `*err*`."
+  "Returns a reified UncaughtExceptionHandler that prints the formatted exception to `*err*`."
   {:added "0.1.18"}
   []
   (reify Thread$UncaughtExceptionHandler
     (uncaughtException [_ _ t]
       (binding [*out* *err*]
-        (printf "Uncaught exception in thread %s:%n" (-> (Thread/currentThread) .getName))
-        (e/write-exception t)))))
+        (printf "Uncaught exception in thread %s:%n%s%n"
+                (-> (Thread/currentThread) .getName)
+                (e/format-exception t))
+        (flush)))))
 
 
 (defn pretty-pst
@@ -119,7 +121,10 @@
   to `*out*` (returning nil)."
   {:added "0.1.32"}
   ([]
-   (e/write-exception (-> (copy)
-                          (e/parse-exception nil))))
+   (-> (copy)
+       (e/parse-exception nil)
+       e/write-exception))
   ([text]
-   (e/format-exception (e/parse-exception text nil))))
+   (-> text
+       (e/parse-exception nil)
+       e/format-exception)))
