@@ -1,5 +1,9 @@
 [![Clojars](https://img.shields.io/clojars/v/io.aviso/pretty.svg)](http://clojars.org/io.aviso/pretty)
 
+[Full Documentation](http://ioavisopretty.readthedocs.org/en/latest/)
+
+[API](http://avisonovate.github.io/docs/pretty/)
+
 *Sometimes, neatness counts.*
 
 If you are trying to puzzle out a stack trace, 
