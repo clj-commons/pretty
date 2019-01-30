@@ -10,7 +10,6 @@ Rationale
 Exceptions in Clojure are extremely painful for many reasons:
 
 * They are often nested (wrapped and rethrown)
-* Stack frames reference the JVM class for Clojure functions, leaving the user to de-mangle the name back to the Clojure name
 * Stack traces are output for every exception, which clogs output without providing useful detail
 * Stack traces are often truncated, requiring the user to manually re-assemble the stack trace from several pieces
 * Many stack frames represent implementation details of Clojure that are not relevant
@@ -22,48 +21,42 @@ This is best explained by example; here's a SQLException wrapped inside two Runt
 
 ::
 
-  java.lang.RuntimeException: Request handling exception
-    at user$make_exception.invoke(user.clj:30)
-    at user$eval1322.invoke(NO_SOURCE_FILE:1)
-    at clojure.lang.Compiler.eval(Compiler.java:6619)
-    at clojure.lang.Compiler.eval(Compiler.java:6582)
-    at clojure.core$eval.invoke(core.clj:2852)
-    at clojure.main$repl$read_eval_print__6588$fn__6591.invoke(main.clj:259)
-    at clojure.main$repl$read_eval_print__6588.invoke(main.clj:259)
-    at clojure.main$repl$fn__6597.invoke(main.clj:277)
-    at clojure.main$repl.doInvoke(main.clj:277)
-    at clojure.lang.RestFn.invoke(RestFn.java:1096)
-    at clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__808.invoke(interruptible_eval.clj:56)
-    at clojure.lang.AFn.applyToHelper(AFn.java:159)
-    at clojure.lang.AFn.applyTo(AFn.java:151)
-    at clojure.core$apply.invoke(core.clj:617)
-    at clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)
-    at clojure.lang.RestFn.invoke(RestFn.java:425)
-    at clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:41)
-    at clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__849$fn__852.invoke(interruptible_eval.clj:171)
-    at clojure.core$comp$fn__4154.invoke(core.clj:2330)
-    at clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__842.invoke(interruptible_eval.clj:138)
-    at clojure.lang.AFn.run(AFn.java:24)
-    at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1110)
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:603)
-    at java.lang.Thread.run(Thread.java:722)
-  Caused by: java.lang.RuntimeException: Failure updating row
-    at user$update_row.invoke(user.clj:22)
-    ... 24 more
-  Caused by: java.sql.SQLException: Database failure
+  user=> (throw (make-ex-info))
+  Execution error (SQLException) at user/jdbc-update (REPL:1).
+  Database failure
   SELECT FOO, BAR, BAZ
   FROM GNIP
   failed with ABC123
-    at user$jdbc_update.invoke(user.clj:6)
-    at user$make_jdbc_update_worker$reify__214.do_work(user.clj:17)
-    ... 25 more
+  user=> (pst)
+  SQLException Database failure
+  SELECT FOO, BAR, BAZ
+  FROM GNIP
+  failed with ABC123
+  	user/jdbc-update (NO_SOURCE_FILE:1)
+  	user/jdbc-update (NO_SOURCE_FILE:1)
+  	user/make-jdbc-update-worker/reify--169 (NO_SOURCE_FILE:5)
+  	user/update-row (NO_SOURCE_FILE:4)
+  	user/update-row (NO_SOURCE_FILE:1)
+  	user/make-exception (NO_SOURCE_FILE:5)
+  	user/make-exception (NO_SOURCE_FILE:1)
+  	user/make-ex-info (NO_SOURCE_FILE:5)
+  	user/make-ex-info (NO_SOURCE_FILE:1)
+  	user/eval175 (NO_SOURCE_FILE:1)
+  	user/eval175 (NO_SOURCE_FILE:1)
+  	clojure.lang.Compiler.eval (Compiler.java:7176)
+  nil
+  user=> *clojure-version*
+  {:major 1, :minor 10, :incremental 0, :qualifier nil}
+  user=>
+
+
+This is greatly improved in Clojure 1.10 over prior Clojure releases, but still quite minimal.
 
 On a good day, the exception messages will include all the details you need to resolve the problem ... even though
 Clojure encourages you to use the ``ex-info`` to create an exception,
 which puts important data into properties of the exception, which are not normally printed.
 
-Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out file names and line numbers,
-and to work backwards from mangled Java names to Clojure names.
+Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out file names and line numbers.
 
 It's one more bit of cognitive load you just don't need in your day.
 
@@ -104,7 +97,8 @@ The related function, ``format-exception``, produces the same output, but return
 
 For both ``format-exception`` and ``write-exception``, output of the stack trace is optional, or can be limited to a certain number of stack frames.
 
-Frames can also be highlighted by customizing ``io.aviso.exception/*app-frame-names*``. This adds extra visual clarity to identify frames that belong in your clojure code vs. library code.
+Frames can also be highlighted by customizing ``io.aviso.exception/*app-frame-names*``. This adds extra visual clarity to identify frames that belong in your Clojure
+code vs. library code.
 
 Before:
 
@@ -116,7 +110,7 @@ After:
 .. image:: images/with-app-frame-names-exception.png
    :alt: With custom app-frame-names
 
-Notice with custom app-frame-names, the matched frame names are also bolded. This is customized by re-binding or altering
+Notice with custom app-frame-names, the matched frame names are also in bold font. This is customized by re-binding or altering
 ``*app-frame-names*``, which is a list of string or patterns to match on the frame's name.
 
 ::

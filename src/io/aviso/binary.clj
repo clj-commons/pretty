@@ -2,8 +2,7 @@
   "Utilities for formatting binary data (byte arrays) or binary deltas."
   (:require [io.aviso
              [ansi :as ansi]
-             [columns :as c]
-             [writer :as w]]))
+             [columns :as c]]))
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
@@ -51,28 +50,28 @@
 
 (def ^:private nonprintable-placeholder (ansi/bold-magenta-bg " "))
 
-(defn- to-ascii [b]
+(defn ^:private to-ascii [b]
   (if (printable-chars b)
     (char b)
     nonprintable-placeholder))
 
-(defn- write-line
-  [writer formatter write-ascii? offset data line-count]
+(defn ^:private write-line
+  [formatter write-ascii? offset data line-count]
   (let [line-bytes (for [i (range line-count)]
                      (byte-at data (+ offset i)))]
-    (formatter writer
-               (format "%04X" offset)
-               (apply str (interpose " "
+    (formatter
+      (format "%04X" offset)
+      (apply str (interpose " "
                             (map #(format "%02X" %) line-bytes)))
-               (if write-ascii?
-                 (apply str (map to-ascii line-bytes))))))
+      (if write-ascii?
+        (apply str (map to-ascii line-bytes))))))
 
 (def ^:private standard-binary-columns
   [4
    ": "
    :none])
 
-(defn- ascii-binary-columns [per-line]
+(defn ^:private ascii-binary-columns [per-line]
   [4
    ": "
    (* 3 per-line)
@@ -82,14 +81,13 @@
    ])
 
 (defn write-binary
-  "Formats a ByteData into a hex-dump string, consisting of multiple lines; each line formatted as:
+  "Formats a BinaryData into a hex-dump string, consisting of multiple lines; each line formatted as:
 
       0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65
       0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F 75 2E
 
   The full version specifies:
 
-  - [[StringWriter]] to which to write output
   - [[BinaryData]] to write
   - option keys and values:
 
@@ -109,10 +107,8 @@
   A placeholder character (a space with magenta background) is used for any non-printable
   character."
   ([data]
-   (write-binary *out* data nil))
-  ([writer data]
-   (write-binary writer data nil))
-  ([writer data options]
+   (write-binary data nil))
+  ([data options]
    (let [{show-ascii?     :ascii
           per-line-option :line-bytes} options
          per-line  (or per-line-option
@@ -125,7 +121,7 @@
      (loop [offset 0]
        (let [remaining (- (data-length data) offset)]
          (when (pos? remaining)
-           (write-line writer formatter show-ascii? offset data (min per-line remaining))
+           (write-line formatter show-ascii? offset data (min per-line remaining))
            (recur (long (+ per-line offset)))))))))
 
 (defn format-binary
@@ -133,43 +129,44 @@
   ([data]
    (format-binary data nil))
   ([data options]
-   (apply w/into-string write-binary data options)))
+   (with-out-str
+     (write-binary data options))))
 
-(defn- match?
+(defn ^:private match?
   [byte-offset data-length data alternate-length alternate]
   (and
     (< byte-offset data-length)
     (< byte-offset alternate-length)
     (== (byte-at data byte-offset) (byte-at alternate byte-offset))))
 
-(defn- to-hex
+(defn ^:private to-hex
   [byte-array byte-offset]
   ;; This could be made a lot more efficient!
   (format "%02X" (byte-at byte-array byte-offset)))
 
-(defn- write-byte-deltas
-  [writer ansi-color pad? offset data-length data alternate-length alternate]
+(defn ^:private write-byte-deltas
+  [ansi-color pad? offset data-length data alternate-length alternate]
   (doseq [i (range bytes-per-diff-line)]
     (let [byte-offset (+ offset i)]
       (cond
         ;; Exact match on both sides is easy, just print it out.
-        (match? byte-offset data-length data alternate-length alternate) (w/write writer " " (to-hex data byte-offset))
+        (match? byte-offset data-length data alternate-length alternate) (print (str " " (to-hex data byte-offset)))
         ;; Some kind of mismatch, so decorate with this side's color
-        (< byte-offset data-length) (w/write writer " " (ansi-color (to-hex data byte-offset)))
+        (< byte-offset data-length) (print (str " " (ansi-color (to-hex data byte-offset))))
         ;; Are we out of data on this side?  Print a "--" decorated with the color.
-        (< byte-offset alternate-length) (w/write writer " " (ansi-color "--"))
+        (< byte-offset alternate-length) (print (str " " (ansi-color "--")))
         ;; This side must be longer than the alternate side.
         ;; On the left/green side, we need to pad with spaces
         ;; On the right/red side, we need nothing.
-        pad? (w/write writer "   ")))))
+        pad? (print "   ")))))
 
-(defn- write-delta-line
-  [writer offset expected-length ^bytes expected actual-length actual]
-  (w/writef writer "%04X:" offset)
-  (write-byte-deltas writer ansi/bold-green true offset expected-length expected actual-length actual)
-  (w/write writer " | ")
-  (write-byte-deltas writer ansi/bold-red false offset actual-length actual expected-length expected)
-  (w/writeln writer))
+(defn ^:private write-delta-line
+  [offset expected-length ^bytes expected actual-length actual]
+  (printf "%04X:" offset)
+  (write-byte-deltas ansi/bold-green true offset expected-length expected actual-length actual)
+  (print " | ")
+  (write-byte-deltas ansi/bold-red false offset actual-length actual expected-length expected)
+  (println))
 
 (defn write-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
@@ -180,17 +177,17 @@
   expected and actual are [[BinaryData]].
 
   Display 16 bytes (from each data set) per line."
-  ([expected actual] (write-binary-delta *out* expected actual))
-  ([writer expected actual]
-   (let [expected-length (data-length expected)
-         actual-length (data-length actual)
-         target-length (max actual-length expected-length)]
-     (loop [offset 0]
-       (when (pos? (- target-length offset))
-         (write-delta-line writer offset expected-length expected actual-length actual)
-         (recur (long (+ bytes-per-diff-line offset))))))))
+  [expected actual]
+  (let [expected-length (data-length expected)
+        actual-length   (data-length actual)
+        target-length   (max actual-length expected-length)]
+    (loop [offset 0]
+      (when (pos? (- target-length offset))
+        (write-delta-line offset expected-length expected actual-length actual)
+        (recur (long (+ bytes-per-diff-line offset)))))))
 
 (defn format-binary-delta
   "Formats the delta using [[write-binary-delta]] and returns the result as a string."
   [expected actual]
-  (w/into-string write-binary-delta expected actual))
+  (with-out-str
+    (write-binary-delta expected actual)))
