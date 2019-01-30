@@ -1,4 +1,4 @@
-## 0.1.37 - UNRELEASED
+## 0.1.37 - 30 Jan 2019
 
 *Incompatible Changes*:
 
@@ -8,6 +8,8 @@
 * It is now necessary to setup explicit :middleware in your `project.clj`, as
   Leiningen is phasing out implicit middleware.
   See the manual for more details.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.37+is%3Aclosed)
 
 ## 0.1.36 - 22 Dec 2018
 
