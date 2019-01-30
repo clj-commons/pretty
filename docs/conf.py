@@ -16,6 +16,7 @@ import sys
 import os
 import shlex
 
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -55,8 +56,17 @@ author = u'Howard M. Lewis Ship and others'
 # built documents.
 #
 
+def read_project_version():
+    f = open("../project.clj")
+    line = f.readline()
+    terms = line.split('"')
+    f.close()
+
+    return terms[1]
+
+
 # The full version, including alpha/beta/rc tags.
-release = u'0.1.36'
+release = read_project_version()
 
 # The short X.Y version.
 version = release

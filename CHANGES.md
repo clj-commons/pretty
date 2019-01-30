@@ -1,7 +1,13 @@
 ## 0.1.37 - UNRELEASED
 
-*Incompatible Change*: Remove the `io.aviso.writer` namespace and change many functions
-to simply write to `*out*` rather than take a writer parameter.
+*Incompatible Changes*:
+
+* Removed the `io.aviso.writer` namespace and changed many functions
+  to simply write to `*out*` rather than take a writer parameter.
+
+* It is now necessary to setup explicit :middleware in your `project.clj`, as
+  Leiningen is phasing out implicit middleware.
+  See the manual for more details.
 
 ## 0.1.36 - 22 Dec 2018
 

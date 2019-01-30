@@ -7,9 +7,10 @@
             [io.aviso
              [ansi :as ansi]
              [columns :as c]])
-  (:import [java.lang StringBuilder StackTraceElement]
-           [clojure.lang Compiler ExceptionInfo Named]
-           [java.util.regex Pattern]))
+  (:import
+    (java.lang StringBuilder StackTraceElement)
+    (clojure.lang Compiler ExceptionInfo Named)
+    (java.util.regex Pattern)))
 
 (def default-fonts
   "A default set of fonts for different elements in the formatted exception report."
