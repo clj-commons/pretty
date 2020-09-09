@@ -4,8 +4,7 @@
   When a value is provided in a column, it may be associated with an explicit width which is helpful
   when the value contains non-printing characters (such as those defined in the `io.aviso.ansi` namespace)."
   (:require [clojure.string :as str]
-            [io.aviso
-             [ansi :as ansi]]))
+            [io.aviso.ansi :as ansi]))
 
 (defn ^:private indent
   "Indents sufficient to pad the column value to the column width."

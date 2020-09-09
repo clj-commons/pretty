@@ -1,12 +1,10 @@
 (ns io.aviso.exception
   "Format and present exceptions in a pretty (structured, formatted) way."
-  (:require [clojure
-             [pprint :as pp]
-             [set :as set]
-             [string :as str]]
-            [io.aviso
-             [ansi :as ansi]
-             [columns :as c]])
+  (:require [clojure.pprint :as pp]
+            [clojure.set :as set]
+            [clojure.string :as str]
+            [io.aviso.ansi :as ansi]
+            [io.aviso.columns :as c])
   (:import
     (java.lang StringBuilder StackTraceElement)
     (clojure.lang Compiler ExceptionInfo Named)
