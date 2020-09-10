@@ -1,8 +1,7 @@
 (ns io.aviso.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (:require [io.aviso
-             [ansi :as ansi]
-             [columns :as c]]))
+  (:require [io.aviso.ansi :as ansi]
+            [io.aviso.columns :as c]))
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
