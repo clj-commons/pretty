@@ -515,6 +515,11 @@
         x-name))
     x))
 
+(defn ^:private replace-nil [x]
+  (if (nil? x)
+    "nil"
+    x))
+
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function.
@@ -537,7 +542,7 @@
                                    (exception-formatter (str exception-font class-name reset-font)
                                                         (str message-font message reset-font))
                                    (when show-properties?
-                                     (let [properties         (update-keys (:properties e) qualified-name)
+                                     (let [properties         (update-keys (:properties e) (comp replace-nil qualified-name))
                                            prop-keys-sorted   (cond-> (keys properties)
                                                                       (not (sorted? (:properties e)))
                                                                       (sort))
