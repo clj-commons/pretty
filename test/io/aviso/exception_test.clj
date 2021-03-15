@@ -576,3 +576,8 @@
 
       (reporting {comp-exception (str/split-lines comp-exception)}
                  (is (re-find #"component: #<Component io.aviso.exception_test.MyComponent>" comp-exception))))))
+
+(deftest write-exceptions-with-nil-data
+  (testing "Does not fail with a nil ex-info map key"
+    (is (re-find #"nil.*nil"
+                 (format-exception (ex-info "Error" {nil nil}))))))
