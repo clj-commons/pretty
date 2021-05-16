@@ -1,7 +1,8 @@
 (ns io.aviso.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
   (:require [io.aviso.ansi :as ansi]
-            [io.aviso.columns :as c]))
+            [io.aviso.columns :as c])
+  (:import (java.nio ByteBuffer)))
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
@@ -16,6 +17,11 @@
   BinaryData
   (data-length [ary] (alength (bytes ary)))
   (byte-at [ary index] (aget (bytes ary) index)))
+
+(extend-type ByteBuffer
+  BinaryData
+  (data-length [b] (.remaining b))
+  (byte-at [b index] (.get ^ByteBuffer b (int index))))
 
 ;;; Extends String as a convenience; assumes that the
 ;;; String is in utf-8.
@@ -34,7 +40,7 @@
 (extend-type nil
   BinaryData
   (data-length [_] 0)
-  (byte-at [_ index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
+  (byte-at [_ _index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
 
 (def ^:private ^:const bytes-per-diff-line 16)
 (def ^:private ^:const bytes-per-ascii-line 16)

@@ -1,7 +1,8 @@
 (ns io.aviso.binary-test
   "Tests for the io.aviso.binary namespace."
   (:use io.aviso.binary
-        clojure.test))
+        clojure.test)
+  (:import (java.nio ByteBuffer)))
 
 (defn ^:private format-string-as-byte-array [str]
   (format-binary (.getBytes str)))
@@ -29,3 +30,23 @@
 
 (deftest nil-is-an-empty-data
   (is (= (format-binary nil) "")))
+
+(deftest byte-buffer
+  (let [bb (ByteBuffer/wrap (.getBytes "Duty Now For The Future" "UTF-8"))]
+    (is (= "0000: 44 75 74 79 20 4E 6F 77 20 46 6F 72 20 54 68 65 20 46 75 74 75 72 65\n"
+           (format-binary bb)))
+
+    (is (= "0000: 44 75 74 79\n"
+           (-> bb
+               (.position 5)
+               (.limit 9)
+               format-binary)))
+
+    (is (= "0000: 46 6F 72\n"
+           (-> bb
+               (.position 9)
+               (.limit 12)
+               .slice
+               format-binary)))
+
+    ))

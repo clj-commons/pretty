@@ -1,3 +1,7 @@
+## 1.0 - UNRELEASED
+
+BinaryData protocol extended onto java.nio.ByteBuffer.
+
 ## 0.1.37 - 30 Jan 2019
 
 *Incompatible Changes*:
