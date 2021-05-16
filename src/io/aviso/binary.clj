@@ -8,7 +8,7 @@
   "Allows various data sources to be treated as a byte-array data type that
   supports a length and random access to individual bytes.
 
-  BinaryData is extended onto byte arrays, onto `String`, and onto nil."
+  BinaryData is extended onto byte arrays, java.nio.ByteBuffer, java.lang.String, java.lang.StringBuilder, and onto nil."
 
   (data-length [this] "The total number of bytes available.")
   (byte-at [this index] "The byte value at a specific offset."))

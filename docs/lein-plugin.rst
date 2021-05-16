@@ -11,10 +11,10 @@ of your :file:`project.clj`.
 .. code-block:: clojure
 
   (defproject ...
-   :plugins [[io.aviso/pretty "X.Y.Z"]]
+   :plugins [[io.aviso/pretty "1.0"]]
    :middleware [io.aviso.lein-pretty/inject]
    :dependencies [...
-                  [io.aviso/pretty "X.Y.Z"]]
+                  [io.aviso/pretty "1.0"]]
    ...)
 
 Adjust the version number for the current version, "|release|".

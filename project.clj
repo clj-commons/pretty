@@ -5,7 +5,7 @@
             :url  "http://www.apache.org/licenses/LICENSE-2.0.html"}
   :dependencies [[org.clojure/clojure "1.10.3"]
                  [org.clojure/tools.logging "1.1.0" :optional true]]
-  :plugins [[lein-codox "0.10.4"]]
+  :plugins [[lein-codox "0.10.7"]]
   :profiles {:1.9  {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8  {:dependencies [[org.clojure/clojure "1.8.0"]]}
              :dev  {:dependencies [[criterium "0.4.6"]

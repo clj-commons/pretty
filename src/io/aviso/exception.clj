@@ -35,7 +35,9 @@
 (def ^{:dynamic true
        :added   "0.1.15"}
 *traditional*
-  "If bound to true, then exceptions will be formatted the traditional way (the only option prior to 0.1.15)."
+  "If bound to true, then exceptions will be formatted the traditional way - the same as Java exceptions
+  with the deepest stack frame first.  By default, the stack trace is inverted, so that the deepest
+  stack frames come last, mimicking chronological order."
   false)
 
 (defn ^:private length [^String s] (.length s))
@@ -43,9 +45,9 @@
 (defn ^:private strip-prefix
   [^String prefix ^String input]
   (let [prefix-len (.length prefix)]
-    (if (and (.startsWith input prefix)
+    (if (and (str/starts-with? input prefix)
              (< prefix-len (.length input)))
-      (.substring input prefix-len)
+      (subs input prefix-len)
       input)))
 
 (def ^:private current-dir-prefix
@@ -66,7 +68,6 @@
        set/map-invert
        (sort-by #(-> % first length))
        reverse))
-
 
 (defn ^:private match-mangled
   [^String s i]
