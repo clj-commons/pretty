@@ -618,7 +618,7 @@
   When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outermost
   stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
   the exception stack).  The frame limit is applied after the frame filter (which may hide or omit frames) and
-  after repeating stack frames have been identified and coallesced ... :frame-limit is really the number
+  after repeating stack frames have been identified and coalesced ... :frame-limit is really the number
   of _output_ lines to present.
 
   Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used

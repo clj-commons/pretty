@@ -1,6 +1,8 @@
-## 1.0 - UNRELEASED
+## 1.0 - 16 May 2021
 
 BinaryData protocol extended onto java.nio.ByteBuffer.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A1.0+is%3Aclosed)
 
 ## 0.1.37 - 30 Jan 2019
 
