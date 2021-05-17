@@ -1,3 +1,7 @@
+## 1.1 -- 16 May 2021
+
+Restore compatibility with Clojure 1.7.0.
+
 ## 1.0 - 16 May 2021
 
 BinaryData protocol extended onto java.nio.ByteBuffer.

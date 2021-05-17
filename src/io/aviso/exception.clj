@@ -45,7 +45,8 @@
 (defn ^:private strip-prefix
   [^String prefix ^String input]
   (let [prefix-len (.length prefix)]
-    (if (and (str/starts-with? input prefix)
+    ;; clojure.string/starts-with? not available in Clojure 1.7.0, so:
+    (if (and (.startsWith input prefix)
              (< prefix-len (.length input)))
       (subs input prefix-len)
       input)))
