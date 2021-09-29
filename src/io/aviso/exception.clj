@@ -1,5 +1,6 @@
 (ns io.aviso.exception
   "Format and present exceptions in a pretty (structured, formatted) way."
+  (:refer-clojure :exclude [update-keys])
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
