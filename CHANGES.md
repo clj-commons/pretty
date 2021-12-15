@@ -1,3 +1,9 @@
+## 1.1.1 -- 15 Dec 20201
+
+Prevent warnings when using with Clojure 1.11.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=is%3Aclosed+milestone%3A1.1.1)
+
 ## 1.1 -- 16 May 2021
 
 Restore compatibility with Clojure 1.7.0.
