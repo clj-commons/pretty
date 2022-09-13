@@ -29,7 +29,9 @@
   nil)
 
 (def ^:dynamic *fonts*
-  "Current set of fonts used in exception formatting"
+  "Current set of fonts used in exception formatting. This can be overridden to change colors, our bound to nil
+   to disable fonts.  Further, the environment variable DISABLE_DEFAULT_PRETTY_FONTS, if non-nil, will default
+   this to nil."
   (when-not (System/getenv "DISABLE_DEFAULT_PRETTY_FONTS")
     default-fonts))
 
@@ -142,9 +144,7 @@
                       {:rule rule})))))
 
 (defn *default-frame-filter*
-  "Default stack frame filter used when printing REPL exceptions. This will omit frames in the `clojure.lang`
-  and `java.lang.reflect` package, hide frames in the `sun.reflect` package,
-  and terminates the stack trace at the read-eval-print loop frame."
+  "Default stack frame filter used when printing REPL exceptions, driven by [[*default-frame-rules*]]."
   {:added   "0.1.16"
    :dynamic true}
   [frame]
@@ -525,9 +525,7 @@
 
 (defn write-exception*
   "Contains the main logic for [[write-exception]], which simply expands
-  the exception (via [[analyze-exception]]) before invoking this function.
-
-  This code was extracted so as to support [[parse-exception]]."
+  the exception (via [[analyze-exception]]) before invoking this function."
   {:added "0.1.21"}
   [exception-stack options]
   (let [{show-properties? :properties
@@ -568,6 +566,14 @@
     (if modern?
       (write-exception-stack))))
 
+(defn format-exception
+  "Formats an exception as a multi-line string using the same options as [[write-exception]]."
+  ([exception]
+   (format-exception exception nil))
+  ([exception options]
+   (with-out-str
+     (write-exception* (analyze-exception exception options) options))))
+
 (defn write-exception
   "Writes a formatted version of the exception to *out*. By default, includes
   the stack trace, with no frame limit.
@@ -581,15 +587,15 @@
   : If true (the default) then properties of exceptions will be output.
 
   :frame-limit
-  : If non-nil, the number of stack frames to keep when outputing the stack trace
+  : If non-nil, the number of stack frames to keep when outputting the stack trace
     of the deepest exception.
 
   Output may be traditional or modern, as controlled by [[*traditional*]].
   Traditional is the typical output order for Java: the stack of exceptions comes first (outermost to
   innermost) followed by the stack trace of the innermost exception, with the frames
-  in deepest to shallowest order.
+  in order from deepest to most shallow.
 
-  Modern output is more readable; the stack trace comes first and is reversed: shallowest frame to deepest.
+  Modern output is more readable; the stack trace comes first and is reversed: shallowest frame to most deep.
   Then the exception stack is output, from the root exception to the outermost exception.
   The modern output order is more readable, as it puts the most useful information together at the bottom, so that
   it is not necessary to scroll back to see, for example, where the exception occurred.
@@ -633,15 +639,8 @@
   ([exception]
    (write-exception exception nil))
   ([exception options]
-   (write-exception* (analyze-exception exception options) options)))
-
-(defn format-exception
-  "Formats an exception as a multi-line string using [[write-exception]]."
-  ([exception]
-   (format-exception exception nil))
-  ([exception options]
-   (with-out-str (write-exception exception options))))
-
+   (print (format-exception exception options))
+   (flush)))
 
 (defn ^:private assemble-final-stack [exceptions stack-trace stack-trace-batch options]
   (let [stack-trace' (-> (map (partial expand-stack-trace-element @current-dir-prefix)

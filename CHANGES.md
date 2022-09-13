@@ -1,3 +1,11 @@
+## 1.2 -- UNRELEASED
+
+Output from `write-exception` is now buffered; this should reduce the
+interleaving of exception output when multiple threads are writing
+exceptions simultaneously.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=is%3Aclosed+milestone%3A1.2)
+
 ## 1.1.1 -- 15 Dec 20201
 
 Prevent warnings when using with Clojure 1.11.
@@ -235,6 +243,3 @@ This can remove _significant_ clutter from the exception output, making it that 
 to identify the true cause of the exception.
 
 [Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.11)
-
-
-
