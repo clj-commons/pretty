@@ -52,9 +52,10 @@ This is best explained by example; here's a SQLException wrapped inside two Runt
 
 This is greatly improved in Clojure 1.10 over prior Clojure releases, but still quite minimal.
 
-On a good day, the exception messages will include all the details you need to resolve the problem ... even though
-Clojure encourages you to use the ``ex-info`` to create an exception,
-which puts important data into properties of the exception, which are not normally printed.
+On a good day, the exception messages will include all the details you need to resolve the problem, which
+is strangely at odds with Clojure's ``ex-info`` function; ``ex-info` encourages you to
+put useful information into the `ex-data` of the exception, yet Clojure doesn't print out this data.
+``write-exceptions`` by contrast, does output the ``ex-data``.
 
 Meanwhile, you will have to mentally scan and parse the above text explosion, to parse out file names and line numbers.
 
@@ -67,7 +68,7 @@ modified to use ``write-exception``.
    :alt: Formatted Exception
 
 As you can see, this lets you focus in on the exact cause and location of your problem.
-
+.
 ``write-exception`` flips around the traditional order, providing a chronologically sequential view:
 
 * The stack trace leading to the root exception comes first, and is ordered outermost frame to innermost frame.
@@ -81,7 +82,7 @@ or Java class and method, and the right columns presenting the file name and lin
 The stack frames themselves are filtered to remove details that are not relevant.
 This filtering is via an optional function, so you can define filters that make sense for your code.
 For example, the default filter omits frames in the clojure.lang package (they are reduced to ellipses), and truncates the
-stack trace when when it reaches clojure.main/repl/read-eval-print.
+stack trace when when it reaches ``clojure.main/repl/read-eval-print``.
 
 Repeating stack frames are also identified and reduced to a single line (that identifies the number of frames).
 This allows your infinite loop that terminates with a StackOverflowException to be reported in just a few lines, not

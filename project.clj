@@ -8,6 +8,7 @@
   :plugins [[lein-codox "0.10.7"]]
   :profiles {:1.9  {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.8  {:dependencies [[org.clojure/clojure "1.8.0"]]}
+             :1.11 {:dependencies [[org.clojure/clojure "1.11.1"]]}
              :dev  {:dependencies [[criterium "0.4.6"]
                                    [com.stuartsierra/component "1.0.0"]
                                    [com.walmartlabs/test-reporting "1.1"]]}

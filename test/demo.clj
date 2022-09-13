@@ -71,11 +71,13 @@
   (throw (make-ex-info))
   (test-failure)
 
-  ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
+  *clojure-version*
 
-  (let [out (io/writer "target/output.txt")
-        e (make-ex-info)]
-    (c/bench (print-exception out e)))
+  ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
+  ;; 13 Sep 2021 -  401 µs (16 µs std dev) - Clojure 1.11.1
+
+  (let [e (make-ex-info)]
+    (c/bench (e/format-exception e)))
 
   ;; 11 Feb 2016 - 213 µs (4 µs std dev) - Clojure 1.8
   ;; 28 Sep 2018 - 237 µs (8 µs std dev) - Clojure 1.9
@@ -83,5 +85,4 @@
   (let [e (make-ex-info)]
     (c/bench (doseq [x (e/analyze-exception e nil)]
                (-> x :stack-trace doall))))
-
   )
