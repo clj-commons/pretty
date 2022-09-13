@@ -71,9 +71,10 @@
   (throw (make-ex-info))
   (test-failure)
 
+  *clojure-version*
+
   ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
-  ;; 12 Sep 2021 -  129 µs (4 µs std dev) - Clojure 1.9
-  ;; 12 Sep 2021 -  139 µs (5 µs std dev) - Clojure 1.11.1
+  ;; 13 Sep 2021 -  401 µs (16 µs std dev) - Clojure 1.11.1
 
   (let [e (make-ex-info)]
     (c/bench (e/format-exception e)))
