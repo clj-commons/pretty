@@ -411,7 +411,8 @@
   [^Throwable exception options]
   (if (instance? ExceptionInfo exception)
     (wrap-exception exception (ex-data exception) options)
-    (let [properties          (bean exception)
+    (let [properties          (try (bean exception)
+                                   (catch Throwable _ nil))
           ;; Ignore basic properties of Throwable, any nil properties, and any properties
           ;; that are themselves Throwables
           discarded-keys      (concat [:suppressed :message :localizedMessage :class :stackTrace :cause]
