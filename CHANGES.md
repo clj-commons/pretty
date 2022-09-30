@@ -1,4 +1,4 @@
-## 1.2 -- UNRELEASED
+## 1.2 -- 30 Sep 2022
 
 Output from `write-exception` is now buffered; this should reduce the
 interleaving of exception output when multiple threads are writing
@@ -6,7 +6,7 @@ exceptions simultaneously.
 
 [Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=is%3Aclosed+milestone%3A1.2)
 
-## 1.1.1 -- 15 Dec 20201
+## 1.1.1 -- 15 Dec 2021
 
 Prevent warnings when using with Clojure 1.11.
 
