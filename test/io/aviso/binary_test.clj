@@ -4,7 +4,8 @@
         clojure.test)
   (:import (java.nio ByteBuffer)))
 
-(defn ^:private format-string-as-byte-array [str]
+(defn- format-string-as-byte-array
+  [^String str]
   (format-binary (.getBytes str)))
 
 (deftest format-byte-array-test

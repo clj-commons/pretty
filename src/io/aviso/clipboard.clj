@@ -8,7 +8,7 @@
     [java.awt.datatransfer Clipboard DataFlavor StringSelection]
     [java.awt Toolkit]))
 
-(defn ^:private ^Clipboard clipboard
+(defn- ^Clipboard clipboard
   "Returns the current clipboard."
   []
   (.getSystemClipboard (Toolkit/getDefaultToolkit)))
@@ -24,4 +24,3 @@
   "Pastes a string in as the new content of the Clipboard."
   [^String s]
   (.setContents (clipboard) (StringSelection. s) nil))
-

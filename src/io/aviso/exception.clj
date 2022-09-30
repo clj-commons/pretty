@@ -43,9 +43,11 @@
   stack frames come last, mimicking chronological order."
   false)
 
-(defn ^:private length [^String s] (.length s))
+(defn- length
+  [^String s]
+  (.length s))
 
-(defn ^:private strip-prefix
+(defn- strip-prefix
   [^String prefix ^String input]
   (let [prefix-len (.length prefix)]
     ;; clojure.string/starts-with? not available in Clojure 1.7.0, so:
@@ -58,7 +60,7 @@
   "Convert the current directory (via property 'user.dir') into a prefix to be omitted from file names."
   (delay (str (System/getProperty "user.dir") "/")))
 
-(defn ^:private ?reverse
+(defn- ?reverse
   [reverse? coll]
   (if reverse?
     (reverse coll)
@@ -73,7 +75,7 @@
        (sort-by #(-> % first length))
        reverse))
 
-(defn ^:private match-mangled
+(defn- match-mangled
   [^String s i]
   (->> clojure->java
        (filter (fn [[k _]] (.regionMatches s i k 0 (length k))))
@@ -96,7 +98,7 @@
                 (.append result (.charAt s i))
                 (recur (inc i)))))))
 
-(defn ^:private match-keys
+(defn- match-keys
   "Apply the function f to all values in the map; where the result is truthy, add the key to the result."
   [m f]
   ;; (seq m) is necessary because the source is via (bean), which returns an odd implementation of map
@@ -129,7 +131,7 @@
    [:name #"speclj\..*" :terminate]
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]])
 
-(defn ^:private apply-rule
+(defn- apply-rule
   [frame [f match visibility :as rule]]
   (let [value (str (f frame))]
     (cond
@@ -152,7 +154,7 @@
       first
       (or :show)))
 
-(defn ^:private convert-to-clojure
+(defn- convert-to-clojure
   [class-name method-name]
   (let [[namespace-name & raw-function-ids] (str/split class-name #"\$")
         ;; Clojure adds __1234 unique ids to the ends of things, remove those.
@@ -169,7 +171,7 @@
       (cons namespace-name all-ids)
       (map demangle))))
 
-(defn ^:private extension
+(defn- extension
   [^String file-name]
   (let [x (.lastIndexOf file-name ".")]
     (when (<= 0 x)
@@ -178,7 +180,7 @@
 (def ^:private clojure-extensions
   #{"clj" "cljc"})
 
-(defn ^:private expand-stack-trace-element
+(defn- expand-stack-trace-element
   [file-name-prefix ^StackTraceElement element]
   (let [class-name  (.getClassName element)
         method-name (.getMethodName element)
@@ -213,7 +215,7 @@
   "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
 
 
-(defn ^:private apply-frame-filter
+(defn- apply-frame-filter
   [frame-filter frames]
   (if (nil? frame-filter)
     frames
@@ -240,7 +242,7 @@
                  more-frames
                  true))))))
 
-(defn ^:private remove-direct-link-frames
+(defn- remove-direct-link-frames
   "With Clojure 1.8, in code (such as clojure.core) that is direct linked,
   you'll often see an invokeStatic() and/or invokePrim() frame invoked from an invoke() frame
   of the same class (the class being a compiled function). That ends up looking
@@ -266,14 +268,14 @@
                  this-frame
                  rest))))))
 
-(defn ^:private is-repeat?
+(defn- is-repeat?
   [left-frame right-frame]
   (and (= (:formatted-name left-frame)
           (:formatted-name right-frame))
        (= (:line left-frame)
           (:line right-frame))))
 
-(defn ^:private repeating-frame-reducer
+(defn- repeating-frame-reducer
   [output-frames frame]
   (let [output-count      (count output-frames)
         last-output-index (dec output-count)]
@@ -288,7 +290,7 @@
       :else
       (conj output-frames frame))))
 
-(defn ^:private format-repeats
+(defn- format-repeats
   [{:keys [repeats]}]
   (if repeats
     (format " (repeats %,d times)" repeats)))
@@ -331,7 +333,7 @@
         (flush)))
     elements))
 
-(defn ^:private clj-frame-font
+(defn- clj-frame-font
   "Returns the font to use for a clojure frame.
 
   When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame
@@ -341,7 +343,7 @@
       first
       (or :clojure-frame)))
 
-(defn ^:private preformat-stack-frame
+(defn- preformat-stack-frame
   [frame]
   (cond
     (:omitted frame)
@@ -365,7 +367,7 @@
                            (:function-name *fonts*) (last names) (:reset *fonts*))]
       (assoc frame :formatted-name formatted-name))))
 
-(defn ^:private transform-stack-trace-elements
+(defn- transform-stack-trace-elements
   "Converts a seq of StackTraceElements into a seq of stack trace maps."
   [elements options]
   (let [frame-filter (:filter options *default-frame-filter*)
@@ -379,14 +381,15 @@
       (take frame-limit elements')
       elements')))
 
-(defn ^:private extract-stack-trace
+(defn- extract-stack-trace
   [exception options]
   (transform-stack-trace-elements (expand-stack-trace exception) options))
 
-(defn ^:private is-throwable? [v]
-  (.isInstance Throwable v))
+(defn- is-throwable?
+  [v]
+  (instance? Throwable v))
 
-(defn ^:private wrap-exception
+(defn- wrap-exception
   [^Throwable exception properties options]
   (let [throwable-property-keys (match-keys properties is-throwable?)
         nested-exception        (or (->> (select-keys properties throwable-property-keys)
@@ -407,7 +410,7 @@
       :stack-trace stack-trace}
      nested-exception]))
 
-(defn ^:private expand-exception
+(defn- expand-exception
   [^Throwable exception options]
   (if (instance? ExceptionInfo exception)
     (wrap-exception exception (ex-data exception) options)
@@ -457,14 +460,15 @@
         (recur result' nested)
         result'))))
 
-(defn ^:private update-keys [m f]
+(defn- update-keys
+  [m f]
   "Builds a map where f has been applied to each key in m."
   (reduce-kv (fn [m k v]
                (assoc m (f k) v))
              {}
              m))
 
-(defn ^:private write-stack-trace
+(defn- write-stack-trace
   [stack-trace modern?]
   (c/write-rows [:formatted-name
                  "  "
@@ -506,11 +510,12 @@
   [_]
   (pp/simple-dispatch nil))
 
-(defn ^:private format-property-value
+(defn- format-property-value
   [value]
   (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
 
-(defn ^:private qualified-name [x]
+(defn- qualified-name
+  [x]
   (if (instance? Named x)
     (let [x-ns   (namespace x)
           x-name (name x)]
@@ -519,7 +524,8 @@
         x-name))
     x))
 
-(defn ^:private replace-nil [x]
+(defn- replace-nil
+  [x]
   (if (nil? x)
     "nil"
     x))
@@ -643,7 +649,8 @@
    (print (format-exception exception options))
    (flush)))
 
-(defn ^:private assemble-final-stack [exceptions stack-trace stack-trace-batch options]
+(defn- assemble-final-stack
+  [exceptions stack-trace stack-trace-batch options]
   (let [stack-trace' (-> (map (partial expand-stack-trace-element @current-dir-prefix)
                               (into stack-trace-batch stack-trace))
                          (transform-stack-trace-elements options))
@@ -665,20 +672,24 @@
   ; Group 4 - line number (or nil)
   )
 
-(defn ^:private add-message-text
+(defn- add-message-text
   [exceptions line]
   (let [x (-> exceptions count dec)]
     (update-in exceptions [x :message]
                str \newline line)))
 
-(defn ^:private add-to-batch [stack-trace-batch ^String class-and-method ^String file-name ^String line-number]
+(defn- add-to-batch
+  [stack-trace-batch ^String class-and-method ^String file-name ^String line-number]
   (try
     (let [x           (.lastIndexOf class-and-method ".")
           class-name  (subs class-and-method 0 x)
           method-name (subs class-and-method (inc x))
-          element     (StackTraceElement. class-name method-name file-name (if line-number
-                                                                             (Integer/parseInt line-number)
-                                                                             -1))]
+          element     (StackTraceElement. class-name
+                                          method-name
+                                          file-name
+                                          (if line-number
+                                            (Integer/parseInt line-number)
+                                            -1))]
       (conj stack-trace-batch element))
     (catch Throwable t
       (throw (ex-info "Unable to create StackTraceElement."

@@ -13,11 +13,11 @@
   (:import
     (clojure.lang RT)))
 
-(defn ^:private reset-var!
+(defn- reset-var!
   [v override]
   (alter-var-root v (constantly override)))
 
-(defn ^:private print-exception
+(defn- print-exception
   [e options]
   (print (e/format-exception e options))
   (flush))

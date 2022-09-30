@@ -9,7 +9,7 @@
 
 (def ^:private eol (System/getProperty "line.separator"))
 
-(defn ^:private install-pretty-logging*
+(defn- install-pretty-logging*
   [options]
   (alter-var-root
     #'l/log*

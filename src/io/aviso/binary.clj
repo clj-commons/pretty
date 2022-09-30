@@ -55,12 +55,13 @@
 
 (def ^:private nonprintable-placeholder (ansi/bold-magenta-bg " "))
 
-(defn ^:private to-ascii [b]
+(defn- to-ascii
+  [b]
   (if (printable-chars b)
     (char b)
     nonprintable-placeholder))
 
-(defn ^:private write-line
+(defn- write-line
   [formatter write-ascii? offset data line-count]
   (let [line-bytes (for [i (range line-count)]
                      (byte-at data (+ offset i)))]
@@ -76,7 +77,7 @@
    ": "
    :none])
 
-(defn ^:private ascii-binary-columns [per-line]
+(defn- ascii-binary-columns [per-line]
   [4
    ": "
    (* 3 per-line)
@@ -137,19 +138,19 @@
    (with-out-str
      (write-binary data options))))
 
-(defn ^:private match?
+(defn- match?
   [byte-offset data-length data alternate-length alternate]
   (and
     (< byte-offset data-length)
     (< byte-offset alternate-length)
     (== (byte-at data byte-offset) (byte-at alternate byte-offset))))
 
-(defn ^:private to-hex
+(defn- to-hex
   [byte-array byte-offset]
   ;; This could be made a lot more efficient!
   (format "%02X" (byte-at byte-array byte-offset)))
 
-(defn ^:private write-byte-deltas
+(defn- write-byte-deltas
   [ansi-color pad? offset data-length data alternate-length alternate]
   (doseq [i (range bytes-per-diff-line)]
     (let [byte-offset (+ offset i)]
@@ -165,7 +166,7 @@
         ;; On the right/red side, we need nothing.
         pad? (print "   ")))))
 
-(defn ^:private write-delta-line
+(defn- write-delta-line
   [offset expected-length ^bytes expected actual-length actual]
   (printf "%04X:" offset)
   (write-byte-deltas ansi/bold-green true offset expected-length expected actual-length actual)

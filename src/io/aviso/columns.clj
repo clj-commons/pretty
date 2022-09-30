@@ -6,12 +6,12 @@
   (:require [clojure.string :as str]
             [io.aviso.ansi :as ansi]))
 
-(defn ^:private indent
+(defn- indent
   "Indents sufficient to pad the column value to the column width."
   [indent-amount]
   (print (apply str (repeat indent-amount \space))))
 
-(defn ^:private truncate
+(defn- truncate
   [justification ^String string amount]
   (cond
     (nil? amount) string
@@ -20,7 +20,7 @@
     (= :right justification) (.substring string amount)
     :else string))
 
-(defn ^:private write-none-column [current-indent column-value]
+(defn- write-none-column [current-indent column-value]
   (loop [first-line true
          lines      (-> column-value str str/split-lines)]
     (when-not (empty? lines)
@@ -33,7 +33,7 @@
   ;; it shouldn't matter because :none should be the last consuming column.
   current-indent)
 
-(defn ^:private make-column-writer
+(defn- make-column-writer
   [justification width]
   (if (= :none justification)
     write-none-column
@@ -53,26 +53,26 @@
       ;; Return the updated indent amount; a :none column doesn't compute
       (+ current-indent width))))
 
-(defn ^:private fixed-column
+(defn- fixed-column
   [fixed-value]
   (let [value-length (ansi/visual-length fixed-value)]
     (fn [indent column-data]
       (print fixed-value)
       [(+ indent value-length) column-data])))
 
-(defn ^:private dynamic-column
+(defn- dynamic-column
   "Returns a function that consumes the next column data value and delegates to a column writer function
   to actually write the output for the column."
   [column-writer]
   (fn [indent [column-value & remaining-column-values]]
     [(column-writer indent column-value) remaining-column-values]))
 
-(defn ^:private nil-column
+(defn- nil-column
   "Does nothing and returns the indent and column data unchanged."
   [indent column-values]
   [indent column-values])
 
-(defn ^:private column-def-to-fn [column-def]
+(defn- column-def-to-fn [column-def]
   (cond
     (string? column-def) (fixed-column column-def)
     (number? column-def) (-> (make-column-writer :left column-def) dynamic-column)
@@ -151,7 +151,7 @@
   [coll key]
   (max-length (map key coll)))
 
-(defn ^:private analyze-extended-columns-defs
+(defn- analyze-extended-columns-defs
   [defs row-data]
   (loop [[column-def & more-defs] defs
          output-defs []
