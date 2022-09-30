@@ -11,7 +11,8 @@
              :1.11 {:dependencies [[org.clojure/clojure "1.11.1"]]}
              :dev  {:dependencies [[criterium "0.4.6"]
                                    [com.stuartsierra/component "1.0.0"]
-                                   [com.walmartlabs/test-reporting "1.1"]]}
+                                   [com.walmartlabs/test-reporting "1.1"]
+                                   [org.clojure/core.async "1.5.648"]]}
              :lein {:dependencies [[leiningen "2.9.8"]]}}
   :aliases {"release" ["do"
                        "clean,"

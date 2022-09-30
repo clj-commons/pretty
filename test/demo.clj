@@ -4,6 +4,7 @@
     [io.aviso.exception :as e]
     io.aviso.component
     [clojure.java.io :as io]
+    [clojure.core.async :refer [chan <!! close! thread]]
     [criterium.core :as c]
     [clojure.test :refer [report]])
   (:import (java.sql SQLException)))
@@ -63,6 +64,15 @@
   (report {:type :error :expected nil :actual (make-ex-info)}))
 
 (comment
+
+  (let [e (make-ex-info)
+        ch (chan)]
+    (dotimes [i 5]
+            (thread
+              (<!! ch)
+              (println (str "Thread #" i))
+              (e/write-exception e)))
+    (close! ch))
 
   (repl/install-pretty-exceptions)
 
