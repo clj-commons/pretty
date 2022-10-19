@@ -1,3 +1,7 @@
+## 1.3 -- UNRELEASED
+
+The default stack frame filter now terminates at any `speclj.*` namespace.
+
 ## 1.2 -- 30 Sep 2022
 
 Output from `write-exception` is now buffered; this should reduce the

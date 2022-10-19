@@ -123,12 +123,13 @@
 
   * omit everything in clojure.lang and java.lang.reflect.
   * hide everything in sun.reflect
-  * terminate at speclj.* or clojure.main/repl/read-eval-print
+  * terminate at speclj.*, clojure.main/repl/read-eval-print, or nrepl.middleware.interruptible-eval
   "
   [[:package "clojure.lang" :omit]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
+   [:name #"nrepl\.middleware\.interruptible-eval" :terminate]
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]])
 
 (defn- apply-rule
