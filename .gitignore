@@ -13,3 +13,4 @@ doc
 .nrepl-port
 pom.xml*
 manual/output-site
+*.asc

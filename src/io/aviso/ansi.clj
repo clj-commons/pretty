@@ -13,7 +13,7 @@
   then it sets the value:  the value `false` (matched caselessly) disables ANSI colors and fonts,
   otherwise they are enabled.
 
-  Next, there is an attempt to determine if execution is currently inside an REPL environment,
+  Next, there is an attempt to determine if execution is currently inside a REPL environment,
   possibly started from an IDE; a check is made to see if `nrepl.core` namespace is available;
   if so, then ANSI colors are enabled.
 

@@ -31,7 +31,7 @@
             :version version
             :aliases [:dev]}))
 
-(def publish-dir "../aviso-docs")
+(def publish-dir "../aviso-docs/pretty")
 
 (defn publish
   "Generate Codox documentation and publish via a GitHub push."
