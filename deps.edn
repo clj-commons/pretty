@@ -10,8 +10,24 @@
                 com.walmartlabs/test-reporting {:mvn/version "1.2"}
                 org.clojure/core.async {:mvn/version "1.5.648"}}}
 
-  :main
-  {:main-opts ["-m" "io.aviso.repl"]}
+  ;; clj -X:dev:test
+  :test
+  {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
+                                                      :git/sha "dfb30dd"}}
+   :exec-fn cognitect.test-runner.api/test}
 
-  :demo
-  {:main-opts ["-m" "demo"]}}}
+  ;; clj -T:build <command>
+  :build
+  {:deps {io.github.hlship/build-tools
+          {:git/tag "v0.5" :git/sha "ca4876"}}
+   :ns-default build}}
+
+ :main
+ {:main-opts ["-m" "io.aviso.repl"]}
+
+ :demo
+ {:main-opts ["-m" "demo"]}
+
+ :codox/config
+ {:description "Clojure library to help print things, prettily"
+  :source-uri "https://github.com/AvisoNovate/pretty/blob/master/{filepath}#L{line}"}}
