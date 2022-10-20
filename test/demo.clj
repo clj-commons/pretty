@@ -2,8 +2,10 @@
   (:require
     [io.aviso.repl :as repl]
     [io.aviso.exception :as e]
+    [io.aviso.ansi :as ansi]
     io.aviso.component
     [clojure.java.io :as io]
+    [clojure.repl :refer [pst]]
     [clojure.core.async :refer [chan <!! close! thread]]
     [criterium.core :as c]
     [clojure.test :refer [report]])
@@ -63,15 +65,21 @@
   []
   (report {:type :error :expected nil :actual (make-ex-info)}))
 
+(defn -main [& _]
+  (println "Installing pretty exceptions ...")
+  (repl/install-pretty-exceptions)
+  (println (ansi/bold-green "ok"))
+  (pst (make-exception)))
+
 (comment
 
-  (let [e (make-ex-info)
+  (let [e  (make-ex-info)
         ch (chan)]
     (dotimes [i 5]
-            (thread
-              (<!! ch)
-              (println (str "Thread #" i))
-              (e/write-exception e)))
+      (thread
+        (<!! ch)
+        (println (str "Thread #" i))
+        (e/write-exception e)))
     (close! ch))
 
   (repl/install-pretty-exceptions)

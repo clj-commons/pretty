@@ -1,0 +1,14 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        org.clojure/tools.logging {:mvn/version "1.2.4"}}
+ :aliases
+ {:dev
+  {:extra-paths ["test"]
+   :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
+                criterium/criterium {:mvn/version "0.4.6"}
+                com.stuartsierra/component {:mvn/version "1.1.0"}
+                com.walmartlabs/test-reporting {:mvn/version "1.2"}
+                org.clojure/core.async {:mvn/version "1.5.648"}}}
+
+  :demo
+  {:main-opts ["-m" "demo"]}}}
