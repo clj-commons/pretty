@@ -1,9 +1,40 @@
 (ns io.aviso.ansi
   "Help with generating textual output that includes ANSI escape codes for formatting."
-  (:import
-    [java.util.regex Pattern])
-  (:require
-    [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clojure.walk :as walk]))
+
+(def ^:const ansi-output-enabled?
+  "Determine if ANSI output is enabled.  If the environment variable ENABLE_ANSI_COLORS is non-null,
+  then it sets the value:  the value `false` (matched caselessly) disables ANSI colors and fonts,
+  otherwise they are enabled.
+
+  Next, there is an attempt to determine if execution is currently inside an REPL environment,
+  possibly started from an IDE; a check is made to see if `nrepl.core` namespace is loaded;
+  if so, then ANSI colors are enabled.
+
+  This has been verified to work with Cursive, with `lein repl`, and with `clojure` (or `clj`).
+
+  This check is necessary, because often in such cases, there is no console (the next check).
+
+  Otherwise, if the system has a console (via `(System/console)`) ANSI output will be enabled;
+  when Clojure is running in a pipe, or as a background job without a terminal attached, the console
+  will be nil and ANSI output will be disabled.
+
+  When this value is false, all the generated color and font constants return the empty string, and the
+  color and font functions return the input string unchanged.  This is decided during macro expansion when
+  the ansi namespace is first loaded, so it can't be changed at runtime."
+  (if-let [value (System/getenv "ENABLE_ANSI_COLORS")]
+    (not (.equalsIgnoreCase value "false"))
+    (some?
+      (or
+        (contains? (set (loaded-libs)) 'nrepl.core)
+        (System/console)))))
+
+(defmacro ^:private if-enabled?
+  [expr]
+  (if ansi-output-enabled?
+    expr
+    ""))
 
 (def ^:const csi
   "The control sequence initiator: `ESC [`"
@@ -14,27 +45,29 @@
   "The Select Graphic Rendition suffix: m"
   "m")
 
-(def ^:const
-  reset-font
+(def ^:const reset-font
   "Resets the font, clearing bold, italic, color, and background color."
-  (str csi sgr))
+  (if-enabled? (str csi sgr)))
 
 (defmacro ^:private def-sgr-const
   "Utility for defining a font-modifying constant."
   [symbol-name color-name & codes]
   `(def ~(vary-meta (symbol symbol-name) assoc :const true)
      ~(format "Constant for ANSI code to enable %s text." color-name)
-     (str csi ~(str/join ";" codes) sgr)))
+     ~(if-enabled? (str csi (str/join ";" codes) sgr))))
 
 (defmacro ^:private def-sgr-fn
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
   the font after the text."
   [fn-name color-name & codes]
-  (let [arg 'text]
+  (let [arg 'text
+        prefix (str csi (str/join ";" codes) sgr)]
     `(defn ~(symbol fn-name)
        ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
        [~arg]
-       (str csi ~(str/join ";" codes) sgr ~arg reset-font))))
+       ~(if ansi-output-enabled?
+          `(str ~prefix ~arg ~reset-font)
+          arg))))
 
 ;;; Define functions and constants for each color. The functions accept a string
 ;;; and wrap it with the ANSI codes to set up a rendition before the text,
@@ -86,7 +119,7 @@
 
 (define-fonts)
 
-(def ^:const ^:private ansi-pattern (Pattern/compile "\\e\\[.*?m"))
+(def ^:const ^:private ansi-pattern #"\e\[.*?m")
 
 (defn ^String strip-ansi
   "Removes ANSI codes from a string, returning just the raw text."
