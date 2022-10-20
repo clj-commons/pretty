@@ -32,9 +32,9 @@
   "Current set of fonts used in exception formatting. This can be overridden to change colors, or bound to nil
    to disable fonts.
 
-   ~Further, the environment variable DISABLE_DEFAULT_PRETTY_FONTS, if non-nil, will default this to nil.~
+   Further, the environment variable DISABLE_DEFAULT_PRETTY_FONTS, if non-nil, will default this to nil.
 
-   Starting in 1.3, ANSI fonts may be disabled; see [[ansi-output-enabled?]]"
+   Starting in 1.3, ANSI fonts may be disabled at a lower level; see [[ansi-output-enabled?]]"
   (when-not (System/getenv "DISABLE_DEFAULT_PRETTY_FONTS")
     default-fonts))
 

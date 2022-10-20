@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'io.aviso/pretty'
-copyright = u'2013-2019, Aviso'
+copyright = u'2013-2022, Aviso'
 author = u'Howard M. Lewis Ship and others'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -57,12 +57,11 @@ author = u'Howard M. Lewis Ship and others'
 #
 
 def read_project_version():
-    f = open("../project.clj")
-    line = f.readline()
-    terms = line.split('"')
+    f = open("VERSION.txt")
+    version = f.readline().strip()
     f.close()
 
-    return terms[1]
+    return version
 
 
 # The full version, including alpha/beta/rc tags.

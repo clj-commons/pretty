@@ -8,7 +8,7 @@
     true
     (catch Throwable _ false)))
 
-(def ^:const ansi-output-enabled?
+(def ^:const ^{:added "1.3"} ansi-output-enabled?
   "Determine if ANSI output is enabled.  If the environment variable ENABLE_ANSI_COLORS is non-null,
   then it sets the value:  the value `false` (matched caselessly) disables ANSI colors and fonts,
   otherwise they are enabled.

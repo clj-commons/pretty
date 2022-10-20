@@ -52,3 +52,8 @@ another window.
 
     (-> (copy) format-exception paste)
 
+-main
+-----
+
+Sets up pretty exceptions before passing arguments to `clojure.main/main`; this is used when starting a REPL
+to ensure that pretty exception are enabled before starting to interact.

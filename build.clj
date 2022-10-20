@@ -2,10 +2,11 @@
 
 (ns build
   (:require [clojure.tools.build.api :as build]
-            [net.lewisship.build :as b]))
+            [net.lewisship.build :as b]
+            [clojure.string :as str]))
 
 (def lib 'io.aviso/pretty)
-(def version "1.3")
+(def version (-> "VERSION.txt" slurp str/trim))
 
 (def jar-params {:project-name lib
                  :version version})
@@ -35,7 +36,7 @@
 (defn publish
   "Generate Codox documentation and publish via a GitHub push."
   [_params]
-  (println "Generating Codox documentation")
+  (println "Generating Codox documentation ...")
   (codox nil)
   (println "Copying documentation to" publish-dir "...")
   (build/copy-dir {:target-dir publish-dir

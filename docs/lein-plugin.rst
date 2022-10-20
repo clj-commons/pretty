@@ -11,10 +11,10 @@ of your :file:`project.clj`.
 .. code-block:: clojure
 
   (defproject ...
-   :plugins [[io.aviso/pretty "1.0"]]
+   :plugins [[io.aviso/pretty "1.3"]]
    :middleware [io.aviso.lein-pretty/inject]
    :dependencies [...
-                  [io.aviso/pretty "1.0"]]
+                  [io.aviso/pretty "1.3"]]
    ...)
 
 Adjust the version number for the current version, "|release|".
@@ -31,8 +31,8 @@ Another option is to add the following to your :file:`~/.lein/profiles.clj`:
 .. code-block:: clojure
 
    :pretty {
-     :plugins [[io.aviso/pretty "X.Y.Z"]]
-     :dependencies [[io.aviso/pretty "X.Y.Z"]]
+     :plugins [[io.aviso/pretty "1.3"]]
+     :dependencies [[io.aviso/pretty "1.3"]]
      :middleware [io.aviso.lein-pretty/inject]
    }
 
@@ -54,4 +54,3 @@ You may also want to add the following to your :file:`~/.bash_profile`::
     alias pretty="lein with-profile +pretty"
 
 At which point, you can use the command ``pretty`` instead of ``lein``.
-
