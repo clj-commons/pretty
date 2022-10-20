@@ -57,7 +57,7 @@ author = u'Howard M. Lewis Ship and others'
 #
 
 def read_project_version():
-    f = open("VERSION.txt")
+    f = open("../VERSION.txt")
     version = f.readline().strip()
     f.close()
 
