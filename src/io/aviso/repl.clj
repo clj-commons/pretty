@@ -47,7 +47,9 @@
    (if (instance? Throwable e-or-depth)
      (print-exception e-or-depth nil)
      (pretty-pst *e e-or-depth)))
-  ([e depth] (print-exception e {:frame-limit depth})))
+  ([e depth]
+   (binding [*out* *err*]
+     (print-exception e {:frame-limit depth}))))
 
 (defn pretty-print-stack-trace
   "Replacement for `clojure.stacktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
@@ -66,8 +68,6 @@
 
   Caught exceptions do not print the stack trace; the pst replacement does."
   []
-  ;; TODO: Not exactly sure why this works, because clojure.main/repl should be resolving the var to its contained
-  ;; function, so the override should not be visible. I'm missing something.
   (reset-var! #'main/repl-caught pretty-repl-caught)
   (reset-var! #'repl/pst pretty-pst)
   (reset-var! #'st/print-stack-trace pretty-print-stack-trace)
@@ -128,3 +128,11 @@
    (-> text
        (e/parse-exception nil)
        e/format-exception)))
+
+
+(defn -main
+  "Installs pretty exceptions, then delegates to clojure.main/main."
+  {:added "1.3.0"}
+  [& args]
+  (install-pretty-exceptions)
+  (apply main/main args))

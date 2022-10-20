@@ -2,6 +2,16 @@
 
 The default stack frame filter now terminates at any `speclj.*` namespace.
 
+The `io.aviso.ansi` namespace now determines whether output is connected to a terminal,
+and disables fonts and colors if so; this can be overridden with the `ENABLE_ANSI_COLORS`
+environment variable.
+
+Added a `-main` function to `io.aviso.repl`; this installs pretty exceptions before delegating
+to `clojure.main/main`.  Thus, `clojure -m io.aviso.repl -m org.example.myapp` will ultimately
+pass any remaining command line arguments to `org.example.myapp/-main`.
+
+The pretty replacement for `clojure.repl/pst` now writes to `*err*`, not `*out*`.
+
 ## 1.2 -- 30 Sep 2022
 
 Output from `write-exception` is now buffered; this should reduce the

@@ -10,5 +10,8 @@
                 com.walmartlabs/test-reporting {:mvn/version "1.2"}
                 org.clojure/core.async {:mvn/version "1.5.648"}}}
 
+  :main
+  {:main-opts ["-m" "io.aviso.repl"]}
+
   :demo
   {:main-opts ["-m" "demo"]}}}

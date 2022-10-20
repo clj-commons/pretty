@@ -65,7 +65,8 @@
   []
   (report {:type :error :expected nil :actual (make-ex-info)}))
 
-(defn -main [& _]
+(defn -main [& args]
+  (prn `-main :args args)
   (println "Installing pretty exceptions ...")
   (repl/install-pretty-exceptions)
   (println (ansi/bold-green "ok"))
