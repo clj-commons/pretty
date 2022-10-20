@@ -1,4 +1,4 @@
-## 1.3 -- UNRELEASED
+## 1.3 -- 20 Oct 2022
 
 The default stack frame filter now terminates at any `speclj.*` namespace.
 
