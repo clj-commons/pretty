@@ -1,7 +1,12 @@
 (ns io.aviso.ansi
   "Help with generating textual output that includes ANSI escape codes for formatting."
-  (:require [clojure.string :as str]
-            [clojure.walk :as walk]))
+  (:require [clojure.string :as str]))
+
+(defn- is-ns-available? [sym]
+  (try
+    (require sym)
+    true
+    (catch Throwable _ false)))
 
 (def ^:const ansi-output-enabled?
   "Determine if ANSI output is enabled.  If the environment variable ENABLE_ANSI_COLORS is non-null,
@@ -9,7 +14,7 @@
   otherwise they are enabled.
 
   Next, there is an attempt to determine if execution is currently inside an REPL environment,
-  possibly started from an IDE; a check is made to see if `nrepl.core` namespace is loaded;
+  possibly started from an IDE; a check is made to see if `nrepl.core` namespace is available;
   if so, then ANSI colors are enabled.
 
   This has been verified to work with Cursive, with `lein repl`, and with `clojure` (or `clj`).
@@ -27,7 +32,7 @@
     (not (.equalsIgnoreCase value "false"))
     (some?
       (or
-        (contains? (set (loaded-libs)) 'nrepl.core)
+        (is-ns-available? 'nrepl.core)
         (System/console)))))
 
 (defmacro ^:private if-enabled?
@@ -43,6 +48,7 @@
 ;; select graphic rendition
 (def ^:const sgr
   "The Select Graphic Rendition suffix: m"
+
   "m")
 
 (def ^:const reset-font
