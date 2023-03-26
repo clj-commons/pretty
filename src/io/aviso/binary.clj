@@ -53,7 +53,7 @@
                            "0123456789"
                            " !@#$%^&*()-_=+[]{}\\|'\";:,./<>?`~"))))
 
-(def ^:private nonprintable-placeholder (ansi/bold-magenta-bg " "))
+(def ^:private nonprintable-placeholder (ansi/bright-magenta-bg " "))
 
 (defn- to-ascii
   [b]
@@ -169,9 +169,9 @@
 (defn- write-delta-line
   [offset expected-length ^bytes expected actual-length actual]
   (printf "%04X:" offset)
-  (write-byte-deltas ansi/bold-green true offset expected-length expected actual-length actual)
+  (write-byte-deltas ansi/bright-green true offset expected-length expected actual-length actual)
   (print " | ")
-  (write-byte-deltas ansi/bold-red false offset actual-length actual expected-length expected)
+  (write-byte-deltas ansi/bright-red false offset actual-length actual expected-length expected)
   (println))
 
 (defn write-binary-delta

@@ -50,14 +50,14 @@
     "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22m[CSI]27m-NORMAL[CSI]m"))
 
 (deftest unrecognized-font-modifier
-  (when-let [e (is (thrown? Exception (compose [:what.is.this? "Fail!"])))]
+  (when-let [e (is (thrown? Throwable (compose [:what.is.this? "Fail!"])))]
     (is (= "Unexpected font term: :what" (ex-message e)))
     (is (= {:font-term :what
             :font-def :what.is.this?
-            :available-terms [:black :black-bg :blue :blue-bg :bold :bold-black :bold-black-gb
-                              :bold-blue :bold-blue-gb :bold-cyan :bold-cyan-gb :bold-green :bold-green-gb
-                              :bold-magenta :bold-magenta-gb :bold-red :bold-red-gb :bold-white :bold-white-gb
-                              :bold-yellow :bold-yellow-gb :cyan :cyan-bg :green :green-bg
+            :available-terms [:black :black-bg :blue :blue-bg :bold :bright-black :bright-black-gb
+                              :bright-blue :bright-blue-gb :bright-cyan :bright-cyan-gb :bright-green :bright-green-gb
+                              :bright-magenta :bright-magenta-gb :bright-red :bright-red-gb :bright-white :bright-white-gb
+                              :bright-yellow :bright-yellow-gb :cyan :cyan-bg :green :green-bg
                               :inverse :italic :magenta :magenta-bg :normal
                               :plain :red :red-bg :roman :white :white-bg :yellow :yellow-bg]}
           (ex-data e)))))

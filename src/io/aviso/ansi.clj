@@ -2,7 +2,11 @@
   "Help with generating textual output that includes ANSI escape codes for formatting.
   The [[compose]] function is the best starting point.
 
-  Reference: [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)"
+  Reference: [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR).
+
+  In version 1.4, the incorrectly named `bold-<color>` functions and constants
+  were deprecated in favor of the `bright-<color>` equivalents (correcting
+  a day 1 naming mistake)."
   (:require [clojure.string :as str]))
 
 (defn- is-ns-available? [sym]
@@ -57,7 +61,6 @@
 ;; select graphic rendition
 (def ^:const sgr
   "The Select Graphic Rendition suffix: m"
-
   "m")
 
 (def ^:const reset-font
@@ -66,18 +69,20 @@
 
 (defmacro ^:private def-sgr-const
   "Utility for defining a font-modifying constant."
-  [symbol-name color-name & codes]
-  `(def ~(vary-meta (symbol symbol-name) assoc :const true)
+  [symbol-name deprecated color-name & codes]
+  `(def ~(cond-> (with-meta (symbol symbol-name) {:const true})
+           deprecated (vary-meta assoc :deprecated deprecated))
      ~(format "Constant for ANSI code to enable %s text." color-name)
      ~(if-enabled? (str csi (str/join ";" codes) sgr))))
 
 (defmacro ^:private def-sgr-fn
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
   the font after the text."
-  [fn-name color-name & codes]
+  [fn-name deprecated color-name & codes]
   (let [arg 'text
         prefix (str csi (str/join ";" codes) sgr)]
-    `(defn ~(symbol fn-name)
+    `(defn ~(cond-> (symbol fn-name)
+              deprecated (vary-meta assoc :deprecated deprecated))
        ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
        [~arg]
        ~(if ansi-output-enabled?
@@ -107,14 +112,20 @@
      ~@(map-indexed
          (fn [index color-name]
            `(do
-              (def-sgr-fn ~color-name ~color-name ~(+ 30 index))
-              (def-sgr-fn ~(str color-name "-bg") ~(str color-name " background") ~(+ 40 index))
-              (def-sgr-fn ~(str "bold-" color-name) ~(str "bold " color-name) 1 ~(+ 30 index))
-              (def-sgr-fn ~(str "bold-" color-name "-bg") ~(str "bold " color-name " background") 1 ~(+ 40 index))
-              (def-sgr-const ~(str color-name "-font") ~color-name ~(+ 30 index))
-              (def-sgr-const ~(str color-name "-bg-font") ~(str color-name " background") ~(+ 40 index))
-              (def-sgr-const ~(str "bold-" color-name "-font") ~(str "bold " color-name) 1 ~(+ 30 index))
-              (def-sgr-const ~(str "bold-" color-name "-bg-font") ~(str "bold " color-name " background") 1 ~(+ 40 index))))
+              (def-sgr-fn ~color-name nil ~color-name ~(+ 30 index))
+              (def-sgr-fn ~(str color-name "-bg") nil ~(str color-name " background") ~(+ 40 index))
+              (def-sgr-fn  ~(str "bold-" color-name) "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn  ~(str "bold-" color-name) "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn  ~(str "bold-" color-name "-bg") "1.4" ~(str "bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-const ~(str color-name "-font") nil ~color-name ~(+ 30 index))
+              (def-sgr-const ~(str color-name "-bg-font") nil ~(str color-name " background") ~(+ 40 index))
+              (def-sgr-const ~(str "bold-" color-name "-font") "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-const  ~(str "bold-" color-name "-bg-font") "1.4" ~(str "bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn ~(str "bright-" color-name "-bg") nil ~(str "bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-const ~(str "bright-" color-name "-font") nil ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-const ~(str "bright-" color-name "-bg-font") nil ~(str "bright " color-name " background") 1 ~(+ 40 index))))
          ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
 (define-colors)
@@ -134,8 +145,8 @@
                                ['default-foreground 39]
                                ['default-background 49]]]
          `(do
-            (def-sgr-fn ~font-name ~font-name ~code)
-            (def-sgr-const ~(str font-name "-font") ~font-name ~code)))))
+            (def-sgr-fn ~font-name nil ~font-name ~code)
+            (def-sgr-const ~(str font-name "-font") nil ~font-name ~code)))))
 
 (define-fonts)
 
@@ -154,45 +165,45 @@
 (def ^:private
   font-terms
   {:black [:foreground black-font]
-   :bold-black [:foreground bold-black-font]
+   :bright-black [:foreground bright-black-font]
    :black-bg [:background black-bg-font]
-   :bold-black-gb [:background bold-black-bg-font]
+   :bright-black-gb [:background bright-black-bg-font]
 
    :red [:foreground red-font]
-   :bold-red [:foreground bold-red-font]
+   :bright-red [:foreground bright-red-font]
    :red-bg [:background red-bg-font]
-   :bold-red-gb [:background bold-red-bg-font]
+   :bright-red-gb [:background bright-red-bg-font]
 
 
    :green [:foreground green-font]
-   :bold-green [:foreground bold-green-font]
+   :bright-green [:foreground bright-green-font]
    :green-bg [:background green-bg-font]
-   :bold-green-gb [:background bold-green-bg-font]
+   :bright-green-gb [:background bright-green-bg-font]
 
    :yellow [:foreground yellow-font]
-   :bold-yellow [:foreground bold-yellow-font]
+   :bright-yellow [:foreground bright-yellow-font]
    :yellow-bg [:background yellow-bg-font]
-   :bold-yellow-gb [:background bold-yellow-bg-font]
+   :bright-yellow-gb [:background bright-yellow-bg-font]
 
    :blue [:foreground blue-font]
-   :bold-blue [:foreground bold-blue-font]
+   :bright-blue [:foreground bright-blue-font]
    :blue-bg [:background blue-bg-font]
-   :bold-blue-gb [:background bold-blue-bg-font]
+   :bright-blue-gb [:background bright-blue-bg-font]
 
    :magenta [:foreground magenta-font]
-   :bold-magenta [:foreground bold-magenta-font]
+   :bright-magenta [:foreground bright-magenta-font]
    :magenta-bg [:background magenta-bg-font]
-   :bold-magenta-gb [:background bold-magenta-bg-font]
+   :bright-magenta-gb [:background bright-magenta-bg-font]
 
    :cyan [:foreground cyan-font]
-   :bold-cyan [:foreground bold-cyan-font]
+   :bright-cyan [:foreground bright-cyan-font]
    :cyan-bg [:background cyan-bg-font]
-   :bold-cyan-gb [:background bold-cyan-bg-font]
+   :bright-cyan-gb [:background bright-cyan-bg-font]
 
    :white [:foreground white-font]
-   :bold-white [:foreground bold-white-font]
+   :bright-white [:foreground bright-white-font]
    :white-bg [:background white-bg-font]
-   :bold-white-gb [:background bold-white-bg-font]
+   :bright-white-gb [:background bright-white-bg-font]
 
    :bold [:bold bold-font]
    :plain [:bold plain-font]
@@ -275,8 +286,8 @@
 
   The terms:
 
-  - foreground color:  e.g. `red` or `bold-red`
-  - background color: e.g., `green-bg` or `bold-green-bg`
+  - foreground color:  e.g. `red` or `bright-red`
+  - background color: e.g., `green-bg` or `bright-green-bg`
   - boldness: `bold` or `plain`
   - italics: `italic` or `roman`
   - inverse: `inverse` or `normal`
@@ -284,7 +295,7 @@
   e.g.
 
   ```
-  (compose [:yellow \"Warning: the \" [:bold.bold-white.bold-red-bg \"reactor\"]
+  (compose [:yellow \"Warning: the \" [:bold.bright-white.bright-red-bg \"reactor\"]
     \" is about to \"
     [:italic.bold-red \"meltdown!\"]])
   => ...
