@@ -1,5 +1,12 @@
 (ns io.aviso.ansi
-  "Help with generating textual output that includes ANSI escape codes for formatting."
+  "Help with generating textual output that includes ANSI escape codes for formatting.
+  The [[compose]] function is the best starting point.
+
+  Reference: [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR).
+
+  In version 1.4, the incorrectly named `bold-<color>` functions and constants
+  were deprecated in favor of the `bright-<color>` equivalents (correcting
+  a day 1 naming mistake)."
   (:require [clojure.string :as str]))
 
 (defn- is-ns-available? [sym]
@@ -9,8 +16,12 @@
     (catch Throwable _ false)))
 
 (def ^:const ^{:added "1.3"} ansi-output-enabled?
-  "Determine if ANSI output is enabled.  If the environment variable ENABLE_ANSI_COLORS is non-null,
-  then it sets the value:  the value `false` (matched caselessly) disables ANSI colors and fonts,
+  "Determine if ANSI output is enabled.
+
+  The first checks are for the JVM system property `io.aviso.ansi.enable`
+  and then system property ENABLE_ANSI_COLORS.
+  If either of these is non-nil, it sets the value:
+  the value `false` (matched caselessly) disables ANSI colors and fonts,
   otherwise they are enabled.
 
   Next, there is an attempt to determine if execution is currently inside a REPL environment,
@@ -28,7 +39,9 @@
   When this value is false, all the generated color and font constants return the empty string, and the
   color and font functions return the input string unchanged.  This is decided during macro expansion when
   the ansi namespace is first loaded, so it can't be changed at runtime."
-  (if-let [value (System/getenv "ENABLE_ANSI_COLORS")]
+  (if-let [value (or
+                   (System/getProperty "io.aviso.ansi.enable")
+                   (System/getenv "ENABLE_ANSI_COLORS"))]
     (not (.equalsIgnoreCase value "false"))
     (some?
       (or
@@ -48,7 +61,6 @@
 ;; select graphic rendition
 (def ^:const sgr
   "The Select Graphic Rendition suffix: m"
-
   "m")
 
 (def ^:const reset-font
@@ -57,18 +69,20 @@
 
 (defmacro ^:private def-sgr-const
   "Utility for defining a font-modifying constant."
-  [symbol-name color-name & codes]
-  `(def ~(vary-meta (symbol symbol-name) assoc :const true)
+  [symbol-name deprecated color-name & codes]
+  `(def ~(cond-> (with-meta (symbol symbol-name) {:const true})
+           deprecated (vary-meta assoc :deprecated deprecated))
      ~(format "Constant for ANSI code to enable %s text." color-name)
      ~(if-enabled? (str csi (str/join ";" codes) sgr))))
 
 (defmacro ^:private def-sgr-fn
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
   the font after the text."
-  [fn-name color-name & codes]
+  [fn-name deprecated color-name & codes]
   (let [arg 'text
         prefix (str csi (str/join ";" codes) sgr)]
-    `(defn ~(symbol fn-name)
+    `(defn ~(cond-> (symbol fn-name)
+              deprecated (vary-meta assoc :deprecated deprecated))
        ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
        [~arg]
        ~(if ansi-output-enabled?
@@ -98,14 +112,20 @@
      ~@(map-indexed
          (fn [index color-name]
            `(do
-              (def-sgr-fn ~color-name ~color-name ~(+ 30 index))
-              (def-sgr-fn ~(str color-name "-bg") ~(str color-name " background") ~(+ 40 index))
-              (def-sgr-fn ~(str "bold-" color-name) ~(str "bold " color-name) 1 ~(+ 30 index))
-              (def-sgr-fn ~(str "bold-" color-name "-bg") ~(str "bold " color-name " background") 1 ~(+ 40 index))
-              (def-sgr-const ~(str color-name "-font") ~color-name ~(+ 30 index))
-              (def-sgr-const ~(str color-name "-bg-font") ~(str color-name " background") ~(+ 40 index))
-              (def-sgr-const ~(str "bold-" color-name "-font") ~(str "bold " color-name) 1 ~(+ 30 index))
-              (def-sgr-const ~(str "bold-" color-name "-bg-font") ~(str "bold " color-name " background") 1 ~(+ 40 index))))
+              (def-sgr-fn ~color-name nil ~color-name ~(+ 30 index))
+              (def-sgr-fn ~(str color-name "-bg") nil ~(str color-name " background") ~(+ 40 index))
+              (def-sgr-fn  ~(str "bold-" color-name) "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn  ~(str "bold-" color-name) "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn  ~(str "bold-" color-name "-bg") "1.4" ~(str "bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-const ~(str color-name "-font") nil ~color-name ~(+ 30 index))
+              (def-sgr-const ~(str color-name "-bg-font") nil ~(str color-name " background") ~(+ 40 index))
+              (def-sgr-const ~(str "bold-" color-name "-font") "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-const  ~(str "bold-" color-name "-bg-font") "1.4" ~(str "bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn ~(str "bright-" color-name "-bg") nil ~(str "bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-const ~(str "bright-" color-name "-font") nil ~(str "bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-const ~(str "bright-" color-name "-bg-font") nil ~(str "bright " color-name " background") 1 ~(+ 40 index))))
          ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
 (define-colors)
@@ -117,11 +137,16 @@
   []
   `(do
      ~@(for [[font-name code] [['bold 1]
+                               ['plain 22]
                                ['italic 3]
-                               ['inverse 7]]]
+                               ['roman 23]
+                               ['inverse 7]
+                               ['normal 27]
+                               ['default-foreground 39]
+                               ['default-background 49]]]
          `(do
-            (def-sgr-fn ~font-name ~font-name ~code)
-            (def-sgr-const ~(str font-name "-font") ~font-name ~code)))))
+            (def-sgr-fn ~font-name nil ~font-name ~code)
+            (def-sgr-const ~(str font-name "-font") nil ~font-name ~code)))))
 
 (define-fonts)
 
@@ -136,3 +161,170 @@
   "Returns the length of the string, with ANSI codes stripped out."
   [string]
   (-> string strip-ansi .length))
+
+(def ^:private
+  font-terms
+  {:black [:foreground black-font]
+   :bright-black [:foreground bright-black-font]
+   :black-bg [:background black-bg-font]
+   :bright-black-gb [:background bright-black-bg-font]
+
+   :red [:foreground red-font]
+   :bright-red [:foreground bright-red-font]
+   :red-bg [:background red-bg-font]
+   :bright-red-gb [:background bright-red-bg-font]
+
+
+   :green [:foreground green-font]
+   :bright-green [:foreground bright-green-font]
+   :green-bg [:background green-bg-font]
+   :bright-green-gb [:background bright-green-bg-font]
+
+   :yellow [:foreground yellow-font]
+   :bright-yellow [:foreground bright-yellow-font]
+   :yellow-bg [:background yellow-bg-font]
+   :bright-yellow-gb [:background bright-yellow-bg-font]
+
+   :blue [:foreground blue-font]
+   :bright-blue [:foreground bright-blue-font]
+   :blue-bg [:background blue-bg-font]
+   :bright-blue-gb [:background bright-blue-bg-font]
+
+   :magenta [:foreground magenta-font]
+   :bright-magenta [:foreground bright-magenta-font]
+   :magenta-bg [:background magenta-bg-font]
+   :bright-magenta-gb [:background bright-magenta-bg-font]
+
+   :cyan [:foreground cyan-font]
+   :bright-cyan [:foreground bright-cyan-font]
+   :cyan-bg [:background cyan-bg-font]
+   :bright-cyan-gb [:background bright-cyan-bg-font]
+
+   :white [:foreground white-font]
+   :bright-white [:foreground bright-white-font]
+   :white-bg [:background white-bg-font]
+   :bright-white-gb [:background bright-white-bg-font]
+
+   :bold [:bold bold-font]
+   :plain [:bold plain-font]
+
+   :italic [:italic italic-font]
+   :roman [:italic roman-font]
+
+   :inverse [:inverse inverse-font]
+   :normal [:inverse normal-font]})
+
+(defn- delta [active current k]
+  (let [current-value (get current k)]
+    (when (not= (get active k) current-value)
+      current-value)))
+
+(defn- compose-font
+  [active current]
+  (reduce str (keep #(delta active current %) [:foreground :background :bold :italic :inverse])))
+
+(defn- parse-font
+  [font-data font-def]
+  {:pre [(keyword? font-def)]}
+  (let [ks (str/split (name font-def) #"\.")
+        f  (fn [font-data term]
+             (let [[font-k font-value] (or (get font-terms term)
+                                           (throw (ex-info (str "Unexpected font term: " term)
+                                                    {:font-term term
+                                                     :font-def font-def
+                                                     :available-terms (->> font-terms keys sort vec)})))]
+               (assoc font-data font-k font-value)))]
+    (reduce f font-data (map keyword ks))))
+
+(defn- collect-markup
+  [state input]
+  (cond
+    (nil? input)
+    state
+
+    (vector? input)
+    (let [[font-def & inputs] input
+          {:keys [current]} state
+          state' (reduce collect-markup
+                   (-> state
+                     (assoc :current (parse-font current font-def))
+                     (update :stack conj current))
+                   inputs)]
+      (-> state'
+        (assoc :current current)
+        (update :stack pop)))
+
+    ;; Lists, lazy-lists, etc: processed recusively
+    (sequential? input)
+    (reduce collect-markup state input)
+
+    (and (string? input)
+      (str/blank? input))
+    state
+
+    :else
+    (let [{:keys [active current]} state
+          state' (if (= active current)
+                   state
+                   (-> state
+                     (update :results conj (compose-font active current))
+                     (assoc :active current)))]
+      (update state' :results conj (str input)))))
+
+(defn compose
+  "Given a Hiccup-inspired data structure, composes and returns a string that includes necessary ANSI codes.
+
+  The data structure may consist of literal values (strings, numbers, etc.) that are formatted
+  with `str` and concatenated.
+
+  Nested sequences are composed recursively; this (for example) allows the output from
+  `map` or `for` to be mixed into the composed string seamlessly.
+
+  Nested vectors represent blocks; the first element in the vector is a keyword
+  that defines the font used within the block.  The font def contains one or more terms,
+  separated by periods.
+
+  The terms:
+
+  - foreground color:  e.g. `red` or `bright-red`
+  - background color: e.g., `green-bg` or `bright-green-bg`
+  - boldness: `bold` or `plain`
+  - italics: `italic` or `roman`
+  - inverse: `inverse` or `normal`
+
+  e.g.
+
+  ```
+  (compose [:yellow \"Warning: the \" [:bold.bright-white.bright-red-bg \"reactor\"]
+    \" is about to \"
+    [:italic.bold-red \"meltdown!\"]])
+  => ...
+  ```
+
+  Font defs apply on top of the font def of the enclosing block, and the outer block's font def
+  is restored at the end of the inner block, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.
+
+
+  `compose` presumes that on entry the current font is plain (default foreground and background, not bold,
+   or inverse, or italic) and appends a [[reset-font]] to the end of the returned string to
+   ensure that later output is also plain.
+  "
+  {:added "1.4.0"}
+  [& input]
+
+  (let [initial-font {:foreground default-foreground-font
+                      :background default-background-font
+                      :bold plain-font
+                      :italic roman-font
+                      :inverse normal-font}
+        {:keys [results]} (collect-markup {:stack ()
+                                           :active initial-font
+                                           :current initial-font
+                                           :results []}
+                            input)
+        sb           (StringBuilder. 100)]
+    (doseq [s results]
+      (.append sb ^String s))
+    (.append sb reset-font)                                 ;; TODO: May not always be necessary
+    (.toString sb)))
+

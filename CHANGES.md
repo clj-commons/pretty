@@ -1,3 +1,15 @@
+## 1.4 -- UNRELEASED
+
+A new function, `io.aviso.ansi/compose` uses a [Hiccup](https://github.com/weavejester/hiccup)-inspired
+syntax to make composing text with ANSI fonts (foreground and background colors, inverse, bold, and
+italic) easy and concise.
+
+The override to enable or disable ANSI text has been amended: the first check is for
+a JVM system property, `io.aviso.ansi.enable`, then if that is not set, the `ENABLE_ANSI_COLORS`
+environment variable.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/milestone/32?closed=1)
+
 ## 1.3 -- 20 Oct 2022
 
 The default stack frame filter now terminates at any `speclj.*` namespace.
