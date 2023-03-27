@@ -8,8 +8,8 @@
                 criterium/criterium {:mvn/version "0.4.6"}
                 com.stuartsierra/component {:mvn/version "1.1.0"}
                 com.walmartlabs/test-reporting {:mvn/version "1.2"}
-                org.clojure/core.async {:mvn/version "1.5.648"}
-                leiningen/leiningen {:mvn/version "2.9.8"}}}
+                org.clojure/core.async {:mvn/version "1.6.673"}
+                leiningen/leiningen {:mvn/version "2.10.0"}}}
 
   ;; clj -X:dev:test
   :test
@@ -20,7 +20,7 @@
   ;; clj -T:build <command>
   :build
   {:deps {io.github.hlship/build-tools
-          {:git/tag "v0.5" :git/sha "ca4876"}}
+          {:git/tag "0.8" :git/sha "0a0c26"}}
    :ns-default build}}
 
  :main

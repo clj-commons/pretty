@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.5.0
+
+      - name: Setup Java
+        uses: actions/setup-java@v3.11.0
+        with:
+          java-version: '11'
+          distribution: 'corretto'
+
+      - name: Install clojure tools
+        uses: DeLaGuardo/setup-clojure@10.2
+        with:
+          cli: 1.11.1.1257
+
+      - name: Cache clojure dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.m2/repository
+            ~/.gitlibs
+            ~/.deps.clj
+          # List all files containing dependencies:
+          key: cljdeps-${{ hashFiles('deps.edn') }}
+
+      - name: Run JVM tests
+        run: clojure -X:dev:test
+
+

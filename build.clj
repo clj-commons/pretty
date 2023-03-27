@@ -22,14 +22,13 @@
 (defn deploy
   [_params]
   (clean nil)
-  (jar nil)
-  (b/deploy-jar jar-params))
+  (b/deploy-jar (jar nil)))
 
 (defn codox
   [_params]
-  (b/codox {:project-name lib
-            :version version
-            :aliases [:dev]}))
+  (b/generate-codox {:project-name lib
+                     :version version
+                     :aliases [:dev]}))
 
 (def publish-dir "../aviso-docs/pretty")
 
