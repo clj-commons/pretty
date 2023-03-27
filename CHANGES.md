@@ -1,4 +1,4 @@
-## 1.4 -- UNRELEASED
+## 1.4 -- 27 Mar 2023
 
 A new function, `io.aviso.ansi/compose` uses a [Hiccup](https://github.com/weavejester/hiccup)-inspired
 syntax to make composing text with ANSI fonts (foreground and background colors, inverse, bold, and

@@ -21,12 +21,12 @@ For each of the supported colors (black, red, green, yellow, blue, magenta, cyan
 
 * *color* - function to set text color
 * *color*-bg - function to set background color
-* bright-*color* - function to set enable bold text and the text color
-* bright-*color*-bg - function to enable bold text and the background color
+* bright-*color* - function to set enable bright text and the text color
+* bright-*color*-bg - function to enable bright text and the background color
 * *color*-font - constant that enables the text color
 * *color*-bg-font - constant that enables the color as background
-* bright-*color*-font - constant that enables the text color in bold
-* bright-*color*-bg-font - constant that enables the bold color as background
+* bright-*color*-font - constant that enables the text color in bright
+* bright-*color*-bg-font - constant that enables the bright color as background
 
 The functions are passed a string and wrap the string with ANSI codes to enable an ANSI graphic representation for the text, with a reset after the text.
 
