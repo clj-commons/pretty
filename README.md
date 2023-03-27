@@ -1,7 +1,5 @@
 [![Clojars](https://img.shields.io/clojars/v/io.aviso/pretty.svg)](http://clojars.org/io.aviso/pretty)
 
-[![CircleCI](https://circleci.com/gh/AvisoNovate/pretty.svg?style=svg)](https://circleci.com/gh/AvisoNovate/pretty)
-
 [Full Documentation](http://ioavisopretty.readthedocs.org/en/latest/)
 
 [API](http://avisonovate.github.io/docs/pretty/)
