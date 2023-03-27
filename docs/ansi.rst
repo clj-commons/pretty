@@ -17,18 +17,19 @@ Constants and Functions
 
 ``compose`` is built on top of a large number of underlying functions and constants.
 
+ANSI supports eight named colors, each with a bright variant.
 For each of the supported colors (black, red, green, yellow, blue, magenta, cyan, and white) there will be four functions and four constants:
 
-* *color* - function to set text color
-* *color*-bg - function to set background color
-* bright-*color* - function to set enable bright text and the text color
-* bright-*color*-bg - function to enable bright text and the background color
-* *color*-font - constant that enables the text color
-* *color*-bg-font - constant that enables the color as background
-* bright-*color*-font - constant that enables the text color in bright
-* bright-*color*-bg-font - constant that enables the bright color as background
+* [bright-] *color* - function to set foreground text color
+* [bright-] *color*-bg - function to set background color
+* [bright-] *color*-font - constant that enables the text color
+* [bright-] *color*-bg-font - constant that enables the color as background
 
-The functions are passed a string and wrap the string with ANSI codes to enable an ANSI graphic representation for the text, with a reset after the text.
+For example, for the color green there will be ``green``, ``green-bg``, ``bright-green``, and ``bright-green-bg`` functions,
+and constants ``green-font``, ``green-bg-font``, ``bright-green-font``, and ``bright-green-bg-font``.
+
+The functions are passed a string and wrap the string with ANSI codes to enable the font characteristics, with
+a reset after the string.
 
 Note that the exact color interpretation of the ANSI codes varies significantly between platforms and applications, and
 is frequently configurable, often using themes.
