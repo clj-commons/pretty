@@ -1,4 +1,5 @@
 [![Clojars](https://img.shields.io/clojars/v/io.aviso/pretty.svg)](http://clojars.org/io.aviso/pretty)
+[![CI](https://github.com/AvisoNovate/pretty/actions/workflows/clojure.yml/badge.svg)](https://github.com/AvisoNovate/pretty/actions/workflows/clojure.yml)
 
 [Full Documentation](http://ioavisopretty.readthedocs.org/en/latest/)
 
