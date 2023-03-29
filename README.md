@@ -26,6 +26,11 @@ That's what _io.aviso/pretty_ is for.  It adds support for pretty output where i
 Pretty is also incorporated into the [ultra](https://github.com/venantius/ultra/) plugin,
 and is packaged as part of [Boot](https://github.com/boot-clj/boot).
 
+
+Parts of Pretty can be used with [Babashka](https://book.babashka.org/#introduction), such as the `io.aviso.ansi` namespace; however,
+Babashka runs in an interpreter and its approach to exceptions is
+incompatible with JVM exceptions.
+
 ----
 
 io.aviso/pretty is released under the terms of the Apache Software License 2.0.
