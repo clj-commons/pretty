@@ -1,7 +1,9 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
-        com.stuartsierra/component {:mvn/version "1.1.0"}
-        org.clojure/tools.logging {:mvn/version "1.2.4"}}
+        com.stuartsierra/component {:mvn/version "1.1.0"
+                                    :optional true}
+        org.clojure/tools.logging {:mvn/version "1.2.4"
+                                   :optional true}}
 
  :net.lewisship.build/scm
  {:url "https://github.com/avisoNovate/pretty"}
