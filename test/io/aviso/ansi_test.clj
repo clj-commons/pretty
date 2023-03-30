@@ -54,11 +54,46 @@
     (is (= "Unexpected font term: :what" (ex-message e)))
     (is (= {:font-term :what
             :font-def :what.is.this?
-            :available-terms [:black :black-bg :blue :blue-bg :bold :bright-black :bright-black-gb
-                              :bright-blue :bright-blue-gb :bright-cyan :bright-cyan-gb :bright-green :bright-green-gb
-                              :bright-magenta :bright-magenta-gb :bright-red :bright-red-gb :bright-white :bright-white-gb
-                              :bright-yellow :bright-yellow-gb :cyan :cyan-bg :green :green-bg
-                              :inverse :italic :magenta :magenta-bg :normal
-                              :plain :red :red-bg :roman :white :white-bg :yellow :yellow-bg]}
+            :available-terms [:black
+                              :black-bg
+                              :blue
+                              :blue-bg
+                              :bold
+                              :bright-black
+                              :bright-black-gb
+                              :bright-blue
+                              :bright-blue-gb
+                              :bright-cyan
+                              :bright-cyan-gb
+                              :bright-green
+                              :bright-green-gb
+                              :bright-magenta
+                              :bright-magenta-gb
+                              :bright-red
+                              :bright-red-gb
+                              :bright-white
+                              :bright-white-gb
+                              :bright-yellow
+                              :bright-yellow-gb
+                              :cyan
+                              :cyan-bg
+                              :faint
+                              :green
+                              :green-bg
+                              :inverse
+                              :italic
+                              :magenta
+                              :magenta-bg
+                              :normal
+                              :not-underlined
+                              :plain
+                              :red
+                              :red-bg
+                              :roman
+                              :underlined
+                              :white
+                              :white-bg
+                              :yellow
+                              :yellow-bg]}
           (ex-data e)))))
 
