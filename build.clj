@@ -22,7 +22,7 @@
 (defn deploy
   [_params]
   (clean nil)
-  (b/deploy-jar (jar nil)))
+  (b/deploy-jar (assoc (jar nil) :sign-artifacts? false)))
 
 (defn codox
   [_params]

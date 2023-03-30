@@ -1,6 +1,10 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         org.clojure/tools.logging {:mvn/version "1.2.4"}}
+
+ :net.lewisship.build/scm
+ {:url "https://github.com/avisoNovate/pretty"}
+
  :aliases
  {:dev
   {:extra-paths ["test"]
@@ -21,14 +25,16 @@
   ;; clj -T:build <command>
   :build
   {:deps {io.github.hlship/build-tools
-          {:git/tag "0.8" :git/sha "0a0c26"}}
-   :ns-default build}}
+          {:local/root "../build-tools"}
+          #_{:git/tag "0.8" :git/sha "0a0c26"}}
+   :ns-default build}
 
- :main
- {:main-opts ["-m" "io.aviso.repl"]}
+  :main
+  {:main-opts ["-m" "io.aviso.repl"]}
 
- :demo
- {:main-opts ["-m" "demo"]}
+  ;; clj -M:dev:demo
+  :demo
+  {:main-opts ["-m" "demo"]}}
 
  :codox/config
  {:description "Clojure library to help print things, prettily"
