@@ -26,8 +26,7 @@
   ;; clj -T:build <command>
   :build
   {:deps {io.github.hlship/build-tools
-          {:local/root "../build-tools"}
-          #_{:git/tag "0.8" :git/sha "0a0c26"}}
+          {:git/tag "0.9" :git/sha "4efa3c9"}}
    :ns-default build}
 
   :main
