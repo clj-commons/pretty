@@ -41,4 +41,11 @@ jobs:
       - name: Run JVM tests
         run: clojure -X:dev:test
 
+      - name: Build Jar (for Cljdoc analysis)
+        run: clojure -T:build jar
+
+      - name: Check Cljdoc
+        uses: cljdoc/cljdoc-check-action@v1
+
+
 
