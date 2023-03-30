@@ -64,26 +64,26 @@
   "m")
 
 (def ^:const reset-font
-  "Resets the font, clearing bold, italic, color, and background color."
+  "Resets the font, clearing all colors and other attributes."
   (if-enabled? (str csi sgr)))
 
 (defmacro ^:private def-sgr-const
   "Utility for defining a font-modifying constant."
-  [symbol-name deprecated color-name & codes]
+  [symbol-name meta desc & codes]
   `(def ~(cond-> (with-meta (symbol symbol-name) {:const true})
-           deprecated (vary-meta assoc :deprecated deprecated))
-     ~(format "Constant for ANSI code to enable %s text." color-name)
+           meta (vary-meta merge meta))
+     ~(format "Constant for ANSI code to render %s." desc)
      ~(if-enabled? (str csi (str/join ";" codes) sgr))))
 
 (defmacro ^:private def-sgr-fn
   "Utility for creating a function that enables some combination of SGR codes around some text, but resets
   the font after the text."
-  [fn-name deprecated color-name & codes]
+  [fn-name meta desc & codes]
   (let [arg 'text
         prefix (str csi (str/join ";" codes) sgr)]
     `(defn ~(cond-> (symbol fn-name)
-              deprecated (vary-meta assoc :deprecated deprecated))
-       ~(format "Wraps the provided text with ANSI codes to render as %s text." color-name)
+              meta (vary-meta merge meta))
+       ~(format "Wraps the provided text with ANSI codes to render %s." desc)
        [~arg]
        ~(if ansi-output-enabled?
           `(str ~prefix ~arg ~reset-font)
@@ -112,20 +112,18 @@
      ~@(map-indexed
          (fn [index color-name]
            `(do
-              (def-sgr-fn ~color-name nil ~color-name ~(+ 30 index))
-              (def-sgr-fn ~(str color-name "-bg") nil ~(str color-name " background") ~(+ 40 index))
-              (def-sgr-fn  ~(str "bold-" color-name) "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
-              (def-sgr-fn  ~(str "bold-" color-name) "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
-              (def-sgr-fn  ~(str "bold-" color-name "-bg") "1.4" ~(str "bright " color-name " background") 1 ~(+ 40 index))
-              (def-sgr-const ~(str color-name "-font") nil ~color-name ~(+ 30 index))
-              (def-sgr-const ~(str color-name "-bg-font") nil ~(str color-name " background") ~(+ 40 index))
-              (def-sgr-const ~(str "bold-" color-name "-font") "1.4" ~(str "bright " color-name) 1 ~(+ 30 index))
-              (def-sgr-const  ~(str "bold-" color-name "-bg-font") "1.4" ~(str "bright " color-name " background") 1 ~(+ 40 index))
-              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "bright " color-name) 1 ~(+ 30 index))
-              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "bright " color-name) 1 ~(+ 30 index))
-              (def-sgr-fn ~(str "bright-" color-name "-bg") nil ~(str "bright " color-name " background") 1 ~(+ 40 index))
-              (def-sgr-const ~(str "bright-" color-name "-font") nil ~(str "bright " color-name) 1 ~(+ 30 index))
-              (def-sgr-const ~(str "bright-" color-name "-bg-font") nil ~(str "bright " color-name " background") 1 ~(+ 40 index))))
+              (def-sgr-fn ~color-name nil ~(str "text in " color-name) ~(+ 30 index))
+              (def-sgr-fn ~(str color-name "-bg") nil ~(str "with a " color-name " background") ~(+ 40 index))
+              (def-sgr-fn ~(str "bold-" color-name) {:deprecated "1.4"} ~(str "text in bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn ~(str "bold-" color-name "-bg") {:deprecated "1.4"} ~(str "with a bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-const ~(str color-name "-font") nil ~(str "text in " color-name) ~(+ 30 index))
+              (def-sgr-const ~(str color-name "-bg-font") nil ~(str "with a " color-name " background") ~(+ 40 index))
+              (def-sgr-const ~(str "bold-" color-name "-font") {:deprecated "1.4"} ~(str "text in bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-const ~(str "bold-" color-name "-bg-font") {:deprecated "1.4"} ~(str "with a bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-fn ~(str "bright-" color-name) nil ~(str "text in bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-fn ~(str "bright-" color-name "-bg") nil ~(str "with a bright " color-name " background") 1 ~(+ 40 index))
+              (def-sgr-const ~(str "bright-" color-name "-font") nil ~(str "text in bright " color-name) 1 ~(+ 30 index))
+              (def-sgr-const ~(str "bright-" color-name "-bg-font") nil ~(str "with a bright " color-name " background") 1 ~(+ 40 index))))
          ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
 (define-colors)
@@ -136,17 +134,21 @@
 (defmacro ^:private define-fonts
   []
   `(do
-     ~@(for [[font-name code] [['bold 1]
-                               ['plain 22]
-                               ['italic 3]
-                               ['roman 23]
-                               ['inverse 7]
-                               ['normal 27]
-                               ['default-foreground 39]
-                               ['default-background 49]]]
+     ~@(for [[font-name desc code meta]
+             [['bold "in bold" 1]
+              ['plain "as plain (not bold or faint)" 22 {:added "1.4"}]
+              ['faint "as faint (not bold or plain)" 2 {:added "1.5"}]
+              ['italic "italicized" 3]
+              ['roman "as romain (not italic)" 23 {:added "1.4"}]
+              ['inverse "as inverse (foreground and background colors reversed)" 7]
+              ['normal "as normal (not inverse)" 27 {:added "1.4"}]
+              ['default-foreground "with the default foreground color" 39 {:added "1.4"}]
+              ['default-background "with the default background color" 49 {:added "1.4"}]
+              ['underlined "underlined" 4 {:added "1.5"}]
+              ['not-underlined "not underlined" 24 {:added "1.5"}]]]
          `(do
-            (def-sgr-fn ~font-name nil ~font-name ~code)
-            (def-sgr-const ~(str font-name "-font") nil ~font-name ~code)))))
+            (def-sgr-fn ~font-name ~meta ~desc ~code)
+            (def-sgr-const ~(str font-name "-font") ~meta ~desc ~code)))))
 
 (define-fonts)
 
@@ -207,12 +209,16 @@
 
    :bold [:bold bold-font]
    :plain [:bold plain-font]
+   :faint [:bold faint-font]
 
    :italic [:italic italic-font]
    :roman [:italic roman-font]
 
    :inverse [:inverse inverse-font]
-   :normal [:inverse normal-font]})
+   :normal [:inverse normal-font]
+
+   :underlined [:underlined underlined-font]
+   :not-underlined [:underlined not-underlined-font]})
 
 (defn- delta [active current k]
   (let [current-value (get current k)]
@@ -221,7 +227,7 @@
 
 (defn- compose-font
   [active current]
-  (reduce str (keep #(delta active current %) [:foreground :background :bold :italic :inverse])))
+  (reduce str (keep #(delta active current %) [:foreground :background :bold :italic :inverse :underlined])))
 
 (defn- parse-font
   [font-data font-def]
@@ -254,7 +260,7 @@
         (assoc :current current)
         (update :stack pop)))
 
-    ;; Lists, lazy-lists, etc: processed recusively
+    ;; Lists, lazy-lists, etc: processed recursively
     (sequential? input)
     (reduce collect-markup state input)
 
@@ -288,9 +294,10 @@
 
   - foreground color:  e.g. `red` or `bright-red`
   - background color: e.g., `green-bg` or `bright-green-bg`
-  - boldness: `bold` or `plain`
+  - boldness: `bold`, `faint`, or `plain`
   - italics: `italic` or `roman`
   - inverse: `inverse` or `normal`
+  - underline: `underlined` or `not-underlined`
 
   e.g.
 
@@ -316,7 +323,8 @@
                       :background default-background-font
                       :bold plain-font
                       :italic roman-font
-                      :inverse normal-font}
+                      :inverse normal-font
+                      :underlined not-underlined-font}
         {:keys [results]} (collect-markup {:stack ()
                                            :active initial-font
                                            :current initial-font

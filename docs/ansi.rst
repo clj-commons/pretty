@@ -28,14 +28,19 @@ For each of the supported colors (black, red, green, yellow, blue, magenta, cyan
 For example, for the color green there will be ``green``, ``green-bg``, ``bright-green``, and ``bright-green-bg`` functions,
 and constants ``green-font``, ``green-bg-font``, ``bright-green-font``, and ``bright-green-bg-font``.
 
-The functions are passed a string and wrap the string with ANSI codes to enable the font characteristics, with
-a reset after the string.
+The functions are passed a string and wrap the string with ANSI codes to enable the specific font attributes, with
+a reset of all attributes after the string.
 
 Note that the exact color interpretation of the ANSI codes varies significantly between platforms and applications, and
 is frequently configurable, often using themes.
 You may need to adjust your application's settings to get an optimum display.
 
-In addition to color, text can be ``bold`` or ``plain``, ``italic`` or ``roman``, ``inverse`` (which inverts the
-foreground and background colors) or ``normal``.  For each of these, there is a function and a ``-font`` constant.
+In addition to color, text can be:
+* ``bold``, ``faint``, or ``plain``
+* ``italic`` or ``roman``
+* ``inverse`` (which inverts the  foreground and background colors) or ``normal``
+* ``underlined`` or ``not-underlined``
+
+For each of these, there is a function and a ``-font`` constant.
 
 Finally, ``reset-font`` is a constant that reverts all font characteristics back to defaults.

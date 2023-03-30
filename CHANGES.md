@@ -1,3 +1,8 @@
+## 1.5 -- UNRELEASED
+
+`io.aviso.ansi`: Add support for `faint`, `underlined`, and `not-underlined` text, and improvements
+to docstrings.
+
 ## 1.4 -- 27 Mar 2023
 
 A new function, `io.aviso.ansi/compose` uses a [Hiccup](https://github.com/weavejester/hiccup)-inspired
