@@ -1,5 +1,6 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        com.stuartsierra/component {:mvn/version "1.1.0"}
         org.clojure/tools.logging {:mvn/version "1.2.4"}}
 
  :net.lewisship.build/scm
@@ -8,9 +9,7 @@
  :aliases
  {:dev
   {:extra-paths ["test"]
-   :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
-                criterium/criterium {:mvn/version "0.4.6"}
-                com.stuartsierra/component {:mvn/version "1.1.0"}
+   :extra-deps {criterium/criterium {:mvn/version "0.4.6"}
                 com.walmartlabs/test-reporting {:mvn/version "1.2"}
                 org.clojure/core.async {:mvn/version "1.6.673"}
                 leiningen/leiningen {:mvn/version "2.10.0"}}}
