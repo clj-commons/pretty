@@ -137,15 +137,15 @@
      ~@(for [[font-name desc code meta]
              [['bold "in bold" 1]
               ['plain "as plain (not bold or faint)" 22 {:added "1.4"}]
-              ['faint "as faint (not bold or plain)" 2 {:added "1.5"}]
+              ['faint "as faint (not bold or plain)" 2 {:added "1.4.1"}]
               ['italic "italicized" 3]
               ['roman "as romain (not italic)" 23 {:added "1.4"}]
               ['inverse "as inverse (foreground and background colors reversed)" 7]
               ['normal "as normal (not inverse)" 27 {:added "1.4"}]
               ['default-foreground "with the default foreground color" 39 {:added "1.4"}]
               ['default-background "with the default background color" 49 {:added "1.4"}]
-              ['underlined "underlined" 4 {:added "1.5"}]
-              ['not-underlined "not underlined" 24 {:added "1.5"}]]]
+              ['underlined "underlined" 4 {:added "1.4.1"}]
+              ['not-underlined "not underlined" 24 {:added "1.4.1"}]]]
          `(do
             (def-sgr-fn ~font-name ~meta ~desc ~code)
             (def-sgr-const ~(str font-name "-font") ~meta ~desc ~code)))))

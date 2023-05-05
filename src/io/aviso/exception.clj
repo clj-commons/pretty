@@ -25,7 +25,8 @@
    :omitted-frame ansi/white-font})
 
 (def ^:dynamic *app-frame-names*
-  "Set of filters (belong to your applications) to create more visual clarity."
+  "Set of strings or regular expressions defining the application's namespaces, which allows
+  such namespaces to be highlighted in exception output."
   nil)
 
 (def ^:dynamic *fonts*
