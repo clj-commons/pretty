@@ -1,7 +1,9 @@
-## 1.5 -- UNRELEASED
+## 1.4.1 -- 5 May 2023
 
 `io.aviso.ansi`: Add support for `faint`, `underlined`, and `not-underlined` text, and improvements
 to docstrings.
+
+[Closed issues](https://github.com/AvisoNovate/pretty/milestone/33?closed=1)
 
 ## 1.4 -- 27 Mar 2023
 
