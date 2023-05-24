@@ -1,9 +1,15 @@
-## 1.4.1 -- 5 May 2023
+## 1.4.3 -- UNRELEASED
+
+The `compose` function would collapse blank strings to empty strings.
+
+[Closed Issues](https://github.com/AvisoNovate/pretty/milestone/33?closed=1)
+
+## 1.4.1, 1.4.2 -- 5 May 2023
 
 `io.aviso.ansi`: Add support for `faint`, `underlined`, and `not-underlined` text, and improvements
 to docstrings.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/milestone/33?closed=1)
+[Closed issues](https://github.com/AvisoNovate/pretty/milestone/34?closed=1)
 
 ## 1.4 -- 27 Mar 2023
 

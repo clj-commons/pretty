@@ -31,6 +31,13 @@
     "Prefix-- 0 1 2 --Suffix[CSI]m"
 
 
+    ;; A bug caused blank strings to be omitted, this checks for the fix:
+    [" "
+     "|"
+     "  "
+     "|"
+     "   "] " |  |   [CSI]m"
+
     ["Notice: the "
      [:yellow "shields"]
      " are operating at "

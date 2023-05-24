@@ -245,7 +245,9 @@
 (defn- collect-markup
   [state input]
   (cond
-    (nil? input)
+    (or
+      (nil? input)
+      (= "" input))
     state
 
     (vector? input)
@@ -263,10 +265,6 @@
     ;; Lists, lazy-lists, etc: processed recursively
     (sequential? input)
     (reduce collect-markup state input)
-
-    (and (string? input)
-      (str/blank? input))
-    state
 
     :else
     (let [{:keys [active current]} state
