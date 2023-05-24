@@ -82,7 +82,7 @@
   (let [arg 'text
         prefix (str csi (str/join ";" codes) sgr)]
     `(defn ~(cond-> (symbol fn-name)
-              meta (vary-meta merge meta))
+                    meta (vary-meta merge meta))
        ~(format "Wraps the provided text with ANSI codes to render %s." desc)
        [~arg]
        ~(if ansi-output-enabled?
@@ -236,9 +236,9 @@
         f  (fn [font-data term]
              (let [[font-k font-value] (or (get font-terms term)
                                            (throw (ex-info (str "Unexpected font term: " term)
-                                                    {:font-term term
-                                                     :font-def font-def
-                                                     :available-terms (->> font-terms keys sort vec)})))]
+                                                           {:font-term term
+                                                            :font-def font-def
+                                                            :available-terms (->> font-terms keys sort vec)})))]
                (assoc font-data font-k font-value)))]
     (reduce f font-data (map keyword ks))))
 
@@ -325,11 +325,11 @@
                       :inverse normal-font
                       :underlined not-underlined-font}
         {:keys [results dirty?]} (collect-markup {:stack ()
-                                           :active initial-font
-                                           :current initial-font
-                                           :results []}
-                            input)
-        sb           (StringBuilder. 100)]
+                                                  :active initial-font
+                                                  :current initial-font
+                                                  :results []}
+                                                 input)
+        sb (StringBuilder. 100)]
     (doseq [s results]
       (.append sb ^String s))
     (when dirty?
