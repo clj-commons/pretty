@@ -272,7 +272,8 @@
                    state
                    (-> state
                      (update :results conj (compose-font active current))
-                     (assoc :active current)))]
+                     (assoc :active current
+                            :dirty? true)))]
       (update state' :results conj (str input)))))
 
 (defn compose
@@ -323,7 +324,7 @@
                       :italic roman-font
                       :inverse normal-font
                       :underlined not-underlined-font}
-        {:keys [results]} (collect-markup {:stack ()
+        {:keys [results dirty?]} (collect-markup {:stack ()
                                            :active initial-font
                                            :current initial-font
                                            :results []}
@@ -331,6 +332,7 @@
         sb           (StringBuilder. 100)]
     (doseq [s results]
       (.append sb ^String s))
-    (.append sb reset-font)                                 ;; TODO: May not always be necessary
+    (when dirty?
+      (.append sb reset-font))
     (.toString sb)))
 

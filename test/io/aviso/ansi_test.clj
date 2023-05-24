@@ -9,16 +9,13 @@
       (-> (apply compose input)
         (str/replace csi "[CSI]")))
 
-
     ;; For the moment, everything is suffixed with the [CSI]m reset.
 
     ["Simple"]
-    "Simple[CSI]m"
-
+    "Simple"
 
     ["String" \space :keyword \space 'symbol \space 123 \space 44.5]
-    "String :keyword symbol 123 44.5[CSI]m"
-
+    "String :keyword symbol 123 44.5"
 
     ;; Handles nested lists
 
@@ -28,15 +25,20 @@
        (str " " i))
 
      " --Suffix"]
-    "Prefix-- 0 1 2 --Suffix[CSI]m"
+    "Prefix-- 0 1 2 --Suffix"
 
+    ;; Check for skipping nils and blank strings, and not emitting the reset if no font
+    ;; changes occurred.
+    ["Prefix--"  [:bold nil ""] "--Suffix"]
+    "Prefix----Suffix"
 
     ;; A bug caused blank strings to be omitted, this checks for the fix:
     [" "
      "|"
      "  "
      "|"
-     "   "] " |  |   [CSI]m"
+     "   "]
+    " |  |   "
 
     ["Notice: the "
      [:yellow "shields"]
@@ -51,9 +53,7 @@
     ["NORMAL-"
      [:inverse "-INVERSE" [:bold "-INV/BOLD"]]
      [:inverse.bold "-INV/BOLD"]
-     "-NORMAL"
-     ]
-
+     "-NORMAL"]
     "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22m[CSI]27m-NORMAL[CSI]m"))
 
 (deftest unrecognized-font-modifier
