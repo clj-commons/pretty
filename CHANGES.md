@@ -1,4 +1,4 @@
-## 1.4.3 -- UNRELEASED
+## 1.4.3 -- 24 May 2023
 
 The `compose` function would collapse blank strings to empty strings.
 
