@@ -2,7 +2,7 @@
   (:require
     [clj-commons.pretty.repl :as repl]
     [clj-commons.format.exceptions :as e]
-    [clj-commons.ansi :as ansi]
+    [clj-commons.ansi :refer [compose]]
     [clojure.repl :refer [pst]]
     [clojure.core.async :refer [chan <!! close! thread]]
     [criterium.core :as c]
@@ -67,8 +67,11 @@
   (prn `-main :args args)
   (println "Installing pretty exceptions ...")
   (repl/install-pretty-exceptions)
-  (println (ansi/bold-green "ok"))
-  (pst (make-exception)))
+  (println (compose [:bold.green "ok"]))
+  (pst (make-exception))
+  (println "\nTesting reporting of repeats:")
+  (try (countdown 20)
+       (catch Throwable t (e/write-exception t))))
 
 (comment
 

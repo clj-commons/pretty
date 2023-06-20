@@ -1,6 +1,6 @@
 (ns clj-commons.format.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (:require [clj-commons.ansi :as ansi]
+  (:require [clj-commons.ansi :refer [compose]]
             [clj-commons.format.columns :as c])
   (:import (java.nio ByteBuffer)))
 
@@ -53,13 +53,13 @@
                            "0123456789"
                            " !@#$%^&*()-_=+[]{}\\|'\";:,./<>?`~"))))
 
-(def ^:private nonprintable-placeholder (ansi/bright-magenta-bg " "))
+(defn- nonprintable-placeholder [] (compose [:bright-magenta-bg " "]))
 
 (defn- to-ascii
   [b]
   (if (printable-chars b)
     (char b)
-    nonprintable-placeholder))
+    (nonprintable-placeholder)))
 
 (defn- write-line
   [formatter write-ascii? offset data line-count]
@@ -158,9 +158,9 @@
         ;; Exact match on both sides is easy, just print it out.
         (match? byte-offset data-length data alternate-length alternate) (print (str " " (to-hex data byte-offset)))
         ;; Some kind of mismatch, so decorate with this side's color
-        (< byte-offset data-length) (print (str " " (ansi-color (to-hex data byte-offset))))
+        (< byte-offset data-length) (print (compose " " [ansi-color (to-hex data byte-offset)]))
         ;; Are we out of data on this side?  Print a "--" decorated with the color.
-        (< byte-offset alternate-length) (print (str " " (ansi-color "--")))
+        (< byte-offset alternate-length) (print (compose " " [ansi-color "--"]))
         ;; This side must be longer than the alternate side.
         ;; On the left/green side, we need to pad with spaces
         ;; On the right/red side, we need nothing.
@@ -169,9 +169,9 @@
 (defn- write-delta-line
   [offset expected-length ^bytes expected actual-length actual]
   (printf "%04X:" offset)
-  (write-byte-deltas ansi/bright-green true offset expected-length expected actual-length actual)
+  (write-byte-deltas :bold.green true offset expected-length expected actual-length actual)
   (print " | ")
-  (write-byte-deltas ansi/bright-red false offset actual-length actual expected-length expected)
+  (write-byte-deltas :bold.red false offset actual-length actual expected-length expected)
   (println))
 
 (defn write-binary-delta

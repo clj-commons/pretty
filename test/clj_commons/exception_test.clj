@@ -1,13 +1,39 @@
 (ns clj-commons.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
-            [clj-commons.format.exceptions :as e :refer [*fonts* parse-exception format-exception]]))
+            [clj-commons.ansi :refer [*color-enabled* csi]]
+            [clj-commons.format.exceptions :refer [*fonts* parse-exception format-exception]]))
 
 (deftest write-exceptions
   (testing "exception properties printing"
     (testing "Does not fail with ex-info's map keys not implementing clojure.lang.Named"
       (is (re-find #"string-key.*string-val"
                    (format-exception (ex-info "Error" {"string-key" "string-val"})))))))
+
+(defn countdown
+  [n]
+  (if (zero? n)
+    (throw (RuntimeException. "Boom!"))
+    (countdown (dec n))))
+
+(deftest captures-repeat-counts
+  (binding [*fonts* nil]
+    (let [formatted (try (countdown 20)
+                         (catch Throwable t
+                           (format-exception t)))]
+      (is (re-find #"(?xmd) \Qclj-commons.exception-test/countdown\E (.*) \Q(repeats 20 times)\E"
+                      formatted)))))
+
+(deftest binding-fonts-to-nil-is-same-as-no-color
+  (let [ex (ex-info "does not matter" {:gnip :gnop})
+        with-fonts-but-no-color (binding [*color-enabled* false]
+                                  (format-exception ex))
+        with-color-but-no-fonts (binding [*fonts* nil]
+                                  (format-exception ex))]
+    (is (= with-fonts-but-no-color
+           with-color-but-no-fonts))
+
+    (is (not (str/includes? with-fonts-but-no-color csi)))))
 
 (defn parse [& text-lines]
   (let [text (str/join \newline text-lines)]
@@ -16,18 +42,18 @@
 
 (deftest parse-exceptions
   (is (= [{:class-name "java.lang.IllegalArgumentException"
-           :message    "No value supplied for key: {:host \"example.com\"}"
+           :message "No value supplied for key: {:host \"example.com\"}"
            :stack-trace
-                       [{:simple-class   "PersistentHashMap"
-                         :package        "clojure.lang"
-                         :omitted        true
-                         :is-clojure?    false
-                         :method         "create"
-                         :name           ""
-                         :formatted-name "..."
-                         :file           ""
-                         :line           nil
-                         :class          "clojure.lang.PersistentHashMap"
+           [{:simple-class "PersistentHashMap"
+             :package "clojure.lang"
+             :omitted true
+             :is-clojure? false
+             :method "create"
+             :name ""
+             :formatted-name "..."
+             :file ""
+             :line nil
+             :class "clojure.lang.PersistentHashMap"
                          :names          []}
                         {:simple-class   "client$tcp_client"
                          :package        "riemann"

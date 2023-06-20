@@ -4,24 +4,24 @@
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clj-commons.ansi :as ansi]
+            [clj-commons.ansi :refer [compose]]
             [clj-commons.format.columns :as c])
   (:import (java.lang StringBuilder StackTraceElement)
            (clojure.lang Compiler ExceptionInfo Named)
            (java.util.regex Pattern)))
 
 (def default-fonts
-  "A default set of fonts for different elements in the formatted exception report."
-  {:exception     ansi/bold-red-font
-   :reset         ansi/reset-font
-   :message       ansi/italic-font
-   :property      ansi/bold-font
-   :source        ansi/green-font
-   :app-frame     ansi/bold-yellow-font
-   :function-name ansi/bold-yellow-font
-   :clojure-frame ansi/yellow-font
-   :java-frame    ansi/white-font
-   :omitted-frame ansi/white-font})
+  "A default set of fonts for different elements in the formatted exception report.
+  These will be passed to [[compose]] when formatting the corresponding elements."
+  {:exception     :bold.red
+   :message       :italic
+   :property      :bold
+   :source        :green
+   :app-frame     :bold.yellow
+   :function-name :bold.yellow
+   :clojure-frame :yellow
+   :java-frame    :white
+   :omitted-frame :white})
 
 (def ^:dynamic *app-frame-names*
   "Set of strings or regular expressions defining the application's namespaces, which allows
@@ -30,13 +30,8 @@
 
 (def ^:dynamic *fonts*
   "Current set of fonts used in exception formatting. This can be overridden to change colors, or bound to nil
-   to disable fonts.
-
-   Further, the environment variable DISABLE_DEFAULT_PRETTY_FONTS, if non-nil, will default this to nil.
-
-   Starting in 1.3, ANSI fonts may be disabled at a lower level; see [[ansi-output-enabled?]]"
-  (when-not (System/getenv "DISABLE_DEFAULT_PRETTY_FONTS")
-    default-fonts))
+   to disable fonts."
+  default-fonts)
 
 (def ^{:dynamic true
        :added   "0.1.15"}
@@ -297,7 +292,8 @@
 (defn- format-repeats
   [{:keys [repeats]}]
   (when repeats
-    (format " (repeats %,d times)" repeats)))
+    (compose [(:source *fonts*)
+              (format " (repeats %,d times)" repeats)])))
 
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
@@ -340,8 +336,7 @@
 (defn- clj-frame-font
   "Returns the font to use for a clojure frame.
 
-  When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame
-  "
+  When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame."
   [frame]
   (-> (keep #(apply-rule frame [:name % :app-frame]) *app-frame-names*)
       first
@@ -351,24 +346,24 @@
   [frame]
   (cond
     (:omitted frame)
-    (assoc frame :formatted-name (str (:omitted-frame *fonts*) "..." (:reset *fonts*))
+    (assoc frame :formatted-name (compose [(:omitted-frame *fonts*) "..."])
                  :file ""
                  :line nil)
 
     ;; When :names is empty, it's a Java (not Clojure) frame
     (-> frame :names empty?)
     (let [full-name      (str (:class frame) "." (:method frame))
-          formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))]
+          formatted-name (compose [(:java-frame *fonts*) full-name])]
       (assoc frame
         :formatted-name formatted-name))
 
     :else
     (let [names          (:names frame)
-          formatted-name (str
-                           (get *fonts* (clj-frame-font frame))
-                           (->> names drop-last (str/join "/"))
-                           "/"
-                           (:function-name *fonts*) (last names) (:reset *fonts*))]
+          formatted-name (compose
+                           [(get *fonts* (clj-frame-font frame))
+                            (->> names drop-last (str/join "/"))
+                            "/"
+                            [(:function-name *fonts*) (last names)]])]
       (assoc frame :formatted-name formatted-name))))
 
 (defn- transform-stack-trace-elements
@@ -474,17 +469,20 @@
 
 (defn- write-stack-trace
   [stack-trace modern?]
-  (c/write-rows [:formatted-name
-                 "  "
-                 (:source *fonts*)
-                 #(if (:line %)
-                    (str (:file %) ":")
-                    (:file %))
-                 " "
-                 #(-> % :line str)
-                 [format-repeats :none]
-                 (:reset *fonts*)]
-                (?reverse modern? stack-trace)))
+  (let [source-font (:source *fonts*)]
+    (c/write-rows [:formatted-name
+                   "  "
+                   #(compose
+                     [source-font
+                      (:file %)
+                      (when (:line %)
+                        ":")])
+                   " "
+                   #(compose
+                     [source-font
+                      (-> % :line str)])
+                   [format-repeats :none]]
+                  (?reverse modern? stack-trace))))
 
 (defmulti exception-dispatch
           "The pretty print dispatch function used when formatting exception output (specifically, when
@@ -542,15 +540,14 @@
         exception-font        (:exception *fonts*)
         message-font          (:message *fonts*)
         property-font         (:property *fonts*)
-        reset-font            (:reset *fonts* "")
         modern?               (not *traditional*)
         exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :class-name)]
                                                 ": "
                                                 :none)
         write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
                                  (let [{:keys [class-name message]} e]
-                                   (exception-formatter (str exception-font class-name reset-font)
-                                                        (str message-font message reset-font))
+                                   (exception-formatter (compose [exception-font class-name])
+                                                        (compose [message-font message]))
                                    (when show-properties?
                                      (let [properties         (update-keys (:properties e) (comp replace-nil qualified-name))
                                            prop-keys-sorted   (cond-> (keys properties)
@@ -563,8 +560,8 @@
                                                                                 ": "
                                                                                 :none)]
                                        (doseq [k prop-keys-sorted]
-                                         (property-formatter (str property-font k reset-font)
-                                                             (-> properties (get k) format-property-value)))))))
+                                         (property-formatter (compose [property-font k])
+                                                             (compose [property-font (-> properties (get k) format-property-value)])))))))
         root-stack-trace      (-> exception-stack last :stack-trace)]
     (with-out-str
       (if *traditional*
@@ -631,19 +628,17 @@
   Repeating lines are collapsed to a single line, with a repeat count. Typically, this is the result of
   an endless loop that terminates with a StackOverflowException.
 
-  When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outermost
+  When set, the frame limit is the number of stack frames to display; if non-nil, then some outermost
   stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
   the exception stack).  The frame limit is applied after the frame filter (which may hide or omit frames) and
   after repeating stack frames have been identified and coalesced ... :frame-limit is really the number
   of _output_ lines to present.
 
-  Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
+  Properties of exceptions will be output using Clojure's pretty-printer, honoring all normal vars used
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
   This is to ensure that infinite lists do not cause endless output or other exceptions.
 
-  The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely.
-  It can be also initialized to nil instead of the default set of fonts by setting environment variable DISABLE_DEFAULT_PRETTY_FONTS
-  to any value."
+  The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception]
    (write-exception exception nil))
   ([exception options]

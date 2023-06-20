@@ -1,5 +1,6 @@
 (ns clj-commons.ansi-test
-  (:require [clojure.string :as str]
+  (:require [clj-commons.ansi :as ansi]
+            [clojure.string :as str]
             [clojure.test :refer [deftest is are]]
             [clj-commons.ansi :refer [csi compose]]))
 
@@ -47,18 +48,34 @@
      "."]
     "Notice: the [CSI]33mshields[CSI]39m are operating at [CSI]32m98.7%[CSI]39m.[CSI]m"
 
+    ;; nil is allowed (this is used when formatting is optional, such as the fonts in exceptions).
+
+    ["NORMAL" [nil "-STILL NORMAL"]]
+    "NORMAL-STILL NORMAL"
+
+
     ;; Demonstrate some optimizations (no change between first and second
     ;; INV/BOLD), and also specifying multiple font modifiers.
+
+    ["NORMAL"
+     [:red "-RED"]
+     [:bright-red "-BR/RED"]]
+    "NORMAL[CSI]31m-RED[CSI]91m-BR/RED[CSI]m"
 
     ["NORMAL-"
      [:inverse "-INVERSE" [:bold "-INV/BOLD"]]
      [:inverse.bold "-INV/BOLD"]
      "-NORMAL"]
-    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22m[CSI]27m-NORMAL[CSI]m"))
+    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22;27m-NORMAL[CSI]m"))
+
+(deftest ignores-fonts-when-color-disabled
+  (binding [ansi/*color-enabled* false]
+    (is (= "Warning: Reactor Leak!"
+           (compose [:red "Warning:"] " " [:bold "Reactor Leak!"])))))
 
 (deftest unrecognized-font-modifier
   (when-let [e (is (thrown? Throwable (compose [:what.is.this? "Fail!"])))]
-    (is (= "Unexpected font term: :what" (ex-message e)))
+    (is (= "unexpected font term: :what" (ex-message e)))
     (is (= {:font-term :what
             :font-def :what.is.this?
             :available-terms [:black
@@ -67,21 +84,21 @@
                               :blue-bg
                               :bold
                               :bright-black
-                              :bright-black-gb
+                              :bright-black-bg
                               :bright-blue
-                              :bright-blue-gb
+                              :bright-blue-bg
                               :bright-cyan
-                              :bright-cyan-gb
+                              :bright-cyan-bg
                               :bright-green
-                              :bright-green-gb
+                              :bright-green-bg
                               :bright-magenta
-                              :bright-magenta-gb
+                              :bright-magenta-bg
                               :bright-red
-                              :bright-red-gb
+                              :bright-red-bg
                               :bright-white
-                              :bright-white-gb
+                              :bright-white-bg
                               :bright-yellow
-                              :bright-yellow-gb
+                              :bright-yellow-bg
                               :cyan
                               :cyan-bg
                               :faint
