@@ -39,7 +39,7 @@ jobs:
           key: cljdeps-${{ hashFiles('deps.edn') }}
 
       - name: Run JVM tests
-        run: clojure -X:dev:test
+        run: clojure -X:test
 
 
 
