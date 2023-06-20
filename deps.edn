@@ -1,6 +1,5 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.11.1"}
-        org.clojure/tools.logging {:mvn/version "1.2.4"}}
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}}
 
  :aliases
  {:test

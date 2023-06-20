@@ -61,8 +61,7 @@
   `clojure.repl/pst`, `clojure.stacktrace/print-stack-trace`, `clojure.stacktrace/print-cause-trace`.
 
   In addition, installs an [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
-  will be printed reasonably. See [[clj-commons.logging]] for a better handler, used when clojure.tools.logging
-  is available.
+  will be printed reasonably.
 
   Caught exceptions do not print the stack trace; the pst replacement does."
   []
