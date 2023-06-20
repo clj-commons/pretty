@@ -21,7 +21,7 @@
    :function-name :bold.yellow
    :clojure-frame :yellow
    :java-frame    :white
-   :omitted-frame :white})
+   :omitted-frame :faint.white})
 
 (def ^:dynamic *app-frame-names*
   "Set of strings or regular expressions defining the application's namespaces, which allows
@@ -30,7 +30,7 @@
 
 (def ^:dynamic *fonts*
   "Current set of fonts used in exception formatting. This can be overridden to change colors, or bound to nil
-   to disable fonts."
+   to disable fonts.  Defaults are defined by [[default-fonts]]."
   default-fonts)
 
 (def ^{:dynamic true
@@ -48,15 +48,14 @@
 (defn- strip-prefix
   [^String prefix ^String input]
   (let [prefix-len (.length prefix)]
-    ;; clojure.string/starts-with? not available in Clojure 1.7.0, so:
-    (if (and (.startsWith input prefix)
+    (if (and (str/starts-with? input prefix)
              (< prefix-len (.length input)))
       (subs input prefix-len)
       input)))
 
 (def ^:private current-dir-prefix
   "Convert the current directory (via property 'user.dir') into a prefix to be omitted from file names."
-  (delay (str (System/getProperty "user.dir") "/")))
+  (str (System/getProperty "user.dir") "/"))
 
 (defn- ?reverse
   [reverse? coll]
@@ -106,14 +105,14 @@
 (def ^{:added   "0.1.18"
        :dynamic true}
 *default-frame-rules*
-  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector or vectors.
+  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector of vectors.
 
-  Each rule is three values:
+  Each rule is a vector of three values:
 
   * A function that extracts the value from the stack frame map (typically, this is a keyword such
   as :package or :name). The value is converted to a string.
 
-  * A string or regexp used for matching.
+  * A string or regexp used for matching.  Strings must match exactly.
 
   * A resulting frame visibility (:hide, :omit, :terminate, or :show).
 
@@ -172,8 +171,8 @@
 
 (defn- extension
   [^String file-name]
-  (let [x (.lastIndexOf file-name ".")]
-    (when (<= 0 x)
+  (let [x (str/last-index-of file-name ".")]
+    (when (and x (pos? x))
       (subs file-name (inc x)))))
 
 (def ^:private clojure-extensions
@@ -183,7 +182,7 @@
   [file-name-prefix ^StackTraceElement element]
   (let [class-name  (.getClassName element)
         method-name (.getMethodName element)
-        dotx        (.lastIndexOf class-name ".")
+        dotx        (str/last-index-of class-name ".")
         file-name   (or (.getFileName element) "")
         is-clojure? (->> file-name extension (contains? clojure-extensions))
         names       (if is-clojure? (convert-to-clojure class-name method-name) [])
@@ -193,22 +192,21 @@
                       ["REPL Input"]
                       [(strip-prefix file-name-prefix file-name)
                        (-> element .getLineNumber)])]
-    {:file         file
-     ; line will sometimes be nil
-     :line         (if (and line
-                            (pos? line))
-                     line)
-     :class        class-name
-     :package      (if (pos? dotx) (.substring class-name 0 dotx))
-     :is-clojure?  is-clojure?
-     :simple-class (if (pos? dotx)
-                     (.substring class-name (inc dotx))
+    {:file file
+     :line (when (and line
+                      (pos? line))
+             line)
+     :class class-name
+     :package (when dotx (subs class-name 0 dotx))
+     :is-clojure? is-clojure?
+     :simple-class (if dotx
+                     (subs class-name (inc dotx))
                      class-name)
-     :method       method-name
+     :method method-name
      ;; Used to calculate column width
-     :name         name
+     :name name
      ;; Used to present compound Clojure name with last term highlighted
-     :names        names}))
+     :names names}))
 
 (def ^:private empty-stack-trace-warning
   "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
@@ -326,15 +324,15 @@
   :names seq of String
   : Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
-  (let [elements (map (partial expand-stack-trace-element @current-dir-prefix) (.getStackTrace exception))]
+  (let [elements (map (partial expand-stack-trace-element current-dir-prefix) (.getStackTrace exception))]
     (when (empty? elements)
       (binding [*out* *err*]
         (println empty-stack-trace-warning)
         (flush)))
     elements))
 
-(defn- clj-frame-font
-  "Returns the font to use for a clojure frame.
+(defn- clj-frame-font-key
+  "Returns the font key to use for a Clojure stack frame.
 
   When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame."
   [frame]
@@ -360,7 +358,7 @@
     :else
     (let [names          (:names frame)
           formatted-name (compose
-                           [(get *fonts* (clj-frame-font frame))
+                           [(get *fonts* (clj-frame-font-key frame))
                             (->> names drop-last (str/join "/"))
                             "/"
                             [(:function-name *fonts*) (last names)]])]
@@ -429,7 +427,7 @@
   thrown, last is the deepest, or root, exception ... the initial exception
   thrown in a chain of nested exceptions.
 
-  The options map is as defined by [[write-exception]].
+  The options map is as defined by [[format-exception]].
 
   Each exception map contains:
 
@@ -459,6 +457,7 @@
         (recur result' nested)
         result'))))
 
+;; This is new in Clojure 1.11, but keeping it allows pretty to work with Clojure 1.10..
 (defn- update-keys
   [m f]
   "Builds a map where f has been applied to each key in m."
@@ -647,7 +646,7 @@
 
 (defn- assemble-final-stack
   [exceptions stack-trace stack-trace-batch options]
-  (let [stack-trace' (-> (map (partial expand-stack-trace-element @current-dir-prefix)
+  (let [stack-trace' (-> (map (partial expand-stack-trace-element current-dir-prefix)
                               (into stack-trace-batch stack-trace))
                          (transform-stack-trace-elements options))
         x            (-> exceptions count dec)]

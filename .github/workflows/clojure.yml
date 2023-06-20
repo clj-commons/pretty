@@ -38,8 +38,11 @@ jobs:
           # List all files containing dependencies:
           key: cljdeps-${{ hashFiles('deps.edn') }}
 
-      - name: Run JVM tests
+      - name: Run tests (current, Clojure 1.11)
         run: clojure -X:test
+
+      - name: Run tests (Clojure 1.10)
+        run: clojure -X:1.10:test
 
 
 

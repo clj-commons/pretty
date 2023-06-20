@@ -40,7 +40,7 @@
 (extend-type nil
   BinaryData
   (data-length [_] 0)
-  (byte-at [_ _index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
+  (byte-at [_ _index] (throw (IndexOutOfBoundsException. "can not use byte-at with nil"))))
 
 (def ^:private ^:const bytes-per-diff-line 16)
 (def ^:private ^:const bytes-per-ascii-line 16)

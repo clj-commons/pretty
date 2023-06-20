@@ -2,7 +2,7 @@
   "Assistance for formatting data into columns. Each column has a width, and data within the column
   may be left or right justified. Generally, columns are sized to the largest item in the column.
   When a value is provided in a column, it may be associated with an explicit width which is helpful
-  when the value contains non-printing characters (such as those defined in the `clj-commons.ansi` namespace)."
+  when the value contains non-printing characters (such as those obtained using the `clj-commons.ansi` namespace)."
   (:require [clojure.string :as str]
             [clj-commons.ansi :as ansi]))
 

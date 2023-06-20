@@ -17,6 +17,8 @@ That's what `clj-commons/pretty` is for.  It adds support for pretty output wher
 
 ![Example](docs/images/formatted-exception.png)
 
+Pretty is compatible with Clojure 1.10 and above.
+
 Parts of Pretty can be used with [Babashka](https://book.babashka.org/#introduction), such as the `clj-commons.ansi`
 namespace; however, Babashka runs in an interpreter and its approach to exceptions is
 incompatible with JVM exceptions.

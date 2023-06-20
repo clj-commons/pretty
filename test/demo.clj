@@ -4,7 +4,6 @@
     [clj-commons.format.exceptions :as e]
     [clj-commons.ansi :refer [compose]]
     [clojure.repl :refer [pst]]
-    [clojure.core.async :refer [chan <!! close! thread]]
     [criterium.core :as c]
     [clojure.test :refer [report]])
   (:import (java.sql SQLException)))
@@ -65,6 +64,7 @@
 
 (defn -main [& args]
   (prn `-main :args args)
+  (println "Clojure version: " *clojure-version*)
   (println "Installing pretty exceptions ...")
   (repl/install-pretty-exceptions)
   (println (compose [:bold.green "ok"]))
@@ -75,7 +75,9 @@
 
 (comment
 
-  (let [e  (make-ex-info)
+  (require '[clojure.core.async :refer [chan <!! close! thread]])
+
+  (let [e (make-ex-info)
         ch (chan)]
     (dotimes [i 5]
       (thread
