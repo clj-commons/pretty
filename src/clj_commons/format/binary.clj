@@ -1,7 +1,7 @@
-(ns io.aviso.binary
+(ns clj-commons.format.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (:require [io.aviso.ansi :as ansi]
-            [io.aviso.columns :as c])
+  (:require [clj-commons.ansi :as ansi]
+            [clj-commons.format.columns :as c])
   (:import (java.nio ByteBuffer)))
 
 (defprotocol BinaryData

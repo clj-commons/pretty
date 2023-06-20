@@ -1,15 +1,13 @@
-(ns io.aviso.repl
+(ns clj-commons.pretty.repl
   "Utilities to assist with REPL-oriented development.
 
   If you are using Stuart Sierra's component library, you may want to also require
-  [[io.aviso.component]]."
+  [[clj-commons.component]]."
   (:require
-    [io.aviso.exception :as e]
-    [clojure.pprint :refer [pprint write]]
+    [clj-commons.format.exceptions :as e]
     [clojure.main :as main]
     [clojure.repl :as repl]
-    [clojure.stacktrace :as st]
-    [clojure.edn :as edn])
+    [clojure.stacktrace :as st])
   (:import
     (clojure.lang RT)))
 
@@ -63,7 +61,7 @@
   `clojure.repl/pst`, `clojure.stacktrace/print-stack-trace`, `clojure.stacktrace/print-cause-trace`.
 
   In addition, installs an [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
-  will be printed reasonably. See [[io.aviso.logging]] for a better handler, used when clojure.tools.logging
+  will be printed reasonably. See [[clj-commons.logging]] for a better handler, used when clojure.tools.logging
   is available.
 
   Caught exceptions do not print the stack trace; the pst replacement does."

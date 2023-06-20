@@ -1,7 +1,7 @@
-(ns io.aviso.ansi-test
+(ns clj-commons.ansi-test
   (:require [clojure.string :as str]
             [clojure.test :refer [deftest is are]]
-            [io.aviso.ansi :refer [csi compose]]))
+            [clj-commons.ansi :refer [csi compose]]))
 
 (deftest compose-test
   (are [input expected]

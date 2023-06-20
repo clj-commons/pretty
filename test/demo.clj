@@ -1,10 +1,8 @@
 (ns demo
   (:require
-    [io.aviso.repl :as repl]
-    [io.aviso.exception :as e]
-    [io.aviso.ansi :as ansi]
-    io.aviso.component
-    [clojure.java.io :as io]
+    [clj-commons.pretty.repl :as repl]
+    [clj-commons.format.exceptions :as e]
+    [clj-commons.ansi :as ansi]
     [clojure.repl :refer [pst]]
     [clojure.core.async :refer [chan <!! close! thread]]
     [criterium.core :as c]

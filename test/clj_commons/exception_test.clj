@@ -1,8 +1,7 @@
-(ns io.aviso.exception-test
+(ns clj-commons.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
-            [io.aviso.exception :as e :refer [*fonts* parse-exception format-exception]]
-            [com.walmartlabs.test-reporting :refer [reporting]]))
+            [clj-commons.format.exceptions :as e :refer [*fonts* parse-exception format-exception]]))
 
 (deftest write-exceptions
   (testing "exception properties printing"

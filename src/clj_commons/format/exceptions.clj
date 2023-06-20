@@ -1,15 +1,14 @@
-(ns io.aviso.exception
+(ns clj-commons.format.exceptions
   "Format and present exceptions in a pretty (structured, formatted) way."
   (:refer-clojure :exclude [update-keys])
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [io.aviso.ansi :as ansi]
-            [io.aviso.columns :as c])
-  (:import
-    (java.lang StringBuilder StackTraceElement)
-    (clojure.lang Compiler ExceptionInfo Named)
-    (java.util.regex Pattern)))
+            [clj-commons.ansi :as ansi]
+            [clj-commons.format.columns :as c])
+  (:import (java.lang StringBuilder StackTraceElement)
+           (clojure.lang Compiler ExceptionInfo Named)
+           (java.util.regex Pattern)))
 
 (def default-fonts
   "A default set of fonts for different elements in the formatted exception report."
@@ -147,7 +146,7 @@
       (if (re-matches match value) visibility)
 
       :else
-      (throw (ex-info "Unexpected match type in rule."
+      (throw (ex-info "unexpected match type in rule"
                       {:rule rule})))))
 
 (defn *default-frame-filter*
@@ -297,7 +296,7 @@
 
 (defn- format-repeats
   [{:keys [repeats]}]
-  (if repeats
+  (when repeats
     (format " (repeats %,d times)" repeats)))
 
 (defn expand-stack-trace
@@ -500,8 +499,6 @@
           is represented as the string `#<SystemMap>`; normally it would print as a deeply nested
           set of maps.
 
-          See the [[io.aviso.component]] namespace for more complete example.
-
           This same approach can be adapted to any class or type whose structure is problematic
           for presenting in the exception output, whether for size and complexity reasons, or due to
           security concerns."
@@ -535,8 +532,8 @@
     "nil"
     x))
 
-(defn write-exception*
-  "Contains the main logic for [[write-exception]], which simply expands
+(defn format-exception*
+  "Contains the main logic for [[format-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function."
   {:added "0.1.21"}
   [exception-stack options]
@@ -569,22 +566,21 @@
                                          (property-formatter (str property-font k reset-font)
                                                              (-> properties (get k) format-property-value)))))))
         root-stack-trace      (-> exception-stack last :stack-trace)]
+    (with-out-str
+      (if *traditional*
+        (write-exception-stack))
 
-    (if *traditional*
-      (write-exception-stack))
+      (write-stack-trace root-stack-trace modern?)
 
-    (write-stack-trace root-stack-trace modern?)
-
-    (if modern?
-      (write-exception-stack))))
+      (if modern?
+        (write-exception-stack)))))
 
 (defn format-exception
   "Formats an exception as a multi-line string using the same options as [[write-exception]]."
   ([exception]
    (format-exception exception nil))
   ([exception options]
-   (with-out-str
-     (write-exception* (analyze-exception exception options) options))))
+   (format-exception* (analyze-exception exception options) options)))
 
 (defn write-exception
   "Writes a formatted version of the exception to *out*. By default, includes
@@ -615,7 +611,7 @@
   The default is modern.
 
   The stack frame filter is passed the map detailing each stack frame
-  in the stack trace, must return one of the following values:
+  in the stack trace, and must return one of the following values:
 
   :show
   : is the normal state; display the stack frame.

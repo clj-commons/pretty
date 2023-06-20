@@ -1,6 +1,6 @@
-(ns io.aviso.binary-test
-  "Tests for the io.aviso.binary namespace."
-  (:use io.aviso.binary
+(ns clj-commons.binary-test
+  "Tests for the clj-commons.format.binary namespace."
+  (:use clj-commons.format.binary
         clojure.test)
   (:import (java.nio ByteBuffer)))
 

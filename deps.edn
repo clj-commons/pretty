@@ -24,7 +24,7 @@
   :main
   {:main-opts ["-m" "io.aviso.repl"]}
 
-  ;; clj -M:dev:demo
+  ;; clj -M:test:demo
   :demo
   {:main-opts ["-m" "demo"]}}
 

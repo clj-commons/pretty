@@ -1,4 +1,4 @@
-(ns io.aviso.ansi
+(ns clj-commons.ansi
   "Help with generating textual output that includes ANSI escape codes for formatting.
   The [[compose]] function is the best starting point.
 
@@ -18,7 +18,7 @@
 (def ^:const ^{:added "1.3"} ansi-output-enabled?
   "Determine if ANSI output is enabled.
 
-  The first checks are for the JVM system property `io.aviso.ansi.enable`
+  The first checks are for the JVM system property `clj-commons.ansi.enable`
   and then system property ENABLE_ANSI_COLORS.
   If either of these is non-nil, it sets the value:
   the value `false` (matched caselessly) disables ANSI colors and fonts,
@@ -40,7 +40,7 @@
   color and font functions return the input string unchanged.  This is decided during macro expansion when
   the ansi namespace is first loaded, so it can't be changed at runtime."
   (if-let [value (or
-                   (System/getProperty "io.aviso.ansi.enable")
+                   (System/getProperty "clj-commons.ansi.enable")
                    (System/getenv "ENABLE_ANSI_COLORS"))]
     (not (.equalsIgnoreCase value "false"))
     (some?

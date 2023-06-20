@@ -1,10 +1,10 @@
-(ns io.aviso.columns
+(ns clj-commons.format.columns
   "Assistance for formatting data into columns. Each column has a width, and data within the column
   may be left or right justified. Generally, columns are sized to the largest item in the column.
   When a value is provided in a column, it may be associated with an explicit width which is helpful
-  when the value contains non-printing characters (such as those defined in the `io.aviso.ansi` namespace)."
+  when the value contains non-printing characters (such as those defined in the `clj-commons.ansi` namespace)."
   (:require [clojure.string :as str]
-            [io.aviso.ansi :as ansi]))
+            [clj-commons.ansi :as ansi]))
 
 (defn- indent
   "Indents sufficient to pad the column value to the column width."
