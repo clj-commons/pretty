@@ -2,10 +2,7 @@
   (:use clojure.test)
   (:require [clojure.string :as str]
             [io.aviso.exception :as e :refer [*fonts* parse-exception format-exception]]
-            [clojure.pprint :refer [pprint]]
-            [com.stuartsierra.component :as component]
-            [com.walmartlabs.test-reporting :refer [reporting]]
-            io.aviso.component))
+            [com.walmartlabs.test-reporting :refer [reporting]]))
 
 (deftest write-exceptions
   (testing "exception properties printing"
@@ -556,26 +553,6 @@
                         "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
                         "\t... 3 common frames omitted"))))))
 
-(defrecord MyComponent []
-
-  component/Lifecycle
-  (start [this] this)
-  (stop [this] this))
-
-
-(deftest component-print-behavior
-  (binding [e/*fonts* nil]
-    (let [my-component   (map->MyComponent {})
-          system         (component/system-map
-                           :my-component my-component)
-          sys-exception  (format-exception (ex-info "System Exception" {:system system}))
-          comp-exception (format-exception (ex-info "Component Exception" {:component my-component}))]
-
-      (reporting {sys-exception (str/split-lines sys-exception)}
-                 (is (re-find #"system: #<SystemMap>" sys-exception)))
-
-      (reporting {comp-exception (str/split-lines comp-exception)}
-                 (is (re-find #"component: #<Component io.aviso.exception_test.MyComponent>" comp-exception))))))
 
 (deftest write-exceptions-with-nil-data
   (testing "Does not fail with a nil ex-info map key"

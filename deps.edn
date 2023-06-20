@@ -1,22 +1,16 @@
 {:paths ["src"]
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}}
 
- :net.lewisship.build/scm
- {:url "https://github.com/avisoNovate/pretty"}
 
  :aliases
- {:dev
+ {:test
+  ;; clj -X:test
   {:extra-paths ["test"]
-   :extra-deps {com.stuartsierra/component {:mvn/version "1.1.0"}
-                org.clojure/tools.logging {:mvn/version "1.2.4"}
+   :extra-deps {org.clojure/tools.logging {:mvn/version "1.2.4"}
                 criterium/criterium {:mvn/version "0.4.6"}
                 com.walmartlabs/test-reporting {:mvn/version "1.2"}
                 org.clojure/core.async {:mvn/version "1.6.673"}
-                leiningen/leiningen {:mvn/version "2.10.0"}}}
-
-  ;; clj -X:dev:test
-  :test
-  {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
+                io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                       :git/sha "dfb30dd"}}
    :jvm-opts ["-Dio.aviso.ansi.enable=true"]
    :exec-fn cognitect.test-runner.api/test}
@@ -33,6 +27,9 @@
   ;; clj -M:dev:demo
   :demo
   {:main-opts ["-m" "demo"]}}
+
+ :net.lewisship.build/scm
+ {:url "https://github.com/avisoNovate/pretty"}
 
  :codox/config
  {:description "Clojure library to help print things, prettily"

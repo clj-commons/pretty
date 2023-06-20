@@ -80,56 +80,6 @@
   (Thread/setDefaultUncaughtExceptionHandler (uncaught-exception-handler))
   nil)
 
-(defn ^String copy
-  "Copies the current contents of the Clipboard, returning its contents as a string.
-
-  This makes use of AWT; it will throw java.awt.HeadlessException when AWT is not
-  available, for example, when the JVM is launched with `-Djava.awt.headless=true`."
-  {:added "0.1.32"}
-  []
-  (require 'io.aviso.clipboard)
-  ((ns-resolve 'io.aviso.clipboard 'copy)))
-
-(defn pretty-print
-  "Pretty-prints the supplied object to a returned string.
-
-  With no arguments, copies from the clipboard, parses as EDN, and prints the EDN data to `*out*`,
-  returning nil."
-  {:added "0.1.32"}
-  ([]
-   (-> (copy) edn/read-string pprint))
-  ([object]
-   (write object
-          :stream nil
-          :pretty true)))
-
-(defn paste
-  "Pastes a string in as the new content of the Clipboard.
-
-  This can be helpful when, for example, pretty printing some EDN content from a log file
-  before pasting it into some other editor."
-  {:added "0.1.32"}
-  [^String s]
-  (require 'io.aviso.clipboard)
-  ((ns-resolve 'io.aviso.clipboard 'paste) s))
-
-(defn format-exception
-  "Passed the standard exception text and formats it using [[parse-exception]] and
-  [[write-exception]], returning the formatted exception text.
-
-  With no arguments, parses the clipboard text and prints the formatted exception
-  to `*out*` (returning nil)."
-  {:added "0.1.32"}
-  ([]
-   (-> (copy)
-       (e/parse-exception nil)
-       e/write-exception))
-  ([text]
-   (-> text
-       (e/parse-exception nil)
-       e/format-exception)))
-
-
 (defn -main
   "Installs pretty exceptions, then delegates to clojure.main/main."
   {:added "1.3.0"}
