@@ -169,43 +169,43 @@
   {:black [:foreground black-font]
    :bright-black [:foreground bright-black-font]
    :black-bg [:background black-bg-font]
-   :bright-black-gb [:background bright-black-bg-font]
+   :bright-black-bg [:background bright-black-bg-font]
 
    :red [:foreground red-font]
    :bright-red [:foreground bright-red-font]
    :red-bg [:background red-bg-font]
-   :bright-red-gb [:background bright-red-bg-font]
+   :bright-red-bg [:background bright-red-bg-font]
 
 
    :green [:foreground green-font]
    :bright-green [:foreground bright-green-font]
    :green-bg [:background green-bg-font]
-   :bright-green-gb [:background bright-green-bg-font]
+   :bright-green-bg [:background bright-green-bg-font]
 
    :yellow [:foreground yellow-font]
    :bright-yellow [:foreground bright-yellow-font]
    :yellow-bg [:background yellow-bg-font]
-   :bright-yellow-gb [:background bright-yellow-bg-font]
+   :bright-yellow-bg [:background bright-yellow-bg-font]
 
    :blue [:foreground blue-font]
    :bright-blue [:foreground bright-blue-font]
    :blue-bg [:background blue-bg-font]
-   :bright-blue-gb [:background bright-blue-bg-font]
+   :bright-blue-bg [:background bright-blue-bg-font]
 
    :magenta [:foreground magenta-font]
    :bright-magenta [:foreground bright-magenta-font]
    :magenta-bg [:background magenta-bg-font]
-   :bright-magenta-gb [:background bright-magenta-bg-font]
+   :bright-magenta-bg [:background bright-magenta-bg-font]
 
    :cyan [:foreground cyan-font]
    :bright-cyan [:foreground bright-cyan-font]
    :cyan-bg [:background cyan-bg-font]
-   :bright-cyan-gb [:background bright-cyan-bg-font]
+   :bright-cyan-bg [:background bright-cyan-bg-font]
 
    :white [:foreground white-font]
    :bright-white [:foreground bright-white-font]
    :white-bg [:background white-bg-font]
-   :bright-white-gb [:background bright-white-bg-font]
+   :bright-white-bg [:background bright-white-bg-font]
 
    :bold [:bold bold-font]
    :plain [:bold plain-font]

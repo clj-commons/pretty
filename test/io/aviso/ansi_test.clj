@@ -67,21 +67,21 @@
                               :blue-bg
                               :bold
                               :bright-black
-                              :bright-black-gb
+                              :bright-black-bg
                               :bright-blue
-                              :bright-blue-gb
+                              :bright-blue-bg
                               :bright-cyan
-                              :bright-cyan-gb
+                              :bright-cyan-bg
                               :bright-green
-                              :bright-green-gb
+                              :bright-green-bg
                               :bright-magenta
-                              :bright-magenta-gb
+                              :bright-magenta-bg
                               :bright-red
-                              :bright-red-gb
+                              :bright-red-bg
                               :bright-white
-                              :bright-white-gb
+                              :bright-white-bg
                               :bright-yellow
-                              :bright-yellow-gb
+                              :bright-yellow-bg
                               :cyan
                               :cyan-bg
                               :faint
