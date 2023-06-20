@@ -1,7 +1,7 @@
 ## 1.4.4 -- 20 Jun 2023
 
-Fixed: Incorrectly named font terms with `compose`
-Fixed: Incorrect ANSI codes for bright and bright background colors
+- Fixed: Incorrectly named font terms with `compose`
+- Fixed: Incorrect ANSI codes for bright and bright background colors
 
 [Closed Issues](https://github.com/AvisoNovate/pretty/milestone/36?closed=1)
 
