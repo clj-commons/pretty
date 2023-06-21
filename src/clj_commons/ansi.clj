@@ -99,7 +99,7 @@
       current-value)))
 
 (defn- compose-font
-  [active current]
+  ^String [active current]
   (let [codes (keep #(delta active current %) [:foreground :background :bold :italic :inverse :underlined])]
     (when (and *color-enabled* (seq codes))
       (str csi (str/join ";" codes) sgr))))
@@ -143,14 +143,34 @@
     (reduce collect-markup state input)
 
     :else
-    (let [{:keys [active current]} state
+    (let [{:keys [active current ^StringBuilder buffer]} state
           state' (if (= active current)
                    state
                    (let [font-str (compose-font active current)]
+                     (when font-str
+                       (.append buffer font-str))
                      (cond-> (assoc state :active current)
-                             font-str (-> (update :results conj font-str)
-                                          (assoc :dirty? true)))))]
-      (update state' :results conj (str input)))))
+                             font-str (assoc :dirty? true))))]
+      (.append buffer (str input))
+      state')))
+
+(defn compose*
+  [inputs]
+  (let [initial-font {:foreground "39"
+                      :background "49"
+                      :bold "22"
+                      :italic "23"
+                      :inverse "27"
+                      :underlined "24"}
+        buffer (StringBuilder. 100)
+        {:keys [dirty?]} (collect-markup {:stack ()
+                                          :active initial-font
+                                          :current initial-font
+                                          :buffer buffer}
+                                         inputs)]
+    (when dirty?
+      (.append buffer reset-font))
+    (.toString buffer)))
 
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes necessary ANSI codes.
@@ -201,25 +221,6 @@
   and ignoring font defs.
   "
   {:added "1.4.0"}
-  [& input]
-  ;; The initial font is used so that after a top-level font change, there's something to
-  ;; change back to.
-  (let [initial-font {:foreground "39"
-                      :background "49"
-                      :bold "22"
-                      :italic "23"
-                      :inverse "27"
-                      :underlined "24"}
-        {:keys [results dirty?]} (collect-markup {:stack ()
-                                                  :active initial-font
-                                                  :current initial-font
-                                                  :results []}
-                                                 input)
-        sb (StringBuilder. 100)]
-    (doseq [s results
-            :when (some? s)]
-      (.append sb ^String s))
-    (when dirty?
-      (.append sb reset-font))
-    (.toString sb)))
+  [& inputs]
+  (compose* inputs))
 
