@@ -43,7 +43,9 @@
 
 (defn- length
   [^String s]
-  (.length s))
+  (if s
+    (.length s)
+    0))
 
 (defn- strip-prefix
   [^String prefix ^String input]
@@ -167,7 +169,7 @@
     ;; are name-mangled dashes).
     (->>
       (cons namespace-name all-ids)
-      (map demangle))))
+      (mapv demangle))))
 
 (defn- extension
   [^String file-name]
@@ -200,7 +202,11 @@
         is-clojure? (or repl-input
                         (->> file-name extension (contains? clojure-extensions)))
         names (if is-clojure? (convert-to-clojure class-name method-name) [])
-        name (str/join "/" names)]
+        name (str/join "/" names)
+        id (cond-> (if is-clojure?
+                     name
+                     (str class-name "." method-name))
+                   line (str ":" line))]
     {:file file
      :line (when (and line
                       (pos? line))
@@ -212,6 +218,8 @@
                      (subs class-name (inc dotx))
                      class-name)
      :method method-name
+     ;; Used to detect repeating frames
+     :id id
      ;; Used to calculate column width
      :name name
      ;; Used to present compound Clojure name with last term highlighted
@@ -276,10 +284,8 @@
 
 (defn- is-repeat?
   [left-frame right-frame]
-  (and (= (:formatted-name left-frame)
-          (:formatted-name right-frame))
-       (= (:line left-frame)
-          (:line right-frame))))
+  (= (:id left-frame)
+     (:id right-frame)))
 
 (defn- repeating-frame-reducer
   [output-frames frame]
@@ -327,6 +333,10 @@
   : true if this represents a Clojure function call, rather than a Java
     method invocation.
 
+  :id String
+  : An id that can be used to identify repeating stack frames; consists of the fully qualified method name (for Java
+    frames) or fully qualified Clojure name (for Clojure frames) appended with the line number.
+
   :name String
   : Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
 
@@ -349,40 +359,51 @@
       first
       (or :clojure-frame)))
 
-(defn- preformat-stack-frame
-  [frame]
+(defn- format-stack-frame
+  [{:keys [file line names repeats] :as frame}]
   (cond
     (:omitted frame)
-    (assoc frame :formatted-name (compose [(:omitted-frame *fonts*) "..."])
-                 :file ""
-                 :line nil)
+    {:name [(:omitted-frame *fonts*) "..."]
+     :name-width 3}
 
     ;; When :names is empty, it's a Java (not Clojure) frame
-    (-> frame :names empty?)
-    (let [full-name      (str (:class frame) "." (:method frame))
-          formatted-name (compose [(:java-frame *fonts*) full-name])]
-      (assoc frame
-        :formatted-name formatted-name))
+    (empty? names)
+    (let [full-name      (str (:class frame) "." (:method frame))]
+      {:name [(:java-frame *fonts*) full-name]
+       :name-width (length full-name)
+       :file file
+       :line (str line)
+       :repeats repeats})
 
     :else
-    (let [names          (:names frame)
-          formatted-name (compose
-                           [(get *fonts* (clj-frame-font-key frame))
-                            (->> names drop-last (str/join "/"))
-                            "/"
-                            [(:function-name *fonts*) (last names)]])]
-      (assoc frame :formatted-name formatted-name))))
+    (let [formatted-name [(get *fonts* (clj-frame-font-key frame))
+                          (->> names drop-last (str/join "/"))
+                          "/"
+                          [(:function-name *fonts*) (last names)]]]
+      {:name formatted-name
+       :name-width (-> frame :name length)
+       :file file
+       :line (str line)
+       :repeats repeats})))
+
+(defn padding
+  [max-width field-width]
+  (if (= max-width field-width)
+    nil
+    (let [sb (StringBuilder. (int max-width))]
+      (dotimes [_ (- max-width field-width)]
+        (.append sb \space))
+      (.toString sb))))
 
 (defn- transform-stack-trace-elements
   "Converts a seq of StackTraceElements into a seq of stack trace maps."
   [elements options]
   (let [frame-filter (:filter options *default-frame-filter*)
-        frame-limit  (:frame-limit options)
-        elements'    (->> elements
-                          remove-direct-link-frames
-                          (apply-frame-filter frame-filter)
-                          (map preformat-stack-frame)
-                          (reduce repeating-frame-reducer []))]
+        frame-limit (:frame-limit options)
+        elements' (->> elements
+                       remove-direct-link-frames
+                       (apply-frame-filter frame-filter)
+                       (reduce repeating-frame-reducer []))]
     (if frame-limit
       (take frame-limit elements')
       elements')))
@@ -475,22 +496,34 @@
              {}
              m))
 
-(defn- write-stack-trace
+(defn- max-from
+  [coll k]
+  (reduce max 0 (keep k coll)))
+
+(defn- build-stack-trace-output
   [stack-trace modern?]
-  (let [source-font (:source *fonts*)]
-    (c/write-rows [:formatted-name
-                   "  "
-                   #(compose
-                     [source-font
-                      (:file %)
-                      (when (:line %)
-                        ":")])
-                   " "
-                   #(compose
-                     [source-font
-                      (-> % :line str)])
-                   [format-repeats :none]]
-                  (?reverse modern? stack-trace))))
+  (let [source-font (:source *fonts*)
+        rows (map format-stack-frame (?reverse modern? stack-trace))
+        max-name-width (max-from rows :name-width)
+        ;; Allow for the colon in frames w/ a line number (this assumes there's at least one)
+        max-file-width (inc (max-from rows #(-> % :file length)))
+        max-line-width (max-from rows #(-> % :line length))
+        f (fn [{:keys [name name-width file line repeats]}]
+            (compose
+              (list
+                (padding max-name-width name-width)
+                name
+                " "
+                [source-font
+                 (padding max-file-width (length file))]
+                file
+                (when line ":")
+                " "
+                (padding max-line-width (length line))
+                line
+                (when repeats
+                  (format " (repeats %,d times)" repeats)))))]
+    (str/join "\n" (map f rows))))
 
 (defmulti exception-dispatch
           "The pretty print dispatch function used when formatting exception output (specifically, when
@@ -503,7 +536,7 @@
 
           This ensures that the SystemMap record, wherever it appears in the exception output,
           is represented as the string `#<SystemMap>`; normally it would print as a deeply nested
-          set of maps.
+          tree of maps.
 
           This same approach can be adapted to any class or type whose structure is problematic
           for presenting in the exception output, whether for size and complexity reasons, or due to
@@ -572,12 +605,12 @@
                                                              (compose [property-font (-> properties (get k) format-property-value)])))))))
         root-stack-trace      (-> exception-stack last :stack-trace)]
     (with-out-str
-      (if *traditional*
+      (when *traditional*
         (write-exception-stack))
 
-      (write-stack-trace root-stack-trace modern?)
+      (println (build-stack-trace-output root-stack-trace modern?))
 
-      (if modern?
+      (when modern?
         (write-exception-stack)))))
 
 (defn format-exception

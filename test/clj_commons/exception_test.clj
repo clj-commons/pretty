@@ -37,187 +37,199 @@
 
 (defn parse [& text-lines]
   (let [text (str/join \newline text-lines)]
-    (binding [*fonts* nil]
-      (parse-exception text nil))))
+    (parse-exception text nil)))
 
 (deftest parse-exceptions
   (is (= [{:class-name "java.lang.IllegalArgumentException"
            :message "No value supplied for key: {:host \"example.com\"}"
-           :stack-trace
-           [{:simple-class "PersistentHashMap"
-             :package "clojure.lang"
-             :omitted true
-             :is-clojure? false
-             :method "create"
-             :name ""
-             :formatted-name "..."
-             :file ""
-             :line nil
-             :class "clojure.lang.PersistentHashMap"
-                         :names          []}
-                        {:simple-class   "client$tcp_client"
-                         :package        "riemann"
-                         :is-clojure?    true
-                         :method         "doInvoke"
-                         :name           "riemann.client/tcp-client"
-                         :formatted-name "riemann.client/tcp-client"
-                         :file           "client.clj"
-                         :line           90
-                         :class          "riemann.client$tcp_client"
-                         :names          '("riemann.client" "tcp-client")}
-                        {:simple-class   "RestFn"
-                         :package        "clojure.lang"
-                         :omitted        true
-                         :is-clojure?    false
-                         :method         "invoke"
-                         :name           ""
-                         :formatted-name "..."
-                         :file           ""
-                         :line           nil
-                         :class          "clojure.lang.RestFn"
-                         :names          []}
-                        {:simple-class   "error_monitor$make_connection"
-                         :package        "com.example"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "com.example.error-monitor/make-connection"
-                         :formatted-name "com.example.error-monitor/make-connection"
-                         :file           "error_monitor.clj"
-                         :line           22
-                         :class          "com.example.error_monitor$make_connection"
-                         :names          '("com.example.error-monitor" "make-connection")}
-                        {:simple-class   "error_monitor$make_client"
-                         :package        "com.example"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "com.example.error-monitor/make-client"
-                         :formatted-name "com.example.error-monitor/make-client"
-                         :file           "error_monitor.clj"
-                         :line           26
-                         :class          "com.example.error_monitor$make_client"
-                         :names          '("com.example.error-monitor" "make-client")}
-                        {:simple-class   "core$map$fn__4553"
-                         :package        "clojure"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "clojure.core/map/fn"
-                         :formatted-name "clojure.core/map/fn"
-                         :file           "core.clj"
-                         :line           2624
-                         :class          "clojure.core$map$fn__4553"
-                         :names          '("clojure.core" "map" "fn")}
-                        {:simple-class   "LazySeq"
-                         :package        "clojure.lang"
-                         :omitted        true
-                         :is-clojure?    false
-                         :method         "sval"
-                         :name           ""
-                         :formatted-name "..."
-                         :file           ""
-                         :line           nil
-                         :class          "clojure.lang.LazySeq"
-                         :names          []}
-                        {:simple-class   "core$seq__4128"
-                         :package        "clojure"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "clojure.core/seq"
-                         :formatted-name "clojure.core/seq"
-                         :file           "core.clj"
-                         :line           137
-                         :class          "clojure.core$seq__4128"
-                         :names          '("clojure.core" "seq")}
-                        {:simple-class   "core$sort"
-                         :package        "clojure"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "clojure.core/sort"
-                         :formatted-name "clojure.core/sort"
-                         :file           "core.clj"
-                         :line           2981
-                         :class          "clojure.core$sort"
-                         :names          '("clojure.core" "sort")}
-                        {:simple-class   "core$sort_by"
-                         :package        "clojure"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "clojure.core/sort-by"
-                         :formatted-name "clojure.core/sort-by"
-                         :file           "core.clj"
-                         :line           2998
-                         :class          "clojure.core$sort_by"
-                         :names          '("clojure.core" "sort-by")}
-                        {:simple-class   "core$sort_by"
-                         :package        "clojure"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "clojure.core/sort-by"
-                         :formatted-name "clojure.core/sort-by"
-                         :file           "core.clj"
-                         :line           2996
-                         :class          "clojure.core$sort_by"
-                         :names          '("clojure.core" "sort-by")}
-                        {:simple-class   "error_monitor$make_clients"
-                         :package        "com.example"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "com.example.error-monitor/make-clients"
-                         :formatted-name "com.example.error-monitor/make-clients"
-                         :file           "error_monitor.clj"
-                         :line           31
-                         :class          "com.example.error_monitor$make_clients"
-                         :names          '("com.example.error-monitor" "make-clients")}
-                        {:simple-class   "error_monitor$report_and_reset"
-                         :package        "com.example"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "com.example.error-monitor/report-and-reset"
-                         :formatted-name "com.example.error-monitor/report-and-reset"
-                         :file           "error_monitor.clj"
-                         :line           185
-                         :class          "com.example.error_monitor$report_and_reset"
-                         :names          '("com.example.error-monitor" "report-and-reset")}
-                        {:simple-class   "main$_main$fn__705"
-                         :package        "com.example.error_monitor"
-                         :is-clojure?    true
-                         :method         "invoke"
-                         :name           "com.example.error-monitor.main/-main/fn"
-                         :formatted-name "com.example.error-monitor.main/-main/fn"
-                         :file           "main.clj"
-                         :line           19
-                         :class          "com.example.error_monitor.main$_main$fn__705"
-                         :names          '("com.example.error-monitor.main" "-main" "fn")}
-                        {:simple-class   "main$_main"
-                         :package        "com.example.error_monitor"
-                         :is-clojure?    true
-                         :method         "doInvoke"
-                         :name           "com.example.error-monitor.main/-main"
-                         :formatted-name "com.example.error-monitor.main/-main"
-                         :file           "main.clj"
-                         :line           16
-                         :class          "com.example.error_monitor.main$_main"
-                         :names          '("com.example.error-monitor.main" "-main")}
-                        {:simple-class   "RestFn"
-                         :package        "clojure.lang"
-                         :omitted        true
-                         :is-clojure?    false
-                         :method         "applyTo"
-                         :name           ""
-                         :formatted-name "..."
-                         :file           ""
-                         :line           nil
-                         :class          "clojure.lang.RestFn"
-                         :names          []}
-                        {:class          "com.example.error_monitor.main"
-                         :file           ""
-                         :formatted-name "com.example.error_monitor.main.main"
-                         :is-clojure?    false
-                         :line           nil
-                         :method         "main"
-                         :name           ""
-                         :names          []
-                         :package        "com.example.error_monitor"
-                         :simple-class   "main"}]}]
+           :stack-trace [{:class "clojure.lang.PersistentHashMap"
+                          :file "PersistentHashMap.java"
+                          :id "clojure.lang.PersistentHashMap.create:77"
+                          :is-clojure? false
+                          :line 77
+                          :method "create"
+                          :name ""
+                          :names []
+                          :omitted true
+                          :package "clojure.lang"
+                          :simple-class "PersistentHashMap"}
+                         {:class "riemann.client$tcp_client"
+                          :file "client.clj"
+                          :id "riemann.client/tcp-client:90"
+                          :is-clojure? true
+                          :line 90
+                          :method "doInvoke"
+                          :name "riemann.client/tcp-client"
+                          :names ["riemann.client"
+                                  "tcp-client"]
+                          :package "riemann"
+                          :simple-class "client$tcp_client"}
+                         {:class "clojure.lang.RestFn"
+                          :file "RestFn.java"
+                          :id "clojure.lang.RestFn.invoke:408"
+                          :is-clojure? false
+                          :line 408
+                          :method "invoke"
+                          :name ""
+                          :names []
+                          :omitted true
+                          :package "clojure.lang"
+                          :simple-class "RestFn"}
+                         {:class "com.example.error_monitor$make_connection"
+                          :file "error_monitor.clj"
+                          :id "com.example.error-monitor/make-connection:22"
+                          :is-clojure? true
+                          :line 22
+                          :method "invoke"
+                          :name "com.example.error-monitor/make-connection"
+                          :names ["com.example.error-monitor"
+                                  "make-connection"]
+                          :package "com.example"
+                          :simple-class "error_monitor$make_connection"}
+                         {:class "com.example.error_monitor$make_client"
+                          :file "error_monitor.clj"
+                          :id "com.example.error-monitor/make-client:26"
+                          :is-clojure? true
+                          :line 26
+                          :method "invoke"
+                          :name "com.example.error-monitor/make-client"
+                          :names ["com.example.error-monitor"
+                                  "make-client"]
+                          :package "com.example"
+                          :simple-class "error_monitor$make_client"}
+                         {:class "clojure.core$map$fn__4553"
+                          :file "core.clj"
+                          :id "clojure.core/map/fn:2624"
+                          :is-clojure? true
+                          :line 2624
+                          :method "invoke"
+                          :name "clojure.core/map/fn"
+                          :names ["clojure.core"
+                                  "map"
+                                  "fn"]
+                          :package "clojure"
+                          :simple-class "core$map$fn__4553"}
+                         {:class "clojure.lang.LazySeq"
+                          :file "LazySeq.java"
+                          :id "clojure.lang.LazySeq.sval:40"
+                          :is-clojure? false
+                          :line 40
+                          :method "sval"
+                          :name ""
+                          :names []
+                          :omitted true
+                          :package "clojure.lang"
+                          :simple-class "LazySeq"}
+                         {:class "clojure.core$seq__4128"
+                          :file "core.clj"
+                          :id "clojure.core/seq:137"
+                          :is-clojure? true
+                          :line 137
+                          :method "invoke"
+                          :name "clojure.core/seq"
+                          :names ["clojure.core"
+                                  "seq"]
+                          :package "clojure"
+                          :simple-class "core$seq__4128"}
+                         {:class "clojure.core$sort"
+                          :file "core.clj"
+                          :id "clojure.core/sort:2981"
+                          :is-clojure? true
+                          :line 2981
+                          :method "invoke"
+                          :name "clojure.core/sort"
+                          :names ["clojure.core"
+                                  "sort"]
+                          :package "clojure"
+                          :simple-class "core$sort"}
+                         {:class "clojure.core$sort_by"
+                          :file "core.clj"
+                          :id "clojure.core/sort-by:2998"
+                          :is-clojure? true
+                          :line 2998
+                          :method "invoke"
+                          :name "clojure.core/sort-by"
+                          :names ["clojure.core"
+                                  "sort-by"]
+                          :package "clojure"
+                          :simple-class "core$sort_by"}
+                         {:class "clojure.core$sort_by"
+                          :file "core.clj"
+                          :id "clojure.core/sort-by:2996"
+                          :is-clojure? true
+                          :line 2996
+                          :method "invoke"
+                          :name "clojure.core/sort-by"
+                          :names ["clojure.core"
+                                  "sort-by"]
+                          :package "clojure"
+                          :simple-class "core$sort_by"}
+                         {:class "com.example.error_monitor$make_clients"
+                          :file "error_monitor.clj"
+                          :id "com.example.error-monitor/make-clients:31"
+                          :is-clojure? true
+                          :line 31
+                          :method "invoke"
+                          :name "com.example.error-monitor/make-clients"
+                          :names ["com.example.error-monitor"
+                                  "make-clients"]
+                          :package "com.example"
+                          :simple-class "error_monitor$make_clients"}
+                         {:class "com.example.error_monitor$report_and_reset"
+                          :file "error_monitor.clj"
+                          :id "com.example.error-monitor/report-and-reset:185"
+                          :is-clojure? true
+                          :line 185
+                          :method "invoke"
+                          :name "com.example.error-monitor/report-and-reset"
+                          :names ["com.example.error-monitor"
+                                  "report-and-reset"]
+                          :package "com.example"
+                          :simple-class "error_monitor$report_and_reset"}
+                         {:class "com.example.error_monitor.main$_main$fn__705"
+                          :file "main.clj"
+                          :id "com.example.error-monitor.main/-main/fn:19"
+                          :is-clojure? true
+                          :line 19
+                          :method "invoke"
+                          :name "com.example.error-monitor.main/-main/fn"
+                          :names ["com.example.error-monitor.main"
+                                  "-main"
+                                  "fn"]
+                          :package "com.example.error_monitor"
+                          :simple-class "main$_main$fn__705"}
+                         {:class "com.example.error_monitor.main$_main"
+                          :file "main.clj"
+                          :id "com.example.error-monitor.main/-main:16"
+                          :is-clojure? true
+                          :line 16
+                          :method "doInvoke"
+                          :name "com.example.error-monitor.main/-main"
+                          :names ["com.example.error-monitor.main"
+                                  "-main"]
+                          :package "com.example.error_monitor"
+                          :simple-class "main$_main"}
+                         {:class "clojure.lang.RestFn"
+                          :file "RestFn.java"
+                          :id "clojure.lang.RestFn.applyTo:137"
+                          :is-clojure? false
+                          :line 137
+                          :method "applyTo"
+                          :name ""
+                          :names []
+                          :omitted true
+                          :package "clojure.lang"
+                          :simple-class "RestFn"}
+                         {:class "com.example.error_monitor.main"
+                          :file ""
+                          :id "com.example.error_monitor.main.main:-1"
+                          :is-clojure? false
+                          :line nil
+                          :method "main"
+                          :name ""
+                          :names []
+                          :package "com.example.error_monitor"
+                          :simple-class "main"}]}]
          (parse "java.lang.IllegalArgumentException: No value supplied for key: {:host \"example.com\"}"
                 "\tat clojure.lang.PersistentHashMap.create(PersistentHashMap.java:77)"
                 "\tat riemann.client$tcp_client.doInvoke(client.clj:90)"
@@ -237,346 +249,359 @@
                 "\tat com.example.error_monitor.main$_main$fn__705.invoke(main.clj:19)"
                 "\tat com.example.error_monitor.main$_main.doInvoke(main.clj:16)"
                 "\tat clojure.lang.RestFn.applyTo(RestFn.java:137)"
-                "\tat com.example.error_monitor.main.main(Unknown Source)"))
+                "\tat com.example.error_monitor.main.main(Unknown Source)")))
 
-      (is (= [{:class-name "java.lang.RuntimeException", :message "Request handling exception"}
-              {:class-name "java.lang.RuntimeException", :message "Failure updating row"}
-              {:class-name  "java.sql.SQLException"
-               :message     "Database failure\nSELECT FOO, BAR, BAZ\nFROM GNIP\nfailed with ABC123"
-               :stack-trace [{:simple-class   "user$jdbc_update"
-                              :package        nil
-                              :is-clojure?    true
-                              :method         "invoke"
-                              :name           "user/jdbc-update"
-                              :formatted-name "user/jdbc-update"
-                              :file           "user.clj"
-                              :line           7
-                              :class          "user$jdbc_update"
-                              :names          '("user" "jdbc-update")}
-                             {:simple-class   "user$make_jdbc_update_worker$reify__497"
-                              :package        nil
-                              :is-clojure?    true
-                              :method         "do_work"
-                              :name           "user/make-jdbc-update-worker/reify/do-work"
-                              :formatted-name "user/make-jdbc-update-worker/reify/do-work"
-                              :file           "user.clj"
-                              :line           18
-                              :class          "user$make_jdbc_update_worker$reify__497"
-                              :names          '("user" "make-jdbc-update-worker" "reify" "do-work")}
-                             {:simple-class   "user$update_row"
-                              :package        nil
-                              :is-clojure?    true
-                              :method         "invoke"
-                              :name           "user/update-row"
-                              :formatted-name "user/update-row"
-                              :file           "user.clj"
-                              :line           23
-                              :class          "user$update_row"
-                              :names          '("user" "update-row")}
-                             {:simple-class   "user$make_exception"
-                              :package        nil
-                              :is-clojure?    true
-                              :method         "invoke"
-                              :name           "user/make-exception"
-                              :formatted-name "user/make-exception"
-                              :file           "user.clj"
-                              :line           31
-                              :class          "user$make_exception"
-                              :names          '("user" "make-exception")}
-                             {:simple-class   "user$eval2018"
-                              :package        nil
-                              :is-clojure?    true
-                              :method         "invoke"
-                              :name           "user/eval2018"
-                              :formatted-name "user/eval2018"
-                              :file           "REPL Input"
-                              :line           nil
-                              :class          "user$eval2018"
-                              :names          '("user" "eval2018")}
-                             {:simple-class   "Compiler"
-                              :package        "clojure.lang"
-                              :omitted        true
-                              :is-clojure?    false
-                              :method         "eval"
-                              :name           ""
-                              :formatted-name "..."
-                              :file           ""
-                              :line           nil
-                              :class          "clojure.lang.Compiler"
-                              :names          []}
-                             {:simple-class   "core$eval"
-                              :package        "clojure"
-                              :is-clojure?    true
-                              :method         "invoke"
-                              :name           "clojure.core/eval"
-                              :formatted-name "clojure.core/eval"
-                              :file           "core.clj"
-                              :line           2852
-                              :class          "clojure.core$eval"
-                              :names          '("clojure.core" "eval")}]}]
-             (parse "java.lang.RuntimeException: Request handling exception"
-                    "\tat user$make_exception.invoke(user.clj:31)"
-                    "\tat user$eval2018.invoke(form-init1482095333541107022.clj:1)"
-                    "\tat clojure.lang.Compiler.eval(Compiler.java:6619)"
-                    "\tat clojure.lang.Compiler.eval(Compiler.java:6582)"
-                    "\tat clojure.core$eval.invoke(core.clj:2852)"
-                    "\tat clojure.main$repl$read_eval_print__6602$fn__6605.invoke(main.clj:259)"
-                    "\tat clojure.main$repl$read_eval_print__6602.invoke(main.clj:259)"
-                    "\tat clojure.main$repl$fn__6611$fn__6612.invoke(main.clj:277)"
-                    "\tat clojure.main$repl$fn__6611.invoke(main.clj:277)"
-                    "\tat clojure.main$repl.doInvoke(main.clj:275)"
-                    "\tat clojure.lang.RestFn.invoke(RestFn.java:1523)"
-                    "\tat clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1419.invoke(interruptible_eval.clj:72)"
-                    "\tat clojure.lang.AFn.applyToHelper(AFn.java:159)"
-                    "\tat clojure.lang.AFn.applyTo(AFn.java:151)"
-                    "\tat clojure.core$apply.invoke(core.clj:617)"
-                    "\tat clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)"
-                    "\tat clojure.lang.RestFn.invoke(RestFn.java:425)"
-                    "\tat clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:56)"
-                    "\tat clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1461$fn__1464.invoke(interruptible_eval.clj:191)"
-                    "\tat clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1456.invoke(interruptible_eval.clj:159)"
-                    "\tat clojure.lang.AFn.run(AFn.java:24)"
-                    "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)"
-                    "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)"
-                    "\tat java.lang.Thread.run(Thread.java:745)"
-                    "Caused by: java.lang.RuntimeException: Failure updating row"
-                    "\tat user$update_row.invoke(user.clj:23)"
-                    "\t... 24 more"
-                    "Caused by: java.sql.SQLException: Database failure"
-                    "SELECT FOO, BAR, BAZ"
-                    "FROM GNIP"
-                    "failed with ABC123"
-                    "\tat user$jdbc_update.invoke(user.clj:7)"
-                    "\tat user$make_jdbc_update_worker$reify__497.do_work(user.clj:18)"
-                    "\t... 25 more"))
+  (is (= [{:class-name "java.lang.RuntimeException"
+           :message "Request handling exception"}
+          {:class-name "java.lang.RuntimeException"
+           :message "Failure updating row"}
+          {:class-name "java.sql.SQLException"
+           :message "Database failure
+SELECT FOO, BAR, BAZ
+FROM GNIP
+failed with ABC123"
+           :stack-trace [{:class "user$jdbc_update"
+                          :file "user.clj"
+                          :id "user/jdbc-update:7"
+                          :is-clojure? true
+                          :line 7
+                          :method "invoke"
+                          :name "user/jdbc-update"
+                          :names ["user"
+                                  "jdbc-update"]
+                          :package nil
+                          :simple-class "user$jdbc_update"}
+                         {:class "user$make_jdbc_update_worker$reify__497"
+                          :file "user.clj"
+                          :id "user/make-jdbc-update-worker/reify/do-work:18"
+                          :is-clojure? true
+                          :line 18
+                          :method "do_work"
+                          :name "user/make-jdbc-update-worker/reify/do-work"
+                          :names ["user"
+                                  "make-jdbc-update-worker"
+                                  "reify"
+                                  "do-work"]
+                          :package nil
+                          :simple-class "user$make_jdbc_update_worker$reify__497"}
+                         {:class "user$update_row"
+                          :file "user.clj"
+                          :id "user/update-row:23"
+                          :is-clojure? true
+                          :line 23
+                          :method "invoke"
+                          :name "user/update-row"
+                          :names ["user"
+                                  "update-row"]
+                          :package nil
+                          :simple-class "user$update_row"}
+                         {:class "user$make_exception"
+                          :file "user.clj"
+                          :id "user/make-exception:31"
+                          :is-clojure? true
+                          :line 31
+                          :method "invoke"
+                          :name "user/make-exception"
+                          :names ["user"
+                                  "make-exception"]
+                          :package nil
+                          :simple-class "user$make_exception"}
+                         {:class "user$eval2018"
+                          :file "REPL Input"
+                          :id "user/eval2018"
+                          :is-clojure? true
+                          :line nil
+                          :method "invoke"
+                          :name "user/eval2018"
+                          :names ["user"
+                                  "eval2018"]
+                          :package nil
+                          :simple-class "user$eval2018"}
+                         {:class "clojure.lang.Compiler"
+                          :file "Compiler.java"
+                          :id "clojure.lang.Compiler.eval:6619"
+                          :is-clojure? false
+                          :line 6619
+                          :method "eval"
+                          :name ""
+                          :names []
+                          :omitted true
+                          :package "clojure.lang"
+                          :simple-class "Compiler"}
+                         {:class "clojure.core$eval"
+                          :file "core.clj"
+                          :id "clojure.core/eval:2852"
+                          :is-clojure? true
+                          :line 2852
+                          :method "invoke"
+                          :name "clojure.core/eval"
+                          :names ["clojure.core"
+                                  "eval"]
+                          :package "clojure"
+                          :simple-class "core$eval"}]}]
+         (parse "java.lang.RuntimeException: Request handling exception"
+                "\tat user$make_exception.invoke(user.clj:31)"
+                "\tat user$eval2018.invoke(form-init1482095333541107022.clj:1)"
+                "\tat clojure.lang.Compiler.eval(Compiler.java:6619)"
+                "\tat clojure.lang.Compiler.eval(Compiler.java:6582)"
+                "\tat clojure.core$eval.invoke(core.clj:2852)"
+                "\tat clojure.main$repl$read_eval_print__6602$fn__6605.invoke(main.clj:259)"
+                "\tat clojure.main$repl$read_eval_print__6602.invoke(main.clj:259)"
+                "\tat clojure.main$repl$fn__6611$fn__6612.invoke(main.clj:277)"
+                "\tat clojure.main$repl$fn__6611.invoke(main.clj:277)"
+                "\tat clojure.main$repl.doInvoke(main.clj:275)"
+                "\tat clojure.lang.RestFn.invoke(RestFn.java:1523)"
+                "\tat clojure.tools.nrepl.middleware.interruptible_eval$evaluate$fn__1419.invoke(interruptible_eval.clj:72)"
+                "\tat clojure.lang.AFn.applyToHelper(AFn.java:159)"
+                "\tat clojure.lang.AFn.applyTo(AFn.java:151)"
+                "\tat clojure.core$apply.invoke(core.clj:617)"
+                "\tat clojure.core$with_bindings_STAR_.doInvoke(core.clj:1788)"
+                "\tat clojure.lang.RestFn.invoke(RestFn.java:425)"
+                "\tat clojure.tools.nrepl.middleware.interruptible_eval$evaluate.invoke(interruptible_eval.clj:56)"
+                "\tat clojure.tools.nrepl.middleware.interruptible_eval$interruptible_eval$fn__1461$fn__1464.invoke(interruptible_eval.clj:191)"
+                "\tat clojure.tools.nrepl.middleware.interruptible_eval$run_next$fn__1456.invoke(interruptible_eval.clj:159)"
+                "\tat clojure.lang.AFn.run(AFn.java:24)"
+                "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)"
+                "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)"
+                "\tat java.lang.Thread.run(Thread.java:745)"
+                "Caused by: java.lang.RuntimeException: Failure updating row"
+                "\tat user$update_row.invoke(user.clj:23)"
+                "\t... 24 more"
+                "Caused by: java.sql.SQLException: Database failure"
+                "SELECT FOO, BAR, BAZ"
+                "FROM GNIP"
+                "failed with ABC123"
+                "\tat user$jdbc_update.invoke(user.clj:7)"
+                "\tat user$make_jdbc_update_worker$reify__497.do_work(user.clj:18)"
+                "\t... 25 more")))
 
-          (is (= [{:class-name "com.datastax.driver.core.TransportException", :message "/17.76.3.14:9042 Cannot connect"}
-                  {:class-name "java.net.ConnectException",
-                   :message "Connection refused: /17.76.3.14:9042",
-                   :stack-trace [{:simple-class "SocketChannelImpl"
-                                  :package "sun.nio.ch"
-                                  :is-clojure? false
-                                  :method "checkConnect"
-                                  :name ""
-                                  :formatted-name "sun.nio.ch.SocketChannelImpl.checkConnect"
-                                  :file ""
-                                  :line nil
-                                  :class "sun.nio.ch.SocketChannelImpl"
-                                  :names []}
-                                 {:simple-class "SocketChannelImpl"
-                                  :package "sun.nio.ch"
-                                  :is-clojure? false
-                                  :method "finishConnect"
-                                  :name ""
-                                  :formatted-name "sun.nio.ch.SocketChannelImpl.finishConnect"
-                                  :file "SocketChannelImpl.java"
-                                  :line 717
-                                  :class "sun.nio.ch.SocketChannelImpl"
-                                  :names []}
-                                 {:simple-class "NioClientBoss"
-                                  :package "com.datastax.shaded.netty.channel.socket.nio"
-                                  :is-clojure? false
-                                  :method "connect"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.connect"
-                                  :file "NioClientBoss.java"
-                                  :line 150
-                                  :class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
-                                  :names []}
-                                 {:simple-class "NioClientBoss"
-                                  :package "com.datastax.shaded.netty.channel.socket.nio"
-                                  :is-clojure? false
-                                  :method "processSelectedKeys"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.processSelectedKeys"
-                                  :file "NioClientBoss.java"
-                                  :line 105
-                                  :class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
-                                  :names []}
-                                 {:simple-class "NioClientBoss"
-                                  :package "com.datastax.shaded.netty.channel.socket.nio"
-                                  :is-clojure? false
-                                  :method "process"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.process"
-                                  :file "NioClientBoss.java"
-                                  :line 79
-                                  :class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
-                                  :names []}
-                                 {:simple-class "AbstractNioSelector"
-                                  :package "com.datastax.shaded.netty.channel.socket.nio"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.channel.socket.nio.AbstractNioSelector.run"
-                                  :file "AbstractNioSelector.java"
-                                  :line 318
-                                  :class "com.datastax.shaded.netty.channel.socket.nio.AbstractNioSelector"
-                                  :names []}
-                                 {:simple-class "NioClientBoss"
-                                  :package "com.datastax.shaded.netty.channel.socket.nio"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.run"
-                                  :file "NioClientBoss.java"
-                                  :line 42
-                                  :class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
-                                  :names []}
-                                 {:simple-class "ThreadRenamingRunnable"
-                                  :package "com.datastax.shaded.netty.util"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.util.ThreadRenamingRunnable.run"
-                                  :file "ThreadRenamingRunnable.java"
-                                  :line 108
-                                  :class "com.datastax.shaded.netty.util.ThreadRenamingRunnable"
-                                  :names []}
-                                 {:simple-class "DeadLockProofWorker$1"
-                                  :package "com.datastax.shaded.netty.util.internal"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run"
-                                  :file "DeadLockProofWorker.java"
-                                  :line 42
-                                  :class "com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1"
-                                  :names []}
-                                 {:simple-class "Connection"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "<init>"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.Connection.<init>"
-                                  :file "Connection.java"
-                                  :line 104
-                                  :class "com.datastax.driver.core.Connection"
-                                  :names []}
-                                 {:simple-class "PooledConnection"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "<init>"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.PooledConnection.<init>"
-                                  :file "PooledConnection.java"
-                                  :line 32
-                                  :class "com.datastax.driver.core.PooledConnection"
-                                  :names []}
-                                 {:simple-class "Connection$Factory"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "open"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.Connection$Factory.open"
-                                  :file "Connection.java"
-                                  :line 557
-                                  :class "com.datastax.driver.core.Connection$Factory"
-                                  :names []}
-                                 {:simple-class "DynamicConnectionPool"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "<init>"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.DynamicConnectionPool.<init>"
-                                  :file "DynamicConnectionPool.java"
-                                  :line 74
-                                  :class "com.datastax.driver.core.DynamicConnectionPool"
-                                  :names []}
-                                 {:simple-class "HostConnectionPool"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "newInstance"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.HostConnectionPool.newInstance"
-                                  :file "HostConnectionPool.java"
-                                  :line 33
-                                  :class "com.datastax.driver.core.HostConnectionPool"
-                                  :names []}
-                                 {:simple-class "SessionManager$2"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "call"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.SessionManager$2.call"
-                                  :file "SessionManager.java"
-                                  :line 231
-                                  :class "com.datastax.driver.core.SessionManager$2"
-                                  :names []}
-                                 {:simple-class "SessionManager$2"
-                                  :package "com.datastax.driver.core"
-                                  :is-clojure? false
-                                  :method "call"
-                                  :name ""
-                                  :formatted-name "com.datastax.driver.core.SessionManager$2.call"
-                                  :file "SessionManager.java"
-                                  :line 224
-                                  :class "com.datastax.driver.core.SessionManager$2"
-                                  :names []}
-                                 {:simple-class "FutureTask"
-                                  :package "java.util.concurrent"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "java.util.concurrent.FutureTask.run"
-                                  :file "FutureTask.java"
-                                  :line 266
-                                  :class "java.util.concurrent.FutureTask"
-                                  :names []}
-                                 {:simple-class "ThreadPoolExecutor"
-                                  :package "java.util.concurrent"
-                                  :is-clojure? false
-                                  :method "runWorker"
-                                  :name ""
-                                  :formatted-name "java.util.concurrent.ThreadPoolExecutor.runWorker"
-                                  :file "ThreadPoolExecutor.java"
-                                  :line 1142
-                                  :class "java.util.concurrent.ThreadPoolExecutor"
-                                  :names []}
-                                 {:simple-class "ThreadPoolExecutor$Worker"
-                                  :package "java.util.concurrent"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "java.util.concurrent.ThreadPoolExecutor$Worker.run"
-                                  :file "ThreadPoolExecutor.java"
-                                  :line 617
-                                  :class "java.util.concurrent.ThreadPoolExecutor$Worker"
-                                  :names []}
-                                 {:simple-class "Thread"
-                                  :package "java.lang"
-                                  :is-clojure? false
-                                  :method "run"
-                                  :name ""
-                                  :formatted-name "java.lang.Thread.run"
-                                  :file "Thread.java"
-                                  :line 745
-                                  :class "java.lang.Thread"
-                                  :names []}]}]
-
-                 (parse "com.datastax.driver.core.TransportException: /17.76.3.14:9042 Cannot connect"
-                        "\tat com.datastax.driver.core.Connection.<init>(Connection.java:104) ~store-service.jar:na"
-                        "\tat com.datastax.driver.core.PooledConnection.<init>(PooledConnection.java:32) ~store-service.jar:na"
-                        "\tat com.datastax.driver.core.Connection$Factory.open(Connection.java:557) ~store-service.jar:na"
-                        "\tat com.datastax.driver.core.DynamicConnectionPool.<init>(DynamicConnectionPool.java:74) ~store-service.jar:na"
-                        "\tat com.datastax.driver.core.HostConnectionPool.newInstance(HostConnectionPool.java:33) ~store-service.jar:na"
-                        "\tat com.datastax.driver.core.SessionManager$2.call(SessionManager.java:231) store-service.jar:na"
-                        "\tat com.datastax.driver.core.SessionManager$2.call(SessionManager.java:224) store-service.jar:na"
-                        "\tat java.util.concurrent.FutureTask.run(FutureTask.java:266) na:1.8.0_66"
-                        "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) na:1.8.0_66"
-                        "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) na:1.8.0_66"
-                        "\tat java.lang.Thread.run(Thread.java:745) na:1.8.0_66"
-                        "Caused by: java.net.ConnectException: Connection refused: /17.76.3.14:9042"
-                        "\tat sun.nio.ch.SocketChannelImpl.checkConnect(Native Method) ~na:1.8.0_66"
-                        "\tat sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:717) ~na:1.8.0_66"
-                        "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.connect(NioClientBoss.java:150) ~store-service.jar:na"
-                        "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.processSelectedKeys(NioClientBoss.java:105) ~store-service.jar:na"
-                        "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.process(NioClientBoss.java:79) ~store-service.jar:na"
-                        "\tat com.datastax.shaded.netty.channel.socket.nio.AbstractNioSelector.run(AbstractNioSelector.java:318) ~store-service.jar:na"
-                        "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.run(NioClientBoss.java:42) ~store-service.jar:na"
-                        "\tat com.datastax.shaded.netty.util.ThreadRenamingRunnable.run(ThreadRenamingRunnable.java:108) ~store-service.jar:na"
-                        "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
-                        "\t... 3 common frames omitted"))))))
+  (is (= [{:class-name "com.datastax.driver.core.TransportException"
+           :message "/17.76.3.14:9042 Cannot connect"}
+          {:class-name "java.net.ConnectException"
+           :message "Connection refused: /17.76.3.14:9042"
+           :stack-trace [{:class "sun.nio.ch.SocketChannelImpl"
+                          :file ""
+                          :id "sun.nio.ch.SocketChannelImpl.checkConnect:-1"
+                          :is-clojure? false
+                          :line nil
+                          :method "checkConnect"
+                          :name ""
+                          :names []
+                          :package "sun.nio.ch"
+                          :simple-class "SocketChannelImpl"}
+                         {:class "sun.nio.ch.SocketChannelImpl"
+                          :file "SocketChannelImpl.java"
+                          :id "sun.nio.ch.SocketChannelImpl.finishConnect:717"
+                          :is-clojure? false
+                          :line 717
+                          :method "finishConnect"
+                          :name ""
+                          :names []
+                          :package "sun.nio.ch"
+                          :simple-class "SocketChannelImpl"}
+                         {:class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
+                          :file "NioClientBoss.java"
+                          :id "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.connect:150"
+                          :is-clojure? false
+                          :line 150
+                          :method "connect"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.channel.socket.nio"
+                          :simple-class "NioClientBoss"}
+                         {:class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
+                          :file "NioClientBoss.java"
+                          :id "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.processSelectedKeys:105"
+                          :is-clojure? false
+                          :line 105
+                          :method "processSelectedKeys"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.channel.socket.nio"
+                          :simple-class "NioClientBoss"}
+                         {:class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
+                          :file "NioClientBoss.java"
+                          :id "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.process:79"
+                          :is-clojure? false
+                          :line 79
+                          :method "process"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.channel.socket.nio"
+                          :simple-class "NioClientBoss"}
+                         {:class "com.datastax.shaded.netty.channel.socket.nio.AbstractNioSelector"
+                          :file "AbstractNioSelector.java"
+                          :id "com.datastax.shaded.netty.channel.socket.nio.AbstractNioSelector.run:318"
+                          :is-clojure? false
+                          :line 318
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.channel.socket.nio"
+                          :simple-class "AbstractNioSelector"}
+                         {:class "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss"
+                          :file "NioClientBoss.java"
+                          :id "com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.run:42"
+                          :is-clojure? false
+                          :line 42
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.channel.socket.nio"
+                          :simple-class "NioClientBoss"}
+                         {:class "com.datastax.shaded.netty.util.ThreadRenamingRunnable"
+                          :file "ThreadRenamingRunnable.java"
+                          :id "com.datastax.shaded.netty.util.ThreadRenamingRunnable.run:108"
+                          :is-clojure? false
+                          :line 108
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.util"
+                          :simple-class "ThreadRenamingRunnable"}
+                         {:class "com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1"
+                          :file "DeadLockProofWorker.java"
+                          :id "com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run:42"
+                          :is-clojure? false
+                          :line 42
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "com.datastax.shaded.netty.util.internal"
+                          :simple-class "DeadLockProofWorker$1"}
+                         {:class "com.datastax.driver.core.Connection"
+                          :file "Connection.java"
+                          :id "com.datastax.driver.core.Connection.<init>:104"
+                          :is-clojure? false
+                          :line 104
+                          :method "<init>"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "Connection"}
+                         {:class "com.datastax.driver.core.PooledConnection"
+                          :file "PooledConnection.java"
+                          :id "com.datastax.driver.core.PooledConnection.<init>:32"
+                          :is-clojure? false
+                          :line 32
+                          :method "<init>"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "PooledConnection"}
+                         {:class "com.datastax.driver.core.Connection$Factory"
+                          :file "Connection.java"
+                          :id "com.datastax.driver.core.Connection$Factory.open:557"
+                          :is-clojure? false
+                          :line 557
+                          :method "open"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "Connection$Factory"}
+                         {:class "com.datastax.driver.core.DynamicConnectionPool"
+                          :file "DynamicConnectionPool.java"
+                          :id "com.datastax.driver.core.DynamicConnectionPool.<init>:74"
+                          :is-clojure? false
+                          :line 74
+                          :method "<init>"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "DynamicConnectionPool"}
+                         {:class "com.datastax.driver.core.HostConnectionPool"
+                          :file "HostConnectionPool.java"
+                          :id "com.datastax.driver.core.HostConnectionPool.newInstance:33"
+                          :is-clojure? false
+                          :line 33
+                          :method "newInstance"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "HostConnectionPool"}
+                         {:class "com.datastax.driver.core.SessionManager$2"
+                          :file "SessionManager.java"
+                          :id "com.datastax.driver.core.SessionManager$2.call:231"
+                          :is-clojure? false
+                          :line 231
+                          :method "call"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "SessionManager$2"}
+                         {:class "com.datastax.driver.core.SessionManager$2"
+                          :file "SessionManager.java"
+                          :id "com.datastax.driver.core.SessionManager$2.call:224"
+                          :is-clojure? false
+                          :line 224
+                          :method "call"
+                          :name ""
+                          :names []
+                          :package "com.datastax.driver.core"
+                          :simple-class "SessionManager$2"}
+                         {:class "java.util.concurrent.FutureTask"
+                          :file "FutureTask.java"
+                          :id "java.util.concurrent.FutureTask.run:266"
+                          :is-clojure? false
+                          :line 266
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "java.util.concurrent"
+                          :simple-class "FutureTask"}
+                         {:class "java.util.concurrent.ThreadPoolExecutor"
+                          :file "ThreadPoolExecutor.java"
+                          :id "java.util.concurrent.ThreadPoolExecutor.runWorker:1142"
+                          :is-clojure? false
+                          :line 1142
+                          :method "runWorker"
+                          :name ""
+                          :names []
+                          :package "java.util.concurrent"
+                          :simple-class "ThreadPoolExecutor"}
+                         {:class "java.util.concurrent.ThreadPoolExecutor$Worker"
+                          :file "ThreadPoolExecutor.java"
+                          :id "java.util.concurrent.ThreadPoolExecutor$Worker.run:617"
+                          :is-clojure? false
+                          :line 617
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "java.util.concurrent"
+                          :simple-class "ThreadPoolExecutor$Worker"}
+                         {:class "java.lang.Thread"
+                          :file "Thread.java"
+                          :id "java.lang.Thread.run:745"
+                          :is-clojure? false
+                          :line 745
+                          :method "run"
+                          :name ""
+                          :names []
+                          :package "java.lang"
+                          :simple-class "Thread"}]}]
+         (parse "com.datastax.driver.core.TransportException: /17.76.3.14:9042 Cannot connect"
+                "\tat com.datastax.driver.core.Connection.<init>(Connection.java:104) ~store-service.jar:na"
+                "\tat com.datastax.driver.core.PooledConnection.<init>(PooledConnection.java:32) ~store-service.jar:na"
+                "\tat com.datastax.driver.core.Connection$Factory.open(Connection.java:557) ~store-service.jar:na"
+                "\tat com.datastax.driver.core.DynamicConnectionPool.<init>(DynamicConnectionPool.java:74) ~store-service.jar:na"
+                "\tat com.datastax.driver.core.HostConnectionPool.newInstance(HostConnectionPool.java:33) ~store-service.jar:na"
+                "\tat com.datastax.driver.core.SessionManager$2.call(SessionManager.java:231) store-service.jar:na"
+                "\tat com.datastax.driver.core.SessionManager$2.call(SessionManager.java:224) store-service.jar:na"
+                "\tat java.util.concurrent.FutureTask.run(FutureTask.java:266) na:1.8.0_66"
+                "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142) na:1.8.0_66"
+                "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) na:1.8.0_66"
+                "\tat java.lang.Thread.run(Thread.java:745) na:1.8.0_66"
+                "Caused by: java.net.ConnectException: Connection refused: /17.76.3.14:9042"
+                "\tat sun.nio.ch.SocketChannelImpl.checkConnect(Native Method) ~na:1.8.0_66"
+                "\tat sun.nio.ch.SocketChannelImpl.finishConnect(SocketChannelImpl.java:717) ~na:1.8.0_66"
+                "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.connect(NioClientBoss.java:150) ~store-service.jar:na"
+                "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.processSelectedKeys(NioClientBoss.java:105) ~store-service.jar:na"
+                "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.process(NioClientBoss.java:79) ~store-service.jar:na"
+                "\tat com.datastax.shaded.netty.channel.socket.nio.AbstractNioSelector.run(AbstractNioSelector.java:318) ~store-service.jar:na"
+                "\tat com.datastax.shaded.netty.channel.socket.nio.NioClientBoss.run(NioClientBoss.java:42) ~store-service.jar:na"
+                "\tat com.datastax.shaded.netty.util.ThreadRenamingRunnable.run(ThreadRenamingRunnable.java:108) ~store-service.jar:na"
+                "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
+                "\t... 3 common frames omitted"))))
 
 
 (deftest write-exceptions-with-nil-data

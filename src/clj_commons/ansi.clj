@@ -66,6 +66,7 @@
   ^String [string]
   (str/replace string ansi-pattern ""))
 
+;; TODO: Remove
 (defn visual-length
   "Returns the length of the string, with ANSI codes stripped out."
   [string]
@@ -100,23 +101,31 @@
 
 (defn- compose-font
   ^String [active current]
-  (let [codes (keep #(delta active current %) [:foreground :background :bold :italic :inverse :underlined])]
-    (when (and *color-enabled* (seq codes))
-      (str csi (str/join ";" codes) sgr))))
+  (when *color-enabled*
+    (let [codes (keep #(delta active current %) [:foreground :background :bold :italic :inverse :underlined])]
+      (when (seq codes)
+        (str csi (str/join ";" codes) sgr)))))
 
-(defn- parse-font-def
+(defn- split-font-def*
+  [font-def]
+  (assert (simple-keyword? font-def) "expected a simple keyword to define the font characteristics")
+  (mapv keyword (str/split (name font-def) #"\.")))
+
+(def ^:private split-font-def (memoize split-font-def*))
+
+(defn- update-font-data-from-font-def
   [font-data font-def]
-  (when (some? font-def)
-    (assert (simple-keyword? font-def) "expected a simple keyword to define the font characteristics")
-    (let [ks (str/split (name font-def) #"\.")
+  (if (some? font-def)
+    (let [ks (split-font-def font-def)
           f (fn [font-data term]
               (let [[font-k font-value] (or (get font-terms term)
                                             (throw (ex-info (str "unexpected font term: " term)
                                                             {:font-term term
                                                              :font-def font-def
                                                              :available-terms (->> font-terms keys sort vec)})))]
-                (assoc font-data font-k font-value)))]
-      (reduce f font-data (map keyword ks)))))
+                (assoc! font-data font-k font-value)))]
+      (persistent! (reduce f (transient font-data) ks)))
+    font-data))
 
 (defn- collect-markup
   [state input]
@@ -131,7 +140,7 @@
           {:keys [current]} state
           state' (reduce collect-markup
                    (-> state
-                     (assoc :current (parse-font-def current font-def))
+                     (update :current update-font-data-from-font-def font-def)
                      (update :stack conj current))
                    inputs)]
       (-> state'
@@ -143,19 +152,31 @@
     (reduce collect-markup state input)
 
     :else
-    (let [{:keys [active current ^StringBuilder buffer]} state
+    (let [{:keys [active current ^StringBuilder buffer *width]} state
           state' (if (= active current)
                    state
                    (let [font-str (compose-font active current)]
                      (when font-str
                        (.append buffer font-str))
                      (cond-> (assoc state :active current)
-                             font-str (assoc :dirty? true))))]
-      (.append buffer (str input))
+                             font-str (assoc :dirty? true))))
+          input-str (str input)]
+      (.append buffer input-str)
+      ;; width is the sum of all the concatenated strings excluding the ANSI codes
+      (vswap! *width + (.length input-str))
       state')))
 
 (defn compose*
-  [inputs]
+  "The underlying implementation of [[compose]]; accepts as single input value
+  and returns a map with keys :value and :width.
+
+  :value is the final string, including all ANSI codes (when enabled).
+
+  :width is the visual width of the value; the sum of all the stringified values excluding ANSI codes.
+
+  Note that width will not be accurate if the values include newlines or ANSI codes, it is simply the total
+  length of all the strings."
+  [input]
   (let [initial-font {:foreground "39"
                       :background "49"
                       :bold "22"
@@ -163,14 +184,17 @@
                       :inverse "27"
                       :underlined "24"}
         buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:stack ()
+        *width (volatile! 0)
+        {:keys [dirty?]} (collect-markup {:stack []
                                           :active initial-font
                                           :current initial-font
-                                          :buffer buffer}
-                                         inputs)]
+                                          :buffer buffer
+                                          :*width *width}
+                                         input)]
     (when dirty?
       (.append buffer reset-font))
-    (.toString buffer)))
+    {:value (.toString buffer)
+     :width @*width}))
 
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes necessary ANSI codes.
@@ -212,15 +236,15 @@
   A font def may also be nil, to indicate no change in font.
 
   `compose` presumes that on entry the current font is plain (default foreground and background, not bold,
-   or inverse, or italic) and appends a [[reset-font]] to the end of the returned string to
+   or inverse, or italic, or underlined) and appends a [[reset-font]] to the end of the returned string to
    ensure that later output is also plain.
 
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
-  When `*color-enabled*` is false, the result is just the concatenation of all the values, skipping nils
+  When [[*color-enabled*]] is false, the result is just the concatenation of all the values, skipping nils
   and ignoring font defs.
   "
   {:added "1.4.0"}
   [& inputs]
-  (compose* inputs))
+  (:value (compose* inputs)))
 
