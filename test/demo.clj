@@ -97,6 +97,7 @@
 
   ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
   ;; 13 Sep 2021 -  401 µs (16 µs std dev) - Clojure 1.11.1
+  ;; 20 Jun 2023 -  713 µs (30 µs std dev) - Clojure 1.11.1, Corretto 17.0.7, M1
 
   (let [e (make-ex-info)]
     (c/bench (e/format-exception e)))
