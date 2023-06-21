@@ -4,7 +4,8 @@
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clj-commons.ansi :refer [compose]])
+            [clj-commons.ansi :refer [compose]]
+            [clj-commons.format.impl :refer [padding]])
   (:import (java.lang StringBuilder StackTraceElement)
            (clojure.lang Compiler ExceptionInfo Named)
            (java.util.regex Pattern)))
@@ -385,14 +386,9 @@
        :line (str line)
        :repeats repeats})))
 
-(defn padding
+(defn field-padding
   [max-width field-width]
-  (if (= max-width field-width)
-    nil
-    (let [sb (StringBuilder. (int max-width))]
-      (dotimes [_ (- max-width field-width)]
-        (.append sb \space))
-      (.toString sb))))
+  (padding (- max-width field-width)))
 
 (defn- transform-stack-trace-elements
   "Converts a seq of StackTraceElements into a seq of stack trace maps."
@@ -509,15 +505,15 @@
         max-line-width (max-from rows #(-> % :line length))
         f (fn [{:keys [name name-width file line repeats]}]
             (list
-              (padding max-name-width name-width)
+              (field-padding max-name-width name-width)
               name
               " "
               [source-font
-               (padding max-file-width (length file))]
+               (field-padding max-file-width (length file))]
               file
               (when line ":")
               " "
-              (padding max-line-width (length line))
+              (field-padding max-line-width (length line))
               line
               (when repeats
                 (format " (repeats %,d times)" repeats))))]
@@ -552,7 +548,7 @@
 (defn- indented-value
   [indentation s]
   (let [lines (str/split-lines s)
-        sep (str "\n" (padding indentation 0))]
+        sep (str "\n" (field-padding indentation 0))]
     (interpose sep lines)))
 
 (defn- format-property-value
@@ -592,7 +588,7 @@
         exception-f (fn [{:keys [class-name message properties]}]
                       (list
                         [exception-font
-                         (padding max-class-name-width (length class-name))
+                         (field-padding max-class-name-width (length class-name))
                          class-name]
                         ":"
                         (when message
@@ -608,7 +604,7 @@
                             (map (fn [k]
                                    (list "\n    "
                                          [property-font
-                                          (padding max-key-width (length k))
+                                          (field-padding max-key-width (length k))
                                           k]
                                          ": "
                                          [property-font

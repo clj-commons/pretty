@@ -22,11 +22,11 @@
 
   This will be false if the environment variable NO_COLOR is non-blank.
 
-  The JVM system property `clj-commons.ansi.enabled` (if present) determines
+  Otherwise, the JVM system property `clj-commons.ansi.enabled` (if present) determines
   the value; \"true\" enables colors, any other value disables colors.
 
   If the property is null, then the default is a best guess based on the environment:
-  if either the nrepl.core namespace is present, or the JVM has a console  (via `(System/console)`),
+  if either the `nrepl.core` namespace is present, or the JVM has a console  (via `(System/console)`),
   then color will be enabled.
 
   The nrepl.core check has been verified to work with Cursive, with `lein repl`, and with `clojure` (or `clj`)."
@@ -43,6 +43,7 @@
         (some? (System/console))))))
 
 (defmacro when-color-enabled
+  "Evaluates its body only when [[*color-enabled*]] is true."
   [& body]
   `(when *color-enabled* ~@body))
 
@@ -56,21 +57,8 @@
   "m")
 
 (def ^:const reset-font
-  "Resets all font characteristics."
+  "ANSI escape code to resets all font characteristics."
   (str csi sgr))
-
-(def ^:const ^:private ansi-pattern #"\e\[.*?m")
-
-(defn strip-ansi
-  "Removes ANSI font characteristic codes from a string, returning just the plain text."
-  ^String [string]
-  (str/replace string ansi-pattern ""))
-
-;; TODO: Remove
-(defn visual-length
-  "Returns the length of the string, with ANSI codes stripped out."
-  [string]
-  (-> string strip-ansi .length))
 
 (def ^:private font-terms
   (reduce merge
@@ -94,14 +82,15 @@
                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
-(defn- delta [active current k]
+(defn- delta
+  [active current k]
   (let [current-value (get current k)]
     (when (not= (get active k) current-value)
       current-value)))
 
 (defn- compose-font
   ^String [active current]
-  (when *color-enabled*
+  (when-color-enabled
     (let [codes (keep #(delta active current %) [:foreground :background :bold :italic :inverse :underlined])]
       (when (seq codes)
         (str csi (str/join ";" codes) sgr)))))
