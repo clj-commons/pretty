@@ -26,7 +26,10 @@
 
   ;; clj -M:test:demo
   :demo
-  {:main-opts ["-m" "demo"]}}
+  {:main-opts ["-m" "demo"]}
+
+  :repl
+  {:main-opts ["-m" "clj-commons.pretty.repl"]}}
 
  :net.lewisship.build/scm
  {:url "https://github.com/AvisoNovate/pretty"}
