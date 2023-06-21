@@ -178,20 +178,29 @@
 (def ^:private clojure-extensions
   #{"clj" "cljc"})
 
+(defn- is-repl-input?
+  [file-name]
+  (boolean
+    (or
+      (= "NO_SOURCE_FILE" file-name)
+      ; This pattern comes from somewhere inside nREPL, I believe - may be dated
+      (re-matches #"form-init\d+\.clj" file-name))))
+
 (defn- expand-stack-trace-element
   [file-name-prefix ^StackTraceElement element]
-  (let [class-name  (.getClassName element)
+  (let [class-name (.getClassName element)
         method-name (.getMethodName element)
-        dotx        (str/last-index-of class-name ".")
-        file-name   (or (.getFileName element) "")
-        is-clojure? (->> file-name extension (contains? clojure-extensions))
-        names       (if is-clojure? (convert-to-clojure class-name method-name) [])
-        name        (str/join "/" names)
-        ; This pattern comes from somewhere inside nREPL, I believe
-        [file line] (if (re-matches #"form-init\d+\.clj" file-name)
+        dotx (str/last-index-of class-name ".")
+        file-name (or (.getFileName element) "")
+        repl-input (is-repl-input? file-name)
+        [file line] (if repl-input
                       ["REPL Input"]
                       [(strip-prefix file-name-prefix file-name)
-                       (-> element .getLineNumber)])]
+                       (-> element .getLineNumber)])
+        is-clojure? (or repl-input
+                        (->> file-name extension (contains? clojure-extensions)))
+        names (if is-clojure? (convert-to-clojure class-name method-name) [])
+        name (str/join "/" names)]
     {:file file
      :line (when (and line
                       (pos? line))
