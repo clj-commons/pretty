@@ -2,14 +2,30 @@
   (:require [clj-commons.ansi :as ansi]
             [clojure.string :as str]
             [clojure.test :refer [deftest is are]]
-            [clj-commons.ansi :refer [compose]]
+            [clj-commons.ansi :refer [compose *color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]))
+
+(deftest sanity-check
+  (is (= true *color-enabled*)))
+
+(defn- safe-compose
+  [input]
+  (-> (apply compose input)
+      (str/replace csi "[CSI]")))
+
+(deftest nested-width-exception
+  (when-let [e (is (thrown? Exception
+                            (compose "START"
+                                     ^{:ansi/width 10} [:red "A" "B"
+                                                        ^{:ansi/width 20} [:blue "C"]])))]
+    (is (= "can only track one column width at a time"
+           (ex-message e)))
+    (is (= {:input [:blue "C"]}
+           (ex-data e)))))
 
 (deftest compose-test
   (are [input expected]
-    (= expected
-      (-> (apply compose input)
-        (str/replace csi "[CSI]")))
+    (= expected (safe-compose input))
 
     ;; For the moment, everything is suffixed with the [CSI]m reset.
 
@@ -67,7 +83,45 @@
      [:inverse "-INVERSE" [:bold "-INV/BOLD"]]
      [:inverse.bold "-INV/BOLD"]
      "-NORMAL"]
-    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22;27m-NORMAL[CSI]m"))
+    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22;27m-NORMAL[CSI]m"
+
+
+    ;; Basic tests for width:
+
+    '("START |"
+       ^{:ansi/width 10
+         :ansi/pad :right} [nil "AAA"]
+       "|"
+       ^{:ansi/width 10} [nil "BBB"]
+       "|")
+    "START |AAA       |       BBB|"
+    ;       0123456789 0123456789
+
+    '("START |"
+       ^{:ansi/width 10
+         :ansi/pad :right} [:green "A" "A" "A"]
+       "|"
+       ^{:ansi/width 10} [:red "BBB"]
+       "|")
+    "START |[CSI]32mAAA       [CSI]39m|       [CSI]31mBBB[CSI]39m|[CSI]m"
+    ;               0123456789         0123456789
+
+
+
+    '("START |"
+       ^{:ansi/width 10
+         :ansi/pad :right} [:green "A" [nil "B"] [:blue "C"]]
+       "|"
+       ^{:ansi/width 10} [:red "XYZ"]
+       "|")
+    "START |[CSI]32mAB[CSI]34mC       [CSI]39m|       [CSI]31mXYZ[CSI]39m|[CSI]m"
+    ;                       0123456789         0123456789
+
+    ;; Only pads, never truncates
+
+    '("START-" ^{:ansi/width 5} [nil "ABCDEFGH"] "-END")
+
+    "START-ABCDEFGH-END"))
 
 (deftest ignores-fonts-when-color-disabled
   (binding [ansi/*color-enabled* false]

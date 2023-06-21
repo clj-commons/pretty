@@ -380,10 +380,6 @@
        :line (str line)
        :repeats repeats})))
 
-(defn field-padding
-  [max-width field-width]
-  (padding (- max-width field-width)))
-
 (defn- transform-stack-trace-elements
   "Converts a seq of StackTraceElements into a seq of stack trace maps."
   [elements options]
@@ -497,18 +493,17 @@
         ;; Allow for the colon in frames w/ a line number (this assumes there's at least one)
         max-file-width (inc (max-from rows #(-> % :file length)))
         max-line-width (max-from rows #(-> % :line length))
-        f (fn [{:keys [name name-width file line repeats]}]
+        f (fn [{:keys [name file line repeats]}]
             (list
-              (field-padding max-name-width name-width)
-              name
+              ^{:ansi/width max-name-width}
+              [nil name]
               " "
-              [source-font
-               (field-padding max-file-width (length file))]
-              file
-              (when line ":")
+              ^{:ansi/width max-file-width}
+              [nil
+               [source-font file]
+               (when line ":")]
               " "
-              (field-padding max-line-width (length line))
-              line
+              ^{:ansi/width max-line-width} [nil line]
               (when repeats
                 [(:source *fonts*)
                  (format " (repeats %,d times)" repeats)])))]
@@ -543,7 +538,7 @@
 (defn- indented-value
   [indentation s]
   (let [lines (str/split-lines s)
-        sep (str "\n" (field-padding indentation 0))]
+        sep (str "\n" (padding indentation))]
     (interpose sep lines)))
 
 (defn- format-property-value
@@ -582,8 +577,8 @@
         message-indent (+ 2 max-class-name-width)
         exception-f (fn [{:keys [class-name message properties]}]
                       (list
-                        [exception-font
-                         (field-padding max-class-name-width (length class-name))
+                       ^{:ansi/width max-class-name-width}
+                       [exception-font
                          class-name]
                         ":"
                         (when message
@@ -598,9 +593,8 @@
                                 value-indent (+ 2 max-key-width)]
                             (map (fn [k]
                                    (list "\n    "
-                                         [property-font
-                                          (field-padding max-key-width (length k))
-                                          k]
+                                         ^{:ansi/width max-key-width}
+                                         [property-font k]
                                          ": "
                                          [property-font
                                           (format-property-value value-indent (get properties' k))]))

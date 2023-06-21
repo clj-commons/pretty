@@ -4,7 +4,7 @@
 
   Reference: [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
   (:require [clojure.string :as str]
-            [clj-commons.pretty-impl :refer [csi]]))
+            [clj-commons.pretty-impl :refer [csi padding]]))
 
 (defn- is-ns-available? [sym]
   (try
@@ -123,14 +123,41 @@
 
     (vector? input)
     (let [[font-def & inputs] input
-          {:keys [current]} state
+          {:ansi/keys [width pad]} (meta input)
+          {:keys [current *width tracking-width? buffer]} state
+          _ (when (and width tracking-width?)
+              (throw (ex-info "can only track one column width at a time"
+                              {:input input})))
+          start-width @*width
+          start-length (.length buffer)                     ; Needed if :pad is :left
           state' (reduce collect-markup
                    (-> state
+                       (cond-> width (assoc :tracking-width? true))
                      (update :current update-font-data-from-font-def font-def)
                      (update :stack conj current))
                    inputs)]
+      ;; TODO: treat the spaces same as other characters and deal with deferred
+      ;; font characteristic changes?  This will be visible with inverse or
+      ;; underlined spans.
+      (when width
+        (let [actual-width (- @*width start-width)
+              spaces (padding (- width actual-width))]
+         #_(prn {:start-width start-width
+                :current-width @*width
+                :width width
+                :actual-width actual-width
+                :buffer (str buffer)
+                :start-length start-length
+                :pad pad})
+         (when spaces
+           (if (= :right pad)
+             (.append buffer spaces)
+             (.insert buffer start-length spaces))
+           ;; Not really necessary since we don't/can't track nested widths
+           (vswap! *width + (.length spaces)))))
       (-> state'
-        (assoc :current current)
+        (assoc :current current
+               :tracking-width? false)
         (update :stack pop)))
 
     ;; Lists, lazy-lists, etc: processed recursively
@@ -138,15 +165,18 @@
     (reduce collect-markup state input)
 
     :else
-    (let [{:keys [active current ^StringBuilder buffer]} state
+    (let [{:keys [active current ^StringBuilder buffer *width]} state
           state' (if (= active current)
                    state
                    (let [font-str (compose-font active current)]
                      (when font-str
+                       ;; This never counts towards *width
                        (.append buffer font-str))
                      (cond-> (assoc state :active current)
-                             font-str (assoc :dirty? true))))]
-      (.append buffer (str input))
+                             font-str (assoc :dirty? true))))
+          input-str (str input)]
+      (.append buffer input-str)
+      (vswap! *width + (.length input-str))
       state')))
 
 (defn compose
@@ -195,7 +225,24 @@
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
   When [[*color-enabled*]] is false, then any font defs are validated, then ignored (no ANSI codes
-  will be included)."
+  will be included).
+
+  Vectors may also have meta-data to control columns width and padding.
+  - ^:ansi/width - the width of the column
+  - ^:ansi/pad - placement of padding spaces :left or :right, defaults to :left
+
+  Only one column may be active at a time (a vector with a width may not contain another vector with a width).
+  `compose` will insert extra spaces before of after the content of the vector (however, if the column's actual width
+  exceeds the width specified, nothing is truncated).  The width is calculated based on visible text - the
+  ANSI codes inserted by `compose` do not count.
+
+  Example:
+      ^{:ansi/width 20}[:red message]
+
+  This will output the `message`, padded on the left to be 20 characters.
+
+  At this time, the placement of the spaces may be a bit haphazard with respect to ANSI codes; the spaces
+  may be visible if the font def sets inverse, underlined, or colored backgrounds."
   {:added "1.4.0"}
   [& inputs]
   (let [initial-font {:foreground "39"
@@ -208,7 +255,8 @@
         {:keys [dirty?]} (collect-markup {:stack []
                                           :active initial-font
                                           :current initial-font
-                                          :buffer buffer}
+                                          :buffer buffer
+                                          :*width (volatile! 0)}
                                          inputs)]
     (when dirty?
       (.append buffer reset-font))

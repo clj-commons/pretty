@@ -1,9 +1,9 @@
 (ns ^:no-doc clj-commons.pretty-impl
   "Private/internal - subject to change without notice.")
 
-(defn padding [x]
-  (if (zero? x)
-    nil
+(defn padding
+  ^String [x]
+  (when (pos? x)
     (let [sb (StringBuilder. (int x))]
       (dotimes [_ x]
         (.append sb " "))
