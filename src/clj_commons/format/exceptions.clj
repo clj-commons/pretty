@@ -5,14 +5,13 @@
             [clojure.set :as set]
             [clojure.string :as str]
             [clj-commons.ansi :refer [compose]]
-            [clj-commons.format.impl :refer [padding]])
+            [clj-commons.pretty-impl :refer [padding]])
   (:import (java.lang StringBuilder StackTraceElement)
            (clojure.lang Compiler ExceptionInfo Named)
            (java.util.regex Pattern)))
 
 (def default-fonts
-  "A default set of fonts for different elements in the formatted exception report.
-  These will be passed to [[compose]] when formatting the corresponding elements."
+  "A default map of [[compose]] font defs for different elements in the formatted exception report."
   {:exception     :bold.red
    :message       :italic
    :property      :bold
@@ -122,14 +121,15 @@
 
   * omit everything in clojure.lang and java.lang.reflect.
   * hide everything in sun.reflect
-  * terminate at speclj.*, clojure.main/repl/read-eval-print, or nrepl.middleware.interruptible-eval
+  * terminate at speclj.*, clojure.main/main*, clojure.main/repl/read-eval-print, or nrepl.middleware.interruptible-eval
   "
   [[:package "clojure.lang" :omit]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
    [:name #"nrepl\.middleware\.interruptible-eval" :terminate]
-   [:name #"clojure\.main/repl/read-eval-print.*" :terminate]])
+   [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
+   [:name #"clojure\.main/main.*" :terminate]])
 
 (defn- apply-rule
   [frame [f match visibility :as rule]]
@@ -301,12 +301,6 @@
 
       :else
       (conj output-frames frame))))
-
-(defn- format-repeats
-  [{:keys [repeats]}]
-  (when repeats
-    (compose [(:source *fonts*)
-              (format " (repeats %,d times)" repeats)])))
 
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
@@ -516,7 +510,8 @@
               (field-padding max-line-width (length line))
               line
               (when repeats
-                (format " (repeats %,d times)" repeats))))]
+                [(:source *fonts*)
+                 (format " (repeats %,d times)" repeats)])))]
     (interpose "\n" (map f rows))))
 
 (defmulti exception-dispatch
@@ -685,7 +680,8 @@
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
   This is to ensure that infinite lists do not cause endless output or other exceptions.
 
-  The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
+  The `*fonts*` var contains a map from output element names (as :exception or :clojure-frame) to
+  a font def used with [[compose]]; this allows easy customization of the output."
   ([exception]
    (format-exception exception nil))
   ([exception options]

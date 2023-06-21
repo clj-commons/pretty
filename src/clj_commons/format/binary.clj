@@ -1,7 +1,7 @@
 (ns clj-commons.format.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
   (:require [clj-commons.ansi :refer [compose]]
-            [clj-commons.format.impl :refer [padding]])
+            [clj-commons.pretty-impl :refer [padding]])
   (:import (java.nio ByteBuffer)))
 
 (defprotocol BinaryData

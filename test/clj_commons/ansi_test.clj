@@ -2,7 +2,8 @@
   (:require [clj-commons.ansi :as ansi]
             [clojure.string :as str]
             [clojure.test :refer [deftest is are]]
-            [clj-commons.ansi :refer [csi compose]]))
+            [clj-commons.ansi :refer [compose]]
+            [clj-commons.pretty-impl :refer [csi]]))
 
 (deftest compose-test
   (are [input expected]

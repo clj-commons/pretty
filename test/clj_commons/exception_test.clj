@@ -1,7 +1,8 @@
 (ns clj-commons.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
-            [clj-commons.ansi :refer [*color-enabled* csi]]
+            [clj-commons.ansi :refer [*color-enabled*]]
+            [clj-commons.pretty-impl :refer [csi]]
             [clj-commons.format.exceptions :refer [*fonts* parse-exception format-exception]]))
 
 (deftest write-exceptions

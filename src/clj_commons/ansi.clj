@@ -3,7 +3,8 @@
   The [[compose]] function is the best starting point.
 
   Reference: [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [clj-commons.pretty-impl :refer [csi]]))
 
 (defn- is-ns-available? [sym]
   (try
@@ -47,16 +48,12 @@
   [& body]
   `(when *color-enabled* ~@body))
 
-(def ^:const csi
-  "The control sequence initiator: `ESC [`"
-  "\u001b[")
-
 ;; select graphic rendition
-(def ^:const sgr
+(def ^:const ^:private sgr
   "The Select Graphic Rendition suffix: m"
   "m")
 
-(def ^:const reset-font
+(def ^:const ^:private reset-font
   "ANSI escape code to resets all font characteristics."
   (str csi sgr))
 
@@ -152,31 +149,6 @@
       (.append buffer (str input))
       state')))
 
-(defn compose*
-  "The underlying implementation of [[compose]]; accepts as single input value
-  and returns the composed string.
-
-  :width is the visual width of the value; the sum of all the stringified values excluding ANSI codes.
-
-  Note that width will not be accurate if the values include newlines or ANSI codes, it is simply the total
-  length of all the strings."
-  [input]
-  (let [initial-font {:foreground "39"
-                      :background "49"
-                      :bold "22"
-                      :italic "23"
-                      :inverse "27"
-                      :underlined "24"}
-        buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:stack []
-                                          :active initial-font
-                                          :current initial-font
-                                          :buffer buffer}
-                                         input)]
-    (when dirty?
-      (.append buffer reset-font))
-    (.toString buffer)))
-
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes necessary ANSI codes.
 
@@ -217,15 +189,28 @@
   A font def may also be nil, to indicate no change in font.
 
   `compose` presumes that on entry the current font is plain (default foreground and background, not bold,
-   or inverse, or italic, or underlined) and appends a [[reset-font]] to the end of the returned string to
+   or inverse, or italic, or underlined) and appends a reset sequence to the end of the returned string to
    ensure that later output is also plain.
 
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
-  When [[*color-enabled*]] is false, the result is just the concatenation of all the values, skipping nils
-  and ignoring font defs.
-  "
+  When [[*color-enabled*]] is false, then any font defs are validated, then ignored (no ANSI codes
+  will be included)."
   {:added "1.4.0"}
   [& inputs]
-  (compose* inputs))
+  (let [initial-font {:foreground "39"
+                      :background "49"
+                      :bold "22"
+                      :italic "23"
+                      :inverse "27"
+                      :underlined "24"}
+        buffer (StringBuilder. 100)
+        {:keys [dirty?]} (collect-markup {:stack []
+                                          :active initial-font
+                                          :current initial-font
+                                          :buffer buffer}
+                                         inputs)]
+    (when dirty?
+      (.append buffer reset-font))
+    (.toString buffer)))
 
