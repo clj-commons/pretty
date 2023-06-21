@@ -141,25 +141,20 @@
     (reduce collect-markup state input)
 
     :else
-    (let [{:keys [active current ^StringBuilder buffer *width]} state
+    (let [{:keys [active current ^StringBuilder buffer]} state
           state' (if (= active current)
                    state
                    (let [font-str (compose-font active current)]
                      (when font-str
                        (.append buffer font-str))
                      (cond-> (assoc state :active current)
-                             font-str (assoc :dirty? true))))
-          input-str (str input)]
-      (.append buffer input-str)
-      ;; width is the sum of all the concatenated strings excluding the ANSI codes
-      (vswap! *width + (.length input-str))
+                             font-str (assoc :dirty? true))))]
+      (.append buffer (str input))
       state')))
 
 (defn compose*
   "The underlying implementation of [[compose]]; accepts as single input value
-  and returns a map with keys :value and :width.
-
-  :value is the final string, including all ANSI codes (when enabled).
+  and returns the composed string.
 
   :width is the visual width of the value; the sum of all the stringified values excluding ANSI codes.
 
@@ -173,17 +168,14 @@
                       :inverse "27"
                       :underlined "24"}
         buffer (StringBuilder. 100)
-        *width (volatile! 0)
         {:keys [dirty?]} (collect-markup {:stack []
                                           :active initial-font
                                           :current initial-font
-                                          :buffer buffer
-                                          :*width *width}
+                                          :buffer buffer}
                                          input)]
     (when dirty?
       (.append buffer reset-font))
-    {:value (.toString buffer)
-     :width @*width}))
+    (.toString buffer)))
 
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes necessary ANSI codes.
@@ -235,5 +227,5 @@
   "
   {:added "1.4.0"}
   [& inputs]
-  (:value (compose* inputs)))
+  (compose* inputs))
 
