@@ -1,11 +1,10 @@
 (ns clj-commons.format.exceptions
-  "Format and present exceptions in a pretty (structured, formatted) way."
+  "Format and output exceptions in a pretty (structured, formatted) way."
   (:refer-clojure :exclude [update-keys])
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clj-commons.ansi :refer [compose]]
-            [clj-commons.format.columns :as c])
+            [clj-commons.ansi :refer [compose]])
   (:import (java.lang StringBuilder StackTraceElement)
            (clojure.lang Compiler ExceptionInfo Named)
            (java.util.regex Pattern)))
@@ -509,21 +508,20 @@
         max-file-width (inc (max-from rows #(-> % :file length)))
         max-line-width (max-from rows #(-> % :line length))
         f (fn [{:keys [name name-width file line repeats]}]
-            (compose
-              (list
-                (padding max-name-width name-width)
-                name
-                " "
-                [source-font
-                 (padding max-file-width (length file))]
-                file
-                (when line ":")
-                " "
-                (padding max-line-width (length line))
-                line
-                (when repeats
-                  (format " (repeats %,d times)" repeats)))))]
-    (str/join "\n" (map f rows))))
+            (list
+              (padding max-name-width name-width)
+              name
+              " "
+              [source-font
+               (padding max-file-width (length file))]
+              file
+              (when line ":")
+              " "
+              (padding max-line-width (length line))
+              line
+              (when repeats
+                (format " (repeats %,d times)" repeats))))]
+    (interpose "\n" (map f rows))))
 
 (defmulti exception-dispatch
           "The pretty print dispatch function used when formatting exception output (specifically, when
@@ -551,9 +549,16 @@
   [_]
   (pp/simple-dispatch nil))
 
+(defn- indented-value
+  [indentation s]
+  (let [lines (str/split-lines s)
+        sep (str "\n" (padding indentation 0))]
+    (interpose sep lines)))
+
 (defn- format-property-value
-  [value]
-  (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
+  [indentation value]
+  (let [pretty-value (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch)]
+    (indented-value indentation pretty-value)))
 
 (defn- qualified-name
   [x]
@@ -577,52 +582,57 @@
   {:added "0.1.21"}
   [exception-stack options]
   (let [{show-properties? :properties
-         :or              {show-properties? true}} options
-        exception-font        (:exception *fonts*)
-        message-font          (:message *fonts*)
-        property-font         (:property *fonts*)
-        modern?               (not *traditional*)
-        exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :class-name)]
-                                                ": "
-                                                :none)
-        write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
-                                 (let [{:keys [class-name message]} e]
-                                   (exception-formatter (compose [exception-font class-name])
-                                                        (compose [message-font message]))
-                                   (when show-properties?
-                                     (let [properties         (update-keys (:properties e) (comp replace-nil qualified-name))
-                                           prop-keys-sorted   (cond-> (keys properties)
-                                                                      (not (sorted? (:properties e)))
-                                                                      (sort))
-                                           ;; Allow for the width of the exception class name, and some extra
-                                           ;; indentation.
-                                           property-formatter (c/format-columns "    "
-                                                                                [:right (c/max-length prop-keys-sorted)]
-                                                                                ": "
-                                                                                :none)]
-                                       (doseq [k prop-keys-sorted]
-                                         (property-formatter (compose [property-font k])
-                                                             (compose [property-font (-> properties (get k) format-property-value)])))))))
-        root-stack-trace      (-> exception-stack last :stack-trace)]
-    (with-out-str
+         :or {show-properties? true}} options
+        exception-font (:exception *fonts*)
+        message-font (:message *fonts*)
+        property-font (:property *fonts*)
+        modern? (not *traditional*)
+        max-class-name-width (max-from exception-stack #(-> % :class-name length))
+        message-indent (+ 2 max-class-name-width)
+        exception-f (fn [{:keys [class-name message properties]}]
+                      (list
+                        [exception-font
+                         (padding max-class-name-width (length class-name))
+                         class-name]
+                        ":"
+                        (when message
+                          (list
+                            " "
+                            [message-font (indented-value message-indent message)]))
+                        (when (and show-properties? (seq properties))
+                          (let [properties' (update-keys properties (comp replace-nil qualified-name))
+                                sorted-keys (cond-> (keys properties')
+                                                    (not (sorted? properties')) sort)
+                                max-key-width (max-from sorted-keys length)
+                                value-indent (+ 2 max-key-width)]
+                            (map (fn [k]
+                                   (list "\n    "
+                                         [property-font
+                                          (padding max-key-width (length k))
+                                          k]
+                                         ": "
+                                         [property-font
+                                          (format-property-value value-indent (get properties' k))]))
+                                 sorted-keys)))
+                        "\n"))
+        exceptions (list
+                     (map exception-f (?reverse modern? exception-stack))
+                     "\n")
+        root-stack-trace (-> exception-stack last :stack-trace)]
+    (compose
       (when *traditional*
-        (write-exception-stack))
+        exceptions)
 
-      (println (build-stack-trace-output root-stack-trace modern?))
+      (build-stack-trace-output root-stack-trace modern?)
+      "\n"
 
       (when modern?
-        (write-exception-stack)))))
+        exceptions))))
 
 (defn format-exception
-  "Formats an exception as a multi-line string using the same options as [[write-exception]]."
-  ([exception]
-   (format-exception exception nil))
-  ([exception options]
-   (format-exception* (analyze-exception exception options) options)))
+  "Formats an exception, returning a single large string.
 
-(defn write-exception
-  "Writes a formatted version of the exception to *out*. By default, includes
-  the stack trace, with no frame limit.
+  By default, includes the stack trace, with no frame limit.
 
   The options map may have the following keys:
 
@@ -681,6 +691,13 @@
 
   The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely."
   ([exception]
+   (format-exception exception nil))
+  ([exception options]
+   (format-exception* (analyze-exception exception options) options)))
+
+(defn write-exception
+  "Formats an exception via [[format-exception]], then writes it to `*out*`.  Accepts the same options as `format-exception`."
+  ([exception]
    (write-exception exception nil))
   ([exception options]
    (print (format-exception exception options))
@@ -736,7 +753,7 @@
                       t)))))
 
 (defn parse-exception
-  "Given a chunk of text for an exception report (as with `.printStackTrace`), attempts to
+  "Given a chunk of text from an exception report (as with `.printStackTrace`), attempts to
   piece together the same information provided by [[analyze-exception]].  The result
   is ready to pass to [[write-exception*]].
 
