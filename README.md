@@ -1,6 +1,7 @@
 [![Clojars](https://img.shields.io/clojars/v/org.clj-commons/pretty.svg)](http://clojars.org/clj-commons/pretty)
 [![CI](https://github.com/clj-commons/pretty/actions/workflows/clojure.yml/badge.svg)](https://github.com/AvisoNovate/pretty/actions/workflows/clojure.yml)
 [![cljdoc badge](https://cljdoc.org/badge/org.clj-commons/pretty)](https://cljdoc.org/d/org.clj-commons/pretty)
+
 *Sometimes, neatness counts*
 
 If you are trying to puzzle out a stack trace, 
