@@ -1,28 +1,25 @@
-(ns io.aviso.exception
-  "Format and present exceptions in a pretty (structured, formatted) way."
-  (:refer-clojure :exclude [update-keys])
+(ns clj-commons.format.exceptions
+  "Format and output exceptions in a pretty (structured, formatted) way."
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [io.aviso.ansi :as ansi]
-            [io.aviso.columns :as c])
-  (:import
-    (java.lang StringBuilder StackTraceElement)
-    (clojure.lang Compiler ExceptionInfo Named)
-    (java.util.regex Pattern)))
+            [clj-commons.ansi :refer [compose]]
+            [clj-commons.pretty-impl :refer [padding]])
+  (:import (java.lang StringBuilder StackTraceElement)
+           (clojure.lang Compiler ExceptionInfo Named)
+           (java.util.regex Pattern)))
 
 (def default-fonts
-  "A default set of fonts for different elements in the formatted exception report."
-  {:exception     ansi/bold-red-font
-   :reset         ansi/reset-font
-   :message       ansi/italic-font
-   :property      ansi/bold-font
-   :source        ansi/green-font
-   :app-frame     ansi/bold-yellow-font
-   :function-name ansi/bold-yellow-font
-   :clojure-frame ansi/yellow-font
-   :java-frame    ansi/white-font
-   :omitted-frame ansi/white-font})
+  "A default map of [[compose]] font defs for different elements in the formatted exception report."
+  {:exception     :bold.red
+   :message       :italic
+   :property      :bold
+   :source        :green
+   :app-frame     :bold.yellow
+   :function-name :bold.yellow
+   :clojure-frame :yellow
+   :java-frame    :white
+   :omitted-frame :faint.white})
 
 (def ^:dynamic *app-frame-names*
   "Set of strings or regular expressions defining the application's namespaces, which allows
@@ -31,13 +28,8 @@
 
 (def ^:dynamic *fonts*
   "Current set of fonts used in exception formatting. This can be overridden to change colors, or bound to nil
-   to disable fonts.
-
-   Further, the environment variable DISABLE_DEFAULT_PRETTY_FONTS, if non-nil, will default this to nil.
-
-   Starting in 1.3, ANSI fonts may be disabled at a lower level; see [[ansi-output-enabled?]]"
-  (when-not (System/getenv "DISABLE_DEFAULT_PRETTY_FONTS")
-    default-fonts))
+   to disable fonts.  Defaults are defined by [[default-fonts]]."
+  default-fonts)
 
 (def ^{:dynamic true
        :added   "0.1.15"}
@@ -49,20 +41,21 @@
 
 (defn- length
   [^String s]
-  (.length s))
+  (if s
+    (.length s)
+    0))
 
 (defn- strip-prefix
   [^String prefix ^String input]
   (let [prefix-len (.length prefix)]
-    ;; clojure.string/starts-with? not available in Clojure 1.7.0, so:
-    (if (and (.startsWith input prefix)
+    (if (and (str/starts-with? input prefix)
              (< prefix-len (.length input)))
       (subs input prefix-len)
       input)))
 
 (def ^:private current-dir-prefix
   "Convert the current directory (via property 'user.dir') into a prefix to be omitted from file names."
-  (delay (str (System/getProperty "user.dir") "/")))
+  (str (System/getProperty "user.dir") "/"))
 
 (defn- ?reverse
   [reverse? coll]
@@ -112,14 +105,14 @@
 (def ^{:added   "0.1.18"
        :dynamic true}
 *default-frame-rules*
-  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector or vectors.
+  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector of vectors.
 
-  Each rule is three values:
+  Each rule is a vector of three values:
 
   * A function that extracts the value from the stack frame map (typically, this is a keyword such
   as :package or :name). The value is converted to a string.
 
-  * A string or regexp used for matching.
+  * A string or regexp used for matching.  Strings must match exactly.
 
   * A resulting frame visibility (:hide, :omit, :terminate, or :show).
 
@@ -127,14 +120,15 @@
 
   * omit everything in clojure.lang and java.lang.reflect.
   * hide everything in sun.reflect
-  * terminate at speclj.*, clojure.main/repl/read-eval-print, or nrepl.middleware.interruptible-eval
+  * terminate at speclj.*, clojure.main/main*, clojure.main/repl/read-eval-print, or nrepl.middleware.interruptible-eval
   "
   [[:package "clojure.lang" :omit]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
    [:name #"nrepl\.middleware\.interruptible-eval" :terminate]
-   [:name #"clojure\.main/repl/read-eval-print.*" :terminate]])
+   [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
+   [:name #"clojure\.main/main.*" :terminate]])
 
 (defn- apply-rule
   [frame [f match visibility :as rule]]
@@ -147,7 +141,7 @@
       (if (re-matches match value) visibility)
 
       :else
-      (throw (ex-info "Unexpected match type in rule."
+      (throw (ex-info "unexpected match type in rule"
                       {:rule rule})))))
 
 (defn *default-frame-filter*
@@ -174,47 +168,61 @@
     ;; are name-mangled dashes).
     (->>
       (cons namespace-name all-ids)
-      (map demangle))))
+      (mapv demangle))))
 
 (defn- extension
   [^String file-name]
-  (let [x (.lastIndexOf file-name ".")]
-    (when (<= 0 x)
+  (let [x (str/last-index-of file-name ".")]
+    (when (and x (pos? x))
       (subs file-name (inc x)))))
 
 (def ^:private clojure-extensions
   #{"clj" "cljc"})
 
+(defn- is-repl-input?
+  [file-name]
+  (boolean
+    (or
+      (= "NO_SOURCE_FILE" file-name)
+      ; This pattern comes from somewhere inside nREPL, I believe - may be dated
+      (re-matches #"form-init\d+\.clj" file-name))))
+
 (defn- expand-stack-trace-element
   [file-name-prefix ^StackTraceElement element]
-  (let [class-name  (.getClassName element)
+  (let [class-name (.getClassName element)
         method-name (.getMethodName element)
-        dotx        (.lastIndexOf class-name ".")
-        file-name   (or (.getFileName element) "")
-        is-clojure? (->> file-name extension (contains? clojure-extensions))
-        names       (if is-clojure? (convert-to-clojure class-name method-name) [])
-        name        (str/join "/" names)
-        ; This pattern comes from somewhere inside nREPL, I believe
-        [file line] (if (re-matches #"form-init\d+\.clj" file-name)
+        dotx (str/last-index-of class-name ".")
+        file-name (or (.getFileName element) "")
+        repl-input (is-repl-input? file-name)
+        [file line] (if repl-input
                       ["REPL Input"]
                       [(strip-prefix file-name-prefix file-name)
-                       (-> element .getLineNumber)])]
-    {:file         file
-     ; line will sometimes be nil
-     :line         (if (and line
-                            (pos? line))
-                     line)
-     :class        class-name
-     :package      (if (pos? dotx) (.substring class-name 0 dotx))
-     :is-clojure?  is-clojure?
-     :simple-class (if (pos? dotx)
-                     (.substring class-name (inc dotx))
+                       (-> element .getLineNumber)])
+        is-clojure? (or repl-input
+                        (->> file-name extension (contains? clojure-extensions)))
+        names (if is-clojure? (convert-to-clojure class-name method-name) [])
+        name (str/join "/" names)
+        id (cond-> (if is-clojure?
+                     name
+                     (str class-name "." method-name))
+                   line (str ":" line))]
+    {:file file
+     :line (when (and line
+                      (pos? line))
+             line)
+     :class class-name
+     :package (when dotx (subs class-name 0 dotx))
+     :is-clojure? is-clojure?
+     :simple-class (if dotx
+                     (subs class-name (inc dotx))
                      class-name)
-     :method       method-name
+     :method method-name
+     ;; Used to detect repeating frames
+     :id id
      ;; Used to calculate column width
-     :name         name
+     :name name
      ;; Used to present compound Clojure name with last term highlighted
-     :names        names}))
+     :names names}))
 
 (def ^:private empty-stack-trace-warning
   "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
@@ -275,10 +283,8 @@
 
 (defn- is-repeat?
   [left-frame right-frame]
-  (and (= (:formatted-name left-frame)
-          (:formatted-name right-frame))
-       (= (:line left-frame)
-          (:line right-frame))))
+  (= (:id left-frame)
+     (:id right-frame)))
 
 (defn- repeating-frame-reducer
   [output-frames frame]
@@ -294,11 +300,6 @@
 
       :else
       (conj output-frames frame))))
-
-(defn- format-repeats
-  [{:keys [repeats]}]
-  (if repeats
-    (format " (repeats %,d times)" repeats)))
 
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
@@ -325,63 +326,68 @@
   : true if this represents a Clojure function call, rather than a Java
     method invocation.
 
+  :id String
+  : An id that can be used to identify repeating stack frames; consists of the fully qualified method name (for Java
+    frames) or fully qualified Clojure name (for Clojure frames) appended with the line number.
+
   :name String
   : Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
 
   :names seq of String
   : Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
-  (let [elements (map (partial expand-stack-trace-element @current-dir-prefix) (.getStackTrace exception))]
+  (let [elements (map (partial expand-stack-trace-element current-dir-prefix) (.getStackTrace exception))]
     (when (empty? elements)
       (binding [*out* *err*]
         (println empty-stack-trace-warning)
         (flush)))
     elements))
 
-(defn- clj-frame-font
-  "Returns the font to use for a clojure frame.
+(defn- clj-frame-font-key
+  "Returns the font key to use for a Clojure stack frame.
 
-  When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame
-  "
+  When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame."
   [frame]
   (-> (keep #(apply-rule frame [:name % :app-frame]) *app-frame-names*)
       first
       (or :clojure-frame)))
 
-(defn- preformat-stack-frame
-  [frame]
+(defn- format-stack-frame
+  [{:keys [file line names repeats] :as frame}]
   (cond
     (:omitted frame)
-    (assoc frame :formatted-name (str (:omitted-frame *fonts*) "..." (:reset *fonts*))
-                 :file ""
-                 :line nil)
+    {:name [(:omitted-frame *fonts*) "..."]
+     :name-width 3}
 
     ;; When :names is empty, it's a Java (not Clojure) frame
-    (-> frame :names empty?)
-    (let [full-name      (str (:class frame) "." (:method frame))
-          formatted-name (str (:java-frame *fonts*) full-name (:reset *fonts*))]
-      (assoc frame
-        :formatted-name formatted-name))
+    (empty? names)
+    (let [full-name      (str (:class frame) "." (:method frame))]
+      {:name [(:java-frame *fonts*) full-name]
+       :name-width (length full-name)
+       :file file
+       :line (str line)
+       :repeats repeats})
 
     :else
-    (let [names          (:names frame)
-          formatted-name (str
-                           (get *fonts* (clj-frame-font frame))
-                           (->> names drop-last (str/join "/"))
-                           "/"
-                           (:function-name *fonts*) (last names) (:reset *fonts*))]
-      (assoc frame :formatted-name formatted-name))))
+    (let [formatted-name [(get *fonts* (clj-frame-font-key frame))
+                          (->> names drop-last (str/join "/"))
+                          "/"
+                          [(:function-name *fonts*) (last names)]]]
+      {:name formatted-name
+       :name-width (-> frame :name length)
+       :file file
+       :line (str line)
+       :repeats repeats})))
 
 (defn- transform-stack-trace-elements
   "Converts a seq of StackTraceElements into a seq of stack trace maps."
   [elements options]
   (let [frame-filter (:filter options *default-frame-filter*)
-        frame-limit  (:frame-limit options)
-        elements'    (->> elements
-                          remove-direct-link-frames
-                          (apply-frame-filter frame-filter)
-                          (map preformat-stack-frame)
-                          (reduce repeating-frame-reducer []))]
+        frame-limit (:frame-limit options)
+        elements' (->> elements
+                       remove-direct-link-frames
+                       (apply-frame-filter frame-filter)
+                       (reduce repeating-frame-reducer []))]
     (if frame-limit
       (take frame-limit elements')
       elements')))
@@ -435,7 +441,7 @@
   thrown, last is the deepest, or root, exception ... the initial exception
   thrown in a chain of nested exceptions.
 
-  The options map is as defined by [[write-exception]].
+  The options map is as defined by [[format-exception]].
 
   Each exception map contains:
 
@@ -465,7 +471,8 @@
         (recur result' nested)
         result'))))
 
-(defn- update-keys
+;; Shadow Clojure 1.11's version, while keeping operational in 1.10.
+(defn- -update-keys
   [m f]
   "Builds a map where f has been applied to each key in m."
   (reduce-kv (fn [m k v]
@@ -473,19 +480,31 @@
              {}
              m))
 
-(defn- write-stack-trace
+(defn- max-from
+  [coll k]
+  (reduce max 0 (keep k coll)))
+
+(defn- build-stack-trace-output
   [stack-trace modern?]
-  (c/write-rows [:formatted-name
-                 "  "
-                 (:source *fonts*)
-                 #(if (:line %)
-                    (str (:file %) ":")
-                    (:file %))
-                 " "
-                 #(-> % :line str)
-                 [format-repeats :none]
-                 (:reset *fonts*)]
-                (?reverse modern? stack-trace)))
+  (let [source-font (:source *fonts*)
+        rows (map format-stack-frame (?reverse modern? stack-trace))
+        max-name-width (max-from rows :name-width)
+        ;; Allow for the colon in frames w/ a line number (this assumes there's at least one)
+        max-file-width (inc (max-from rows #(-> % :file length)))
+        max-line-width (max-from rows #(-> % :line length))
+        f (fn [{:keys [name file line repeats]}]
+            (list
+              [{:width max-name-width} name]
+              " "
+              [{:width max-file-width
+                :font source-font} file]
+              (when line ":")
+              " "
+              [{:width max-line-width} line]
+              (when repeats
+                [(:source *fonts*)
+                 (format " (repeats %,d times)" repeats)])))]
+    (interpose "\n" (map f rows))))
 
 (defmulti exception-dispatch
           "The pretty print dispatch function used when formatting exception output (specifically, when
@@ -498,9 +517,7 @@
 
           This ensures that the SystemMap record, wherever it appears in the exception output,
           is represented as the string `#<SystemMap>`; normally it would print as a deeply nested
-          set of maps.
-
-          See the [[io.aviso.component]] namespace for more complete example.
+          tree of maps.
 
           This same approach can be adapted to any class or type whose structure is problematic
           for presenting in the exception output, whether for size and complexity reasons, or due to
@@ -515,9 +532,16 @@
   [_]
   (pp/simple-dispatch nil))
 
+(defn- indented-value
+  [indentation s]
+  (let [lines (str/split-lines s)
+        sep (str "\n" (padding indentation))]
+    (interpose sep lines)))
+
 (defn- format-property-value
-  [value]
-  (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch))
+  [indentation value]
+  (let [pretty-value (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch)]
+    (indented-value indentation pretty-value)))
 
 (defn- qualified-name
   [x]
@@ -535,60 +559,61 @@
     "nil"
     x))
 
-(defn write-exception*
-  "Contains the main logic for [[write-exception]], which simply expands
+(defn format-exception*
+  "Contains the main logic for [[format-exception]], which simply expands
   the exception (via [[analyze-exception]]) before invoking this function."
   {:added "0.1.21"}
   [exception-stack options]
   (let [{show-properties? :properties
-         :or              {show-properties? true}} options
-        exception-font        (:exception *fonts*)
-        message-font          (:message *fonts*)
-        property-font         (:property *fonts*)
-        reset-font            (:reset *fonts* "")
-        modern?               (not *traditional*)
-        exception-formatter   (c/format-columns [:right (c/max-value-length exception-stack :class-name)]
-                                                ": "
-                                                :none)
-        write-exception-stack #(doseq [e (?reverse modern? exception-stack)]
-                                 (let [{:keys [class-name message]} e]
-                                   (exception-formatter (str exception-font class-name reset-font)
-                                                        (str message-font message reset-font))
-                                   (when show-properties?
-                                     (let [properties         (update-keys (:properties e) (comp replace-nil qualified-name))
-                                           prop-keys-sorted   (cond-> (keys properties)
-                                                                      (not (sorted? (:properties e)))
-                                                                      (sort))
-                                           ;; Allow for the width of the exception class name, and some extra
-                                           ;; indentation.
-                                           property-formatter (c/format-columns "    "
-                                                                                [:right (c/max-length prop-keys-sorted)]
-                                                                                ": "
-                                                                                :none)]
-                                       (doseq [k prop-keys-sorted]
-                                         (property-formatter (str property-font k reset-font)
-                                                             (-> properties (get k) format-property-value)))))))
-        root-stack-trace      (-> exception-stack last :stack-trace)]
+         :or {show-properties? true}} options
+        exception-font (:exception *fonts*)
+        message-font (:message *fonts*)
+        property-font (:property *fonts*)
+        modern? (not *traditional*)
+        max-class-name-width (max-from exception-stack #(-> % :class-name length))
+        message-indent (+ 2 max-class-name-width)
+        exception-f (fn [{:keys [class-name message properties]}]
+                      (list
+                        [{:width max-class-name-width
+                          :font exception-font} class-name]
+                        ":"
+                        (when message
+                          (list
+                            " "
+                            [message-font (indented-value message-indent message)]))
+                        (when (and show-properties? (seq properties))
+                          (let [properties' (-update-keys properties (comp replace-nil qualified-name))
+                                sorted-keys (cond-> (keys properties')
+                                                    (not (sorted? properties')) sort)
+                                max-key-width (max-from sorted-keys length)
+                                value-indent (+ 2 max-key-width)]
+                            (map (fn [k]
+                                   (list "\n    "
+                                         [{:width max-key-width
+                                           :font property-font} k]
+                                         ": "
+                                         [property-font
+                                          (format-property-value value-indent (get properties' k))]))
+                                 sorted-keys)))
+                        "\n"))
+        exceptions (list
+                     (map exception-f (?reverse modern? exception-stack))
+                     "\n")
+        root-stack-trace (-> exception-stack last :stack-trace)]
+    (compose
+      (when *traditional*
+        exceptions)
 
-    (if *traditional*
-      (write-exception-stack))
+      (build-stack-trace-output root-stack-trace modern?)
+      "\n"
 
-    (write-stack-trace root-stack-trace modern?)
-
-    (if modern?
-      (write-exception-stack))))
+      (when modern?
+        exceptions))))
 
 (defn format-exception
-  "Formats an exception as a multi-line string using the same options as [[write-exception]]."
-  ([exception]
-   (format-exception exception nil))
-  ([exception options]
-   (with-out-str
-     (write-exception* (analyze-exception exception options) options))))
+  "Formats an exception, returning a single large string.
 
-(defn write-exception
-  "Writes a formatted version of the exception to *out*. By default, includes
-  the stack trace, with no frame limit.
+  By default, includes the stack trace, with no frame limit.
 
   The options map may have the following keys:
 
@@ -615,7 +640,7 @@
   The default is modern.
 
   The stack frame filter is passed the map detailing each stack frame
-  in the stack trace, must return one of the following values:
+  in the stack trace, and must return one of the following values:
 
   :show
   : is the normal state; display the stack frame.
@@ -635,19 +660,25 @@
   Repeating lines are collapsed to a single line, with a repeat count. Typically, this is the result of
   an endless loop that terminates with a StackOverflowException.
 
-  When set, the frame limit is the number of stack frames to display; if non-nil, then some of the outermost
+  When set, the frame limit is the number of stack frames to display; if non-nil, then some outermost
   stack frames may be omitted. It may be set to 0 to omit the stack trace entirely (but still display
   the exception stack).  The frame limit is applied after the frame filter (which may hide or omit frames) and
   after repeating stack frames have been identified and coalesced ... :frame-limit is really the number
   of _output_ lines to present.
 
-  Properties of exceptions will be output using Clojure's pretty-printer, honoring all of the normal vars used
+  Properties of exceptions will be output using Clojure's pretty-printer, honoring all normal vars used
   to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
   This is to ensure that infinite lists do not cause endless output or other exceptions.
 
-  The `*fonts*` var contains ANSI definitions for how fonts are displayed; bind it to nil to remove ANSI formatting entirely.
-  It can be also initialized to nil instead of the default set of fonts by setting environment variable DISABLE_DEFAULT_PRETTY_FONTS
-  to any value."
+  The `*fonts*` var contains a map from output element names (as :exception or :clojure-frame) to
+  a font def used with [[compose]]; this allows easy customization of the output."
+  ([exception]
+   (format-exception exception nil))
+  ([exception options]
+   (format-exception* (analyze-exception exception options) options)))
+
+(defn write-exception
+  "Formats an exception via [[format-exception]], then writes it to `*out*`.  Accepts the same options as `format-exception`."
   ([exception]
    (write-exception exception nil))
   ([exception options]
@@ -656,7 +687,7 @@
 
 (defn- assemble-final-stack
   [exceptions stack-trace stack-trace-batch options]
-  (let [stack-trace' (-> (map (partial expand-stack-trace-element @current-dir-prefix)
+  (let [stack-trace' (-> (map (partial expand-stack-trace-element current-dir-prefix)
                               (into stack-trace-batch stack-trace))
                          (transform-stack-trace-elements options))
         x            (-> exceptions count dec)]
@@ -704,7 +735,7 @@
                       t)))))
 
 (defn parse-exception
-  "Given a chunk of text for an exception report (as with `.printStackTrace`), attempts to
+  "Given a chunk of text from an exception report (as with `.printStackTrace`), attempts to
   piece together the same information provided by [[analyze-exception]].  The result
   is ready to pass to [[write-exception*]].
 

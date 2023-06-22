@@ -1,15 +1,43 @@
-(ns io.aviso.ansi-test
-  (:require [clojure.string :as str]
+(ns clj-commons.ansi-test
+  (:require [clj-commons.ansi :as ansi]
+            [clojure.string :as str]
             [clojure.test :refer [deftest is are]]
-            [io.aviso.ansi :refer [csi compose]]))
+            [clj-commons.ansi :refer [compose *color-enabled*]]
+            [clj-commons.pretty-impl :refer [csi]]))
+
+(deftest sanity-check
+  (is (= true *color-enabled*)))
+
+(defn- safe-compose
+  [input]
+  (-> (apply compose input)
+      (str/replace csi "[CSI]")))
+
+(deftest nested-width-exception
+  (when-let [e (is (thrown? Exception
+                            (compose "START"
+                                     [{:width 10
+                                       :font :red} "A" "B"
+                                      [{:width 20
+                                        :font :blue} "C"]])))]
+    (is (= "can only track one span width at a time"
+           (ex-message e)))
+    (is (= {:input [{:width 20
+                     :font :blue} "C"]}
+           (ex-data e)))))
+
+(deftest invalid-font-decl
+  (when-let [e (is (thrown? Exception
+                            (compose "START"
+                                     ["A" "B" "C"])))]
+    (is (= "invalid span declaration"
+           (ex-message e)))
+    (is (= {:font-decl "A"}
+           (ex-data e)))))
 
 (deftest compose-test
   (are [input expected]
-    (= expected
-      (-> (apply compose input)
-        (str/replace csi "[CSI]")))
-
-    ;; For the moment, everything is suffixed with the [CSI]m reset.
+    (= expected (safe-compose input))
 
     ["Simple"]
     "Simple"
@@ -47,18 +75,74 @@
      "."]
     "Notice: the [CSI]33mshields[CSI]39m are operating at [CSI]32m98.7%[CSI]39m.[CSI]m"
 
+    ;; nil is allowed (this is used when formatting is optional, such as the fonts in exceptions).
+
+    ["NORMAL" [nil "-STILL NORMAL"]]
+    "NORMAL-STILL NORMAL"
+
+
     ;; Demonstrate some optimizations (no change between first and second
     ;; INV/BOLD), and also specifying multiple font modifiers.
+
+    ["NORMAL"
+     [:red "-RED"]
+     [:bright-red "-BR/RED"]]
+    "NORMAL[CSI]31m-RED[CSI]91m-BR/RED[CSI]m"
 
     ["NORMAL-"
      [:inverse "-INVERSE" [:bold "-INV/BOLD"]]
      [:inverse.bold "-INV/BOLD"]
      "-NORMAL"]
-    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22m[CSI]27m-NORMAL[CSI]m"))
+    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22;27m-NORMAL[CSI]m"
+
+
+    ;; Basic tests for width:
+
+    '("START |"
+       [{:width 10
+         :pad :right} "AAA"]
+       "|"
+       [{:width 10} "BBB"]
+       "|")
+    "START |AAA       |       BBB|"
+    ;       0123456789 0123456789
+
+    '("START |"
+       [{:width 10
+         :pad :right
+         :font :green} "A" "A" "A"]
+       "|"
+       [{:width 10
+         :font :red} "BBB"]
+       "|")
+    "START |[CSI]32mAAA       [CSI]39m|       [CSI]31mBBB[CSI]39m|[CSI]m"
+    ;               0123456789         0123456789
+
+    '("START |"
+       [{:width 10
+         :pad :right
+         :font :green} "A" [nil "B"] [:blue "C"]]
+       "|"
+       [{:width 10
+         :font :red} "XYZ"]
+       "|")
+    "START |[CSI]32mAB[CSI]34mC       [CSI]39m|       [CSI]31mXYZ[CSI]39m|[CSI]m"
+    ;                       0123456789         0123456789
+
+    ;; Only pads, never truncates
+
+    '("START-" [{:width 5} "ABCDEFGH"] "-END")
+
+    "START-ABCDEFGH-END"))
+
+(deftest ignores-fonts-when-color-disabled
+  (binding [ansi/*color-enabled* false]
+    (is (= "Warning: Reactor Leak!"
+           (compose [:red "Warning:"] " " [:bold "Reactor Leak!"])))))
 
 (deftest unrecognized-font-modifier
   (when-let [e (is (thrown? Throwable (compose [:what.is.this? "Fail!"])))]
-    (is (= "Unexpected font term: :what" (ex-message e)))
+    (is (= "unexpected font term: :what" (ex-message e)))
     (is (= {:font-term :what
             :font-def :what.is.this?
             :available-terms [:black

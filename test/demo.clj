@@ -1,12 +1,9 @@
 (ns demo
   (:require
-    [io.aviso.repl :as repl]
-    [io.aviso.exception :as e]
-    [io.aviso.ansi :as ansi]
-    io.aviso.component
-    [clojure.java.io :as io]
+    [clj-commons.pretty.repl :as repl]
+    [clj-commons.format.exceptions :as e]
+    [clj-commons.ansi :refer [compose]]
     [clojure.repl :refer [pst]]
-    [clojure.core.async :refer [chan <!! close! thread]]
     [criterium.core :as c]
     [clojure.test :refer [report]])
   (:import (java.sql SQLException)))
@@ -67,14 +64,20 @@
 
 (defn -main [& args]
   (prn `-main :args args)
+  (println "Clojure version: " *clojure-version*)
   (println "Installing pretty exceptions ...")
   (repl/install-pretty-exceptions)
-  (println (ansi/bold-green "ok"))
-  (pst (make-exception)))
+  (println (compose [:bold.green "ok"]))
+  (pst (make-exception))
+  (println "\nTesting reporting of repeats:")
+  (try (countdown 20)
+       (catch Throwable t (e/write-exception t))))
 
 (comment
 
-  (let [e  (make-ex-info)
+  (require '[clojure.core.async :refer [chan <!! close! thread]])
+
+  (let [e (make-ex-info)
         ch (chan)]
     (dotimes [i 5]
       (thread
@@ -94,7 +97,9 @@
 
   ;; 11 Feb 2016 -  553 µs (14 µs std dev) - Clojure 1.8
   ;; 13 Sep 2021 -  401 µs (16 µs std dev) - Clojure 1.11.1
-
+  ;; 20 Jun 2023 -  713 µs (30 µs std dev) - Clojure 1.11.1, Corretto 17.0.7, M1
+  ;; 21 Jun 2023 -  462 µs                 - Clojure 1.11.1, Corretto 17.0.7, M1
+  ;;
   (let [e (make-ex-info)]
     (c/bench (e/format-exception e)))
 

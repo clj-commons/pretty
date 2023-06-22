@@ -1,7 +1,7 @@
-(ns io.aviso.binary
+(ns clj-commons.format.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (:require [io.aviso.ansi :as ansi]
-            [io.aviso.columns :as c])
+  (:require [clj-commons.ansi :refer [compose]]
+            [clj-commons.pretty-impl :refer [padding]])
   (:import (java.nio ByteBuffer)))
 
 (defprotocol BinaryData
@@ -40,7 +40,7 @@
 (extend-type nil
   BinaryData
   (data-length [_] 0)
-  (byte-at [_ _index] (throw (IndexOutOfBoundsException. "Can't use byte-at with nil."))))
+  (byte-at [_ _index] (throw (IndexOutOfBoundsException. "can not use byte-at with nil"))))
 
 (def ^:private ^:const bytes-per-diff-line 16)
 (def ^:private ^:const bytes-per-ascii-line 16)
@@ -53,38 +53,30 @@
                            "0123456789"
                            " !@#$%^&*()-_=+[]{}\\|'\";:,./<>?`~"))))
 
-(def ^:private nonprintable-placeholder (ansi/bright-magenta-bg " "))
+(defn- nonprintable-placeholder [] (compose [:bright-magenta-bg " "]))
 
 (defn- to-ascii
   [b]
   (if (printable-chars b)
     (char b)
-    nonprintable-placeholder))
+    (nonprintable-placeholder)))
 
 (defn- write-line
-  [formatter write-ascii? offset data line-count]
+  [write-ascii? offset data line-count per-line]
   (let [line-bytes (for [i (range line-count)]
                      (byte-at data (+ offset i)))]
-    (formatter
-      (format "%04X" offset)
-      (apply str (interpose " "
-                            (map #(format "%02X" %) line-bytes)))
-      (if write-ascii?
-        (apply str (map to-ascii line-bytes))))))
-
-(def ^:private standard-binary-columns
-  [4
-   ": "
-   :none])
-
-(defn- ascii-binary-columns [per-line]
-  [4
-   ": "
-   (* 3 per-line)
-   "|"
-   per-line
-   "|"
-   ])
+    (println
+      (compose
+        (format "%04X:" offset)
+        (for [b line-bytes]
+          (format " %02X" b))
+        (when write-ascii?
+          (list
+            (padding (* 3 (- per-line line-count)))
+            " |"
+            (map to-ascii line-bytes)
+            (padding (- per-line line-count))
+            "|"))))))
 
 (defn write-binary
   "Formats a BinaryData into a hex-dump string, consisting of multiple lines; each line formatted as:
@@ -115,20 +107,17 @@
   ([data]
    (write-binary data nil))
   ([data options]
-   (let [{show-ascii?     :ascii
+   (let [{show-ascii? :ascii
           per-line-option :line-bytes} options
-         per-line  (or per-line-option
-                      (if show-ascii? bytes-per-ascii-line bytes-per-line))
-         formatter (apply c/format-columns
-                          (if show-ascii?
-                            (ascii-binary-columns per-line)
-                            standard-binary-columns))]
-     (assert (pos? per-line) "Must be at least one byte per line.")
+         per-line (or per-line-option
+                      (if show-ascii? bytes-per-ascii-line bytes-per-line))]
+     (assert (pos? per-line) "must be at least one byte per line")
      (loop [offset 0]
        (let [remaining (- (data-length data) offset)]
          (when (pos? remaining)
-           (write-line formatter show-ascii? offset data (min per-line remaining))
+           (write-line show-ascii? offset data (min per-line remaining) per-line)
            (recur (long (+ per-line offset)))))))))
+
 
 (defn format-binary
   "Formats the data using [[write-binary]] and returns the result as a string."
@@ -158,9 +147,10 @@
         ;; Exact match on both sides is easy, just print it out.
         (match? byte-offset data-length data alternate-length alternate) (print (str " " (to-hex data byte-offset)))
         ;; Some kind of mismatch, so decorate with this side's color
-        (< byte-offset data-length) (print (str " " (ansi-color (to-hex data byte-offset))))
+        (< byte-offset data-length) (print (compose " " [ansi-color (to-hex data byte-offset)]))
         ;; Are we out of data on this side?  Print a "--" decorated with the color.
-        (< byte-offset alternate-length) (print (str " " (ansi-color "--")))
+        (< byte-offset alternate-length) (print (compose " "
+                                                         [ansi-color "--"]))
         ;; This side must be longer than the alternate side.
         ;; On the left/green side, we need to pad with spaces
         ;; On the right/red side, we need nothing.
@@ -169,9 +159,9 @@
 (defn- write-delta-line
   [offset expected-length ^bytes expected actual-length actual]
   (printf "%04X:" offset)
-  (write-byte-deltas ansi/bright-green true offset expected-length expected actual-length actual)
-  (print " | ")
-  (write-byte-deltas ansi/bright-red false offset actual-length actual expected-length expected)
+  (write-byte-deltas :bold.bright-green true offset expected-length expected actual-length actual)
+  (print " |")
+  (write-byte-deltas :bold.bright-red false offset actual-length actual expected-length expected)
   (println))
 
 (defn write-binary-delta

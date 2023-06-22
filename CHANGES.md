@@ -1,3 +1,19 @@
+## 2.0 -- UNRELEASED
+
+This release moves the library to clj-commons, and changes the root namespace from 
+`io.aviso` to `clj-commons`. It strips down the library to its essentials, removing
+the `columns`, `component`, and `logging` namespaces entirely.
+
+- Stripped out a lot of redundant documentation
+- Reworked the `ansi` namespace to primarily expose the `compose` function and not the dozens of constants and functions
+- `ansi` determines whether to enable or disable at execution time
+- `ansi` now honors the `NO_COLOR` environment variable
+- Stripped out code for accessing the clipboard from the `repl` namespace
+- Some refactoring inside `exceptions` namespace, including changes to the `*fonts*` var
+- Removed the `logging` namespace and dependency on `org.clojure/tools.logging`
+- Removed the `component` namespace, but the example is still present in the documentation
+- Ensure compatible with Clojure 1.10 and above (now tested in GitHub action)
+
 ## 1.4.4 -- 20 Jun 2023
 
 - Fixed: Incorrectly named font terms with `compose`
