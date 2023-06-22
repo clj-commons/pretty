@@ -1,6 +1,5 @@
 (ns clj-commons.format.exceptions
   "Format and output exceptions in a pretty (structured, formatted) way."
-  (:refer-clojure :exclude [update-keys])
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
@@ -472,8 +471,8 @@
         (recur result' nested)
         result'))))
 
-;; This is new in Clojure 1.11, but keeping it allows pretty to work with Clojure 1.10..
-(defn- update-keys
+;; Shadow Clojure 1.11's version, while keeping operational in 1.10.
+(defn- -update-keys
   [m f]
   "Builds a map where f has been applied to each key in m."
   (reduce-kv (fn [m k v]
@@ -495,15 +494,13 @@
         max-line-width (max-from rows #(-> % :line length))
         f (fn [{:keys [name file line repeats]}]
             (list
-              ^{:ansi/width max-name-width}
-              [nil name]
+              [{:width max-name-width} name]
               " "
-              ^{:ansi/width max-file-width}
-              [nil
-               [source-font file]
-               (when line ":")]
+              [{:width max-file-width
+                :font source-font} file]
+              (when line ":")
               " "
-              ^{:ansi/width max-line-width} [nil line]
+              [{:width max-line-width} line]
               (when repeats
                 [(:source *fonts*)
                  (format " (repeats %,d times)" repeats)])))]
@@ -577,24 +574,23 @@
         message-indent (+ 2 max-class-name-width)
         exception-f (fn [{:keys [class-name message properties]}]
                       (list
-                       ^{:ansi/width max-class-name-width}
-                       [exception-font
-                         class-name]
+                        [{:width max-class-name-width
+                          :font exception-font} class-name]
                         ":"
                         (when message
                           (list
                             " "
                             [message-font (indented-value message-indent message)]))
                         (when (and show-properties? (seq properties))
-                          (let [properties' (update-keys properties (comp replace-nil qualified-name))
+                          (let [properties' (-update-keys properties (comp replace-nil qualified-name))
                                 sorted-keys (cond-> (keys properties')
                                                     (not (sorted? properties')) sort)
                                 max-key-width (max-from sorted-keys length)
                                 value-indent (+ 2 max-key-width)]
                             (map (fn [k]
                                    (list "\n    "
-                                         ^{:ansi/width max-key-width}
-                                         [property-font k]
+                                         [{:width max-key-width
+                                           :font property-font} k]
                                          ": "
                                          [property-font
                                           (format-property-value value-indent (get properties' k))]))

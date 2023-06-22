@@ -16,18 +16,28 @@
 (deftest nested-width-exception
   (when-let [e (is (thrown? Exception
                             (compose "START"
-                                     ^{:ansi/width 10} [:red "A" "B"
-                                                        ^{:ansi/width 20} [:blue "C"]])))]
-    (is (= "can only track one column width at a time"
+                                     [{:width 10
+                                       :font :red} "A" "B"
+                                      [{:width 20
+                                        :font :blue} "C"]])))]
+    (is (= "can only track one span width at a time"
            (ex-message e)))
-    (is (= {:input [:blue "C"]}
+    (is (= {:input [{:width 20
+                     :font :blue} "C"]}
+           (ex-data e)))))
+
+(deftest invalid-font-decl
+  (when-let [e (is (thrown? Exception
+                            (compose "START"
+                                     ["A" "B" "C"])))]
+    (is (= "invalid span declaration"
+           (ex-message e)))
+    (is (= {:font-decl "A"}
            (ex-data e)))))
 
 (deftest compose-test
   (are [input expected]
     (= expected (safe-compose input))
-
-    ;; For the moment, everything is suffixed with the [CSI]m reset.
 
     ["Simple"]
     "Simple"
@@ -89,37 +99,39 @@
     ;; Basic tests for width:
 
     '("START |"
-       ^{:ansi/width 10
-         :ansi/pad :right} [nil "AAA"]
+       [{:width 10
+         :pad :right} "AAA"]
        "|"
-       ^{:ansi/width 10} [nil "BBB"]
+       [{:width 10} "BBB"]
        "|")
     "START |AAA       |       BBB|"
     ;       0123456789 0123456789
 
     '("START |"
-       ^{:ansi/width 10
-         :ansi/pad :right} [:green "A" "A" "A"]
+       [{:width 10
+         :pad :right
+         :font :green} "A" "A" "A"]
        "|"
-       ^{:ansi/width 10} [:red "BBB"]
+       [{:width 10
+         :font :red} "BBB"]
        "|")
     "START |[CSI]32mAAA       [CSI]39m|       [CSI]31mBBB[CSI]39m|[CSI]m"
     ;               0123456789         0123456789
 
-
-
     '("START |"
-       ^{:ansi/width 10
-         :ansi/pad :right} [:green "A" [nil "B"] [:blue "C"]]
+       [{:width 10
+         :pad :right
+         :font :green} "A" [nil "B"] [:blue "C"]]
        "|"
-       ^{:ansi/width 10} [:red "XYZ"]
+       [{:width 10
+         :font :red} "XYZ"]
        "|")
     "START |[CSI]32mAB[CSI]34mC       [CSI]39m|       [CSI]31mXYZ[CSI]39m|[CSI]m"
     ;                       0123456789         0123456789
 
     ;; Only pads, never truncates
 
-    '("START-" ^{:ansi/width 5} [nil "ABCDEFGH"] "-END")
+    '("START-" [{:width 5} "ABCDEFGH"] "-END")
 
     "START-ABCDEFGH-END"))
 

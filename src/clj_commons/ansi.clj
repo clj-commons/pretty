@@ -113,6 +113,22 @@
       (persistent! (reduce f (transient font-data) ks)))
     font-data))
 
+(defn- extract-span-decl
+  [value]
+  (cond
+    (nil? value)
+    nil
+
+    (keyword? value)
+    {:font value}
+
+    (map? value)
+    value
+
+    :else
+    (throw (ex-info "invalid span declaration"
+                    {:font-decl value}))))
+
 (defn- collect-markup
   [state input]
   (cond
@@ -122,18 +138,18 @@
     state
 
     (vector? input)
-    (let [[font-def & inputs] input
-          {:ansi/keys [width pad]} (meta input)
+    (let [[first-element & inputs] input
+          {:keys [font width pad]} (extract-span-decl first-element)
           {:keys [current *width tracking-width? buffer]} state
           _ (when (and width tracking-width?)
-              (throw (ex-info "can only track one column width at a time"
+              (throw (ex-info "can only track one span width at a time"
                               {:input input})))
           start-width @*width
           start-length (.length buffer)                     ; Needed if :pad is :left
           state' (reduce collect-markup
                    (-> state
                        (cond-> width (assoc :tracking-width? true))
-                     (update :current update-font-data-from-font-def font-def)
+                     (update :current update-font-data-from-font-def font)
                      (update :stack conj current))
                    inputs)]
       ;; TODO: treat the spaces same as other characters and deal with deferred
@@ -142,13 +158,6 @@
       (when width
         (let [actual-width (- @*width start-width)
               spaces (padding (- width actual-width))]
-         #_(prn {:start-width start-width
-                :current-width @*width
-                :width width
-                :actual-width actual-width
-                :buffer (str buffer)
-                :start-length start-length
-                :pad pad})
          (when spaces
            (if (= :right pad)
              (.append buffer spaces)
@@ -180,7 +189,8 @@
       state')))
 
 (defn compose
-  "Given a Hiccup-inspired data structure, composes and returns a string that includes necessary ANSI codes.
+  "Given a Hiccup-inspired data structure, composes and returns a string that includes ANSI formatting codes
+  for font color and other characteristics.
 
   The data structure may consist of literal values (strings, numbers, etc.) that are formatted
   with `str` and concatenated.
@@ -188,9 +198,12 @@
   Nested sequences are composed recursively; this (for example) allows the output from
   `map` or `for` to be mixed into the composed string seamlessly.
 
-  Nested vectors represent blocks; the first element in the vector is a keyword
-  that defines the font used within the block.  The font def contains one or more terms,
-  separated by periods.
+  Nested vectors represent _spans_, a sequence of values with a specific visual representation.
+  The first element in a span vector declares the visual properties of the span: the color (including
+  other characteristics such as bold or underline), and the width and padding (described later).
+
+  The declaration is usually a keyword, to define just the font.
+  The font def contains one or more terms, separated by periods.
 
   The terms:
 
@@ -213,8 +226,8 @@
   The order of the terms does not matter. Behavior for conflicting terms (`:blue.green.black`)
   is not defined.
 
-  Font defs apply on top of the font def of the enclosing block, and the outer block's font def
-  is restored at the end of the inner block, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.
+  Font defs apply on top of the font def of the enclosing span, and the outer span's font def
+  is restored at the end of the inner span, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.
 
   A font def may also be nil, to indicate no change in font.
 
@@ -227,19 +240,27 @@
   When [[*color-enabled*]] is false, then any font defs are validated, then ignored (no ANSI codes
   will be included).
 
-  Vectors may also have meta-data to control columns width and padding.
-  - ^:ansi/width - the width of the column
-  - ^:ansi/pad - placement of padding spaces :left or :right, defaults to :left
+  The span's font declaration may also be a map with the following keys:
+  - :font - keyword; the font declaration
+  - :width - number, the visual width of the span
+  - :pad - where to pad the span (:left or :right); defaults to :left
 
-  Only one column may be active at a time (a vector with a width may not contain another vector with a width).
-  `compose` will insert extra spaces before of after the content of the vector (however, if the column's actual width
-  exceeds the width specified, nothing is truncated).  The width is calculated based on visible text - the
-  ANSI codes inserted by `compose` do not count.
+  The map form of the font declaration is typically only used when a span width is specified.
+  The span will be padded with spaces to ensure that it is the specified width.  `compose` tracks the number
+  of characters inside the span, excluding any ANSI code sequences injected by `compose`.
+
+  `compose` doesn't consider the characters; if the strings contain tabs, newlines, or ANSI code sequences
+  not generated by `compose`, the calculation of the span width will be incorrect.
+
+  Only one span at a time can be tracked for width; if a nested span also specifies a width, `compose` will
+  throw an exception.
 
   Example:
-      ^{:ansi/width 20}[:red message]
 
-  This will output the `message`, padded on the left to be 20 characters.
+     [{:font :red
+       :width 20} message]
+
+  This will output the `message` in red text, padded on the left to be 20 characters.
 
   At this time, the placement of the spaces may be a bit haphazard with respect to ANSI codes; the spaces
   may be visible if the font def sets inverse, underlined, or colored backgrounds."
