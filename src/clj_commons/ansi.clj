@@ -15,7 +15,7 @@
 (defn- to-boolean
   [s]
   (when s
-    (= "true" (-> s str/trim str/lower-case))))
+    (-> s str/trim str/lower-case)))
 
 (def ^:dynamic *color-enabled*
   "Determines if ANSI colors are enabled; color is a deliberate misnomer, as we lump
@@ -33,9 +33,9 @@
   The nrepl.core check has been verified to work with Cursive, with `lein repl`, and with `clojure` (or `clj`)."
   (if (seq (System/getenv "NO_COLOR"))
     false
-    (let [flag (to-boolean (System/getProperty "clj-commons.ansi.enabled"))]
+    (let [flag (System/getProperty "clj-commons.ansi.enabled")]
       (cond
-        flag flag
+        (some? flag) (to-boolean flag)
 
         (is-ns-available? 'nrepl.core)
         true
