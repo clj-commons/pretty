@@ -241,6 +241,7 @@
   will be included).
 
   The span's font declaration may also be a map with the following keys:
+
   - :font - keyword; the font declaration
   - :width - number, the visual width of the span
   - :pad - where to pad the span (:left or :right); defaults to :left
@@ -257,10 +258,10 @@
 
   Example:
 
-     [{:font :red
-       :width 20} message]
+      [{:font :red
+        :width 20} message]
 
-  This will output the `message` in red text, padded on the left to be 20 characters.
+  This will output the value of `message` in red text, padded with spaces on the left to be 20 characters.
 
   At this time, the placement of the spaces may be a bit haphazard with respect to ANSI codes; the spaces
   may be visible if the font def sets inverse, underlined, or colored backgrounds."
