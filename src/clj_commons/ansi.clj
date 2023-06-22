@@ -14,8 +14,7 @@
 
 (defn- to-boolean
   [s]
-  (when s
-    (-> s str/trim str/lower-case)))
+  (-> s str/trim str/lower-case (= "true")))
 
 (def ^:dynamic *color-enabled*
   "Determines if ANSI colors are enabled; color is a deliberate misnomer, as we lump
