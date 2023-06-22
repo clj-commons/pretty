@@ -32,8 +32,8 @@
   {:main-opts ["-m" "clj-commons.pretty.repl"]}}
 
  :net.lewisship.build/scm
- {:url "https://github.com/AvisoNovate/pretty"}
+ {:url "https://github.com/clj-commons/pretty"}
 
  :codox/config
  {:description "Clojure library to help print things, prettily"
-  :source-uri "https://github.com/AvisoNovate/pretty/blob/master/{filepath}#L{line}"}}
+  :source-uri "https://github.com/clj-commons/pretty/blob/master/{filepath}#L{line}"}}

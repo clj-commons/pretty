@@ -1,5 +1,5 @@
-[![Clojars](https://img.shields.io/clojars/v/io.aviso/pretty.svg)](http://clojars.org/io.aviso/pretty)
-[![CI](https://github.com/AvisoNovate/pretty/actions/workflows/clojure.yml/badge.svg)](https://github.com/AvisoNovate/pretty/actions/workflows/clojure.yml)
+[![Clojars](https://img.shields.io/clojars/v/org.clj-commons/pretty.svg)](http://clojars.org/clj-commons/pretty)
+[![CI](https://github.com/clj-commons/pretty/actions/workflows/clojure.yml/badge.svg)](https://github.com/AvisoNovate/pretty/actions/workflows/clojure.yml)
 
 *Sometimes, neatness counts*
 
