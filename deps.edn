@@ -18,15 +18,15 @@
           {:git/tag "0.9" :git/sha "4efa3c9"}}
    :ns-default build}
 
-  :main
-  {:main-opts ["-m" "clj-commons.pretty.repl"]}
-
   :1.10
   {:override-deps {org.clojure/clojure {:mvn/version "1.10.0"}}}
 
   ;; clj -M:test:demo
   :demo
   {:main-opts ["-m" "demo"]}
+
+  :disable-colors
+  {:jvm-opts ["-Dclj-commons.ansi.enabled=false"]}
 
   :repl
   {:main-opts ["-m" "clj-commons.pretty.repl"]}}
