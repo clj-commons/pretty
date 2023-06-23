@@ -1,6 +1,6 @@
 (ns clj-commons.pretty.repl
   "Utilities to assist with REPL-oriented development."
-  (:require [clj-commons.format.exceptions :as e :refer [write-exception]]
+  (:require [clj-commons.format.exceptions :as e :refer [print-exception]]
             [clojure.main :as main]
             [clojure.repl :as repl]
             [clojure.stacktrace :as st])
@@ -13,7 +13,7 @@
 (defn pretty-repl-caught
   "A replacement for `clojure.main/repl-caught` that prints the exception to `*err*`, without a stack trace or properties."
   [e]
-  (write-exception e {:frame-limit 0 :properties false}))
+  (print-exception e {:frame-limit 0 :properties false}))
 
 (defn uncaught-exception-handler
   "Returns a reified UncaughtExceptionHandler that prints the formatted exception to `*err*`."
@@ -33,18 +33,18 @@
   ([] (pretty-pst *e))
   ([e-or-depth]
    (if (instance? Throwable e-or-depth)
-     (write-exception e-or-depth nil)
+     (print-exception e-or-depth nil)
      (pretty-pst *e e-or-depth)))
   ([e depth]
    (binding [*out* *err*]
-     (write-exception e {:frame-limit depth}))))
+     (print-exception e {:frame-limit depth}))))
 
 (defn pretty-print-stack-trace
   "Replacement for `clojure.stacktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
   ([tr] (pretty-print-stack-trace tr nil))
   ([tr n]
    (println)
-   (write-exception tr {:frame-limit n})))
+   (print-exception tr {:frame-limit n})))
 
 (defn install-pretty-exceptions
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides

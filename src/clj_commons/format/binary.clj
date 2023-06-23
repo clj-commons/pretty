@@ -78,7 +78,7 @@
             (padding (- per-line line-count))
             "|"))))))
 
-(defn write-binary
+(defn print-binary
   "Formats a BinaryData into a hex-dump string, consisting of multiple lines; each line formatted as:
 
       0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65
@@ -105,7 +105,7 @@
   A placeholder character (a space with magenta background) is used for any non-printable
   character."
   ([data]
-   (write-binary data nil))
+   (print-binary data nil))
   ([data options]
    (let [{show-ascii? :ascii
           per-line-option :line-bytes} options
@@ -118,14 +118,13 @@
            (write-line show-ascii? offset data (min per-line remaining) per-line)
            (recur (long (+ per-line offset)))))))))
 
-
 (defn format-binary
   "Formats the data using [[write-binary]] and returns the result as a string."
   ([data]
    (format-binary data nil))
   ([data options]
    (with-out-str
-     (write-binary data options))))
+     (print-binary data options))))
 
 (defn- match?
   [byte-offset data-length data alternate-length alternate]
@@ -156,7 +155,7 @@
         ;; On the right/red side, we need nothing.
         pad? (print "   ")))))
 
-(defn- write-delta-line
+(defn- print-delta-line
   [offset expected-length ^bytes expected actual-length actual]
   (printf "%04X:" offset)
   (write-byte-deltas :bold.bright-green true offset expected-length expected actual-length actual)
@@ -164,7 +163,7 @@
   (write-byte-deltas :bold.bright-red false offset actual-length actual expected-length expected)
   (println))
 
-(defn write-binary-delta
+(defn print-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
   that do not match are highlighted in green on the expected side, and red on the actual side.
   When one side is shorter than the other, it is padded with `--` placeholders to make this
@@ -179,11 +178,11 @@
         target-length   (max actual-length expected-length)]
     (loop [offset 0]
       (when (pos? (- target-length offset))
-        (write-delta-line offset expected-length expected actual-length actual)
+        (print-delta-line offset expected-length expected actual-length actual)
         (recur (long (+ bytes-per-diff-line offset)))))))
 
 (defn format-binary-delta
   "Formats the delta using [[write-binary-delta]] and returns the result as a string."
   [expected actual]
   (with-out-str
-    (write-binary-delta expected actual)))
+    (print-binary-delta expected actual)))

@@ -241,9 +241,14 @@
 
   The span's font declaration may also be a map with the following keys:
 
-  - :font - keyword; the font declaration
-  - :width - number, the visual width of the span
-  - :pad - where to pad the span (:left or :right); defaults to :left
+  :font keyword
+  : the font declaration
+
+  :width number
+  : the visual width of the span
+
+  :pad keyword
+  : where to pad the span, :left or :right; default is :left
 
   The map form of the font declaration is typically only used when a span width is specified.
   The span will be padded with spaces to ensure that it is the specified width.  `compose` tracks the number

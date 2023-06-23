@@ -71,7 +71,7 @@
   (pst (make-exception))
   (println "\nTesting reporting of repeats:")
   (try (countdown 20)
-       (catch Throwable t (e/write-exception t))))
+       (catch Throwable t (e/print-exception t))))
 
 (comment
 
@@ -83,7 +83,7 @@
       (thread
         (<!! ch)
         (println (str "Thread #" i))
-        (e/write-exception e)))
+        (e/print-exception e)))
     (close! ch))
 
   (repl/install-pretty-exceptions)

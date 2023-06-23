@@ -111,16 +111,14 @@
 
   * A function that extracts the value from the stack frame map (typically, this is a keyword such
   as :package or :name). The value is converted to a string.
-
   * A string or regexp used for matching.  Strings must match exactly.
-
   * A resulting frame visibility (:hide, :omit, :terminate, or :show).
 
   The default rules:
 
-  * omit everything in clojure.lang and java.lang.reflect.
-  * hide everything in sun.reflect
-  * terminate at speclj.*, clojure.main/main*, clojure.main/repl/read-eval-print, or nrepl.middleware.interruptible-eval
+  * omit everything in `clojure.lang` and `java.lang.reflect`.
+  * hide everything in `sun.reflect`
+  * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
   "
   [[:package "clojure.lang" :omit]
    [:package #"sun\.reflect.*" :hide]
@@ -677,10 +675,10 @@
   ([exception options]
    (format-exception* (analyze-exception exception options) options)))
 
-(defn write-exception
-  "Formats an exception via [[format-exception]], then writes it to `*out*`.  Accepts the same options as `format-exception`."
+(defn print-exception
+  "Formats an exception via [[format-exception]], then prints it to `*out*`.  Accepts the same options as `format-exception`."
   ([exception]
-   (write-exception exception nil))
+   (print-exception exception nil))
   ([exception options]
    (print (format-exception exception options))
    (flush)))
