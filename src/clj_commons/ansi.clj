@@ -139,7 +139,7 @@
     (vector? input)
     (let [[first-element & inputs] input
           {:keys [font width pad]} (extract-span-decl first-element)
-          {:keys [current *width tracking-width? buffer]} state
+          {:keys [current *width tracking-width? ^StringBuilder buffer]} state
           _ (when (and width tracking-width?)
               (throw (ex-info "can only track one span width at a time"
                               {:input input})))
