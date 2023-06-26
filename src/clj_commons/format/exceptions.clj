@@ -222,10 +222,6 @@
      ;; Used to present compound Clojure name with last term highlighted
      :names names}))
 
-(def ^:private empty-stack-trace-warning
-  "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with -XX:-OmitStackTraceInFastThrow.")
-
-
 (defn- apply-frame-filter
   [frame-filter frames]
   (if (nil? frame-filter)
@@ -299,6 +295,15 @@
       :else
       (conj output-frames frame))))
 
+(def ^:private stack-trace-warning
+  (delay
+    (binding [*out* *err*]
+      (println (compose
+                 [:bright-yellow "WARNING: "]
+                 "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with "
+                 [:bold "-XX:-OmitStackTraceInFastThrow" "."]))
+      (flush))))
+
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
 
@@ -336,9 +341,7 @@
   [^Throwable exception]
   (let [elements (map (partial expand-stack-trace-element current-dir-prefix) (.getStackTrace exception))]
     (when (empty? elements)
-      (binding [*out* *err*]
-        (println empty-stack-trace-warning)
-        (flush)))
+      @stack-trace-warning)
     elements))
 
 (defn- clj-frame-font-key
