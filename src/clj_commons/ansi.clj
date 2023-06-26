@@ -2,7 +2,7 @@
   "Help with generating textual output that includes ANSI escape codes for formatting.
   The [[compose]] function is the best starting point.
 
-  Reference: [Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
+  Reference: [ANSI Escape Codes @ Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
   (:require [clojure.string :as str]
             [clj-commons.pretty-impl :refer [csi padding]]))
 
@@ -128,63 +128,89 @@
     (throw (ex-info "invalid span declaration"
                     {:font-decl value}))))
 
+(defn- blank? [value]
+  (or (nil? value)
+      (= "" value)))
+
+(defn- normalize-markup
+  "Normalizes markup to span vectors, while keeping track of the total length of string values."
+  [coll *length]
+  (let [f (fn reducer [result input]
+            (cond
+              (blank? input)
+              result
+
+              (vector? input)
+              (let [decl (extract-span-decl (first input))
+                    ;; TODO: Maybe we can actually allow nested width-padded spans?
+                    _ (when (:width decl)
+                        (throw (ex-info "can only track one span width at a time"
+                                        {:input input})))
+                    ;; next on vector is not a vector itself, fortunately
+                    span (reduce reducer [decl] (next input))]
+                (conj result span))
+
+              (sequential? input)
+              ;; Convert to a span with a nil decl
+              (let [sub-span (reduce reducer [nil] input)]
+                (conj result sub-span))
+
+              :else
+              (let [value-str ^String (.toString input)]
+                (vswap! *length + (.length value-str))
+                (conj result value-str))))]
+    (reduce f [] coll)))
+
 (defn- collect-markup
   [state input]
   (cond
-    (or
-      (nil? input)
-      (= "" input))
+    (blank? input)
     state
 
     (vector? input)
     (let [[first-element & inputs] input
-          {:keys [font width pad]} (extract-span-decl first-element)
-          {:keys [current *width tracking-width? ^StringBuilder buffer]} state
-          _ (when (and width tracking-width?)
-              (throw (ex-info "can only track one span width at a time"
-                              {:input input})))
-          start-width @*width
-          start-length (.length buffer)                     ; Needed if :pad is :left
-          state' (reduce collect-markup
-                   (-> state
-                       (cond-> width (assoc :tracking-width? true))
-                     (update :current update-font-data-from-font-def font)
-                     (update :stack conj current))
-                   inputs)]
-      ;; TODO: treat the spaces same as other characters and deal with deferred
-      ;; font characteristic changes?  This will be visible with inverse or
-      ;; underlined spans.
-      (when width
-        (let [actual-width (- @*width start-width)
-              spaces (padding (- width actual-width))]
-         (when spaces
-           (if (= :right pad)
-             (.append buffer spaces)
-             (.insert buffer start-length spaces))
-           ;; Not really necessary since we don't/can't track nested widths
-           (vswap! *width + (.length spaces)))))
-      (-> state'
-        (assoc :current current
-               :tracking-width? false)
-        (update :stack pop)))
+          {:keys [font width pad] :as span-decl} (extract-span-decl first-element)]
+      (if width
+        (let [;; Transform this span and everything below it into easily managed span vectors, starting
+              ;; with a reduced version of the span decl.
+              span-decl' (dissoc span-decl :width :pad)
+              *length (volatile! 0)
+              inputs' (into [span-decl'] (normalize-markup inputs *length))
+              spaces (padding (- width @*length))
+              ;; Added the padding in the desired position; this ensures that the logic that generates
+              ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
+              padded (if (= :right pad)
+                       (conj inputs' spaces)
+                       ;; An "insert-at" for vectors would be nice
+                       (into [(first inputs') spaces] (next inputs')))]
+          (recur state padded))
+        ;; Normal (no width tracking)
+        (let [{:keys [current]} state
+              state' (reduce collect-markup
+                             (-> state
+                                 (update :current update-font-data-from-font-def font)
+                                 (update :stack conj current))
+                             inputs)]
+          (-> state'
+              (assoc :current current
+                     :tracking-width? false)
+              (update :stack pop)))))
 
     ;; Lists, lazy-lists, etc: processed recursively
     (sequential? input)
     (reduce collect-markup state input)
 
     :else
-    (let [{:keys [active current ^StringBuilder buffer *width]} state
+    (let [{:keys [active current ^StringBuilder buffer]} state
           state' (if (= active current)
                    state
                    (let [font-str (compose-font active current)]
                      (when font-str
-                       ;; This never counts towards *width
                        (.append buffer font-str))
                      (cond-> (assoc state :active current)
-                             font-str (assoc :dirty? true))))
-          input-str (str input)]
-      (.append buffer input-str)
-      (vswap! *width + (.length input-str))
+                             ;; Signal that a reset is needed at the very end
+                             font-str (assoc :dirty? true))))]
+      (.append buffer ^String (.toString input))
       state')))
 
 (defn compose
@@ -224,6 +250,7 @@
 
   The order of the terms does not matter. Behavior for conflicting terms (`:blue.green.black`)
   is not defined.
+
 
   Font defs apply on top of the font def of the enclosing span, and the outer span's font def
   is restored at the end of the inner span, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.
@@ -265,10 +292,7 @@
       [{:font :red
         :width 20} message]
 
-  This will output the value of `message` in red text, padded with spaces on the left to be 20 characters.
-
-  At this time, the placement of the spaces may be a bit haphazard with respect to ANSI codes; the spaces
-  may be visible if the font def sets inverse, underlined, or colored backgrounds."
+  This will output the value of `message` in red text, padded with spaces on the left to be 20 characters."
   {:added "1.4.0"}
   [& inputs]
   (let [initial-font {:foreground "39"
@@ -281,8 +305,7 @@
         {:keys [dirty?]} (collect-markup {:stack []
                                           :active initial-font
                                           :current initial-font
-                                          :buffer buffer
-                                          :*width (volatile! 0)}
+                                          :buffer buffer}
                                          inputs)]
     (when dirty?
       (.append buffer reset-font))

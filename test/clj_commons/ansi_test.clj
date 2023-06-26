@@ -115,8 +115,8 @@
        [{:width 10
          :font :red} "BBB"]
        "|")
-    "START |[CSI]32mAAA       [CSI]39m|       [CSI]31mBBB[CSI]39m|[CSI]m"
-    ;               0123456789         0123456789
+    "START |[CSI]32mAAA       [CSI]39m|[CSI]31m       BBB[CSI]39m|[CSI]m"
+    ;               0123456789                 0123456789
 
     '("START |"
        [{:width 10
@@ -126,8 +126,8 @@
        [{:width 10
          :font :red} "XYZ"]
        "|")
-    "START |[CSI]32mAB[CSI]34mC       [CSI]39m|       [CSI]31mXYZ[CSI]39m|[CSI]m"
-    ;                       0123456789         0123456789
+    "START |[CSI]32mAB[CSI]34mC[CSI]32m       [CSI]39m|[CSI]31m       XYZ[CSI]39m|[CSI]m"
+    ;               01        2        3456789                 0123456789
 
     ;; Only pads, never truncates
 
