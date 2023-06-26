@@ -13,6 +13,10 @@ the `columns`, `component`, and `logging` namespaces entirely.
 - Removed the `logging` namespace and dependency on `org.clojure/tools.logging`
 - Removed the `component` namespace, but the example is still present in the documentation
 - Ensure compatible with Clojure 1.10 and above (now tested in GitHub action)
+- The "use -XX:-OmitStackTraceInFastThrow" warning is now formatted, and is output only once
+- `write-exception` was renamed to `print-exception`
+- `write-binary` and `write-binary-delta` renamed to `print-binary` and `print-binary-delta`
+- `compose` can now pad a span of text with spaces (on the left or right) to a desired width
 
 ## 1.4.4 -- 20 Jun 2023
 
