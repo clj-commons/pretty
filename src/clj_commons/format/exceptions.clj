@@ -560,10 +560,7 @@
     "nil"
     x))
 
-(defn format-exception*
-  "Contains the main logic for [[format-exception]], which simply expands
-  the exception (via [[analyze-exception]]) before invoking this function."
-  {:added "0.1.21"}
+(defn- render-exception
   [exception-stack options]
   (let [{show-properties? :properties
          :or {show-properties? true}} options
@@ -601,7 +598,7 @@
                      (map exception-f (?reverse modern? exception-stack))
                      "\n")
         root-stack-trace (-> exception-stack last :stack-trace)]
-    (compose
+    (list
       (when *traditional*
         exceptions)
 
@@ -610,6 +607,14 @@
 
       (when modern?
         exceptions))))
+
+(defn format-exception*
+  "Contains the main logic for [[format-exception]], which simply expands
+  the exception (via [[analyze-exception]]) before invoking this function."
+  {:added "0.1.21"}
+  [exception-stack options]
+  (compose
+    (render-exception exception-stack options)))
 
 (defn format-exception
   "Formats an exception, returning a single large string.

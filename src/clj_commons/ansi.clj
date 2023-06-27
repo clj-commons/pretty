@@ -172,12 +172,12 @@
           {:keys [font width pad] :as span-decl} (extract-span-decl first-element)]
       (if width
         (let [;; Transform this span and everything below it into easily managed span vectors, starting
-              ;; with a reduced version of the span decl.
+              ;; with a version of this span decl.
               span-decl' (dissoc span-decl :width :pad)
               *length (volatile! 0)
               inputs' (into [span-decl'] (normalize-markup inputs *length))
               spaces (padding (- width @*length))
-              ;; Added the padding in the desired position; this ensures that the logic that generates
+              ;; Add the padding in the desired position; this ensures that the logic that generates
               ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
               padded (if (= :right pad)
                        (conj inputs' spaces)
@@ -185,13 +185,12 @@
                        (into [(first inputs') spaces] (next inputs')))]
           (recur state padded))
         ;; Normal (no width tracking)
-        (let [{:keys [current]} state
-              state' (reduce collect-markup
-                             (-> state
-                                 (update :current update-font-data-from-font-def font)
-                                 (update :stack conj current))
-                             inputs)]
-          (-> state'
+        (let [{:keys [current]} state]
+          (-> (reduce collect-markup
+                      (-> state
+                          (update :current update-font-data-from-font-def font)
+                          (update :stack conj current))
+                      inputs)
               (assoc :current current
                      :tracking-width? false)
               (update :stack pop)))))
@@ -226,6 +225,7 @@
   Nested vectors represent _spans_, a sequence of values with a specific visual representation.
   The first element in a span vector declares the visual properties of the span: the color (including
   other characteristics such as bold or underline), and the width and padding (described later).
+  Spans may be nested.
 
   The declaration is usually a keyword, to define just the font.
   The font def contains one or more terms, separated by periods.
@@ -248,7 +248,7 @@
   => ...
   ```
 
-  The order of the terms does not matter. Behavior for conflicting terms (`:blue.green.black`)
+  The order of the terms does not matter. Behavior for conflicting terms (e.g., `:blue.green.black`)
   is not defined.
 
 
@@ -263,8 +263,8 @@
 
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
-  When [[*color-enabled*]] is false, then any font defs are validated, then ignored (no ANSI codes
-  will be included).
+  When [[*color-enabled*]] is false, then any font defs are validated, but otherwise ignored (no ANSI codes
+  will be included in the composed string).
 
   The span's font declaration may also be a map with the following keys:
 
@@ -292,7 +292,9 @@
       [{:font :red
         :width 20} message]
 
-  This will output the value of `message` in red text, padded with spaces on the left to be 20 characters."
+  This will output the value of `message` in red text, padded with spaces on the left to be 20 characters.
+
+  compose does not truncate a span to a width, it only pads if the span in too short."
   {:added "1.4.0"}
   [& inputs]
   (let [initial-font {:foreground "39"

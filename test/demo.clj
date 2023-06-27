@@ -104,6 +104,16 @@
   (let [e (make-ex-info)]
     (c/bench (e/format-exception e)))
 
+
+  ;; 27 Jun 2023 -  767 µs                  - Clojure 1.11.1, Corretto 17.0.7, M1
+  (let [e (make-ex-info)
+        composed (#'e/render-exception (e/analyze-exception e nil) nil)]
+    (c/bench (compose composed)))
+
+  ;; 27 Jun 2023 - 182 µs                   - Clojure 1.11.1, Corretto 17.0.7, M1
+  (let [e (make-ex-info)]
+    (c/bench (#'e/render-exception (e/analyze-exception e nil) nil)))
+
   ;; 11 Feb 2016 - 213 µs (4 µs std dev) - Clojure 1.8
   ;; 28 Sep 2018 - 237 µs (8 µs std dev) - Clojure 1.9
 
