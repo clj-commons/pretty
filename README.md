@@ -11,12 +11,20 @@ or compare two streams of binary data, a little bit of formatting can go a long 
 That's what `org.clj-commons/pretty` is for.  It adds support for pretty output where it counts:
 
 * Readable output for exceptions
-* ANSI font and background color support
-* Hex dump of binary data
-* Hex dump of binary deltas
-* Formatting data into columns
+* General ANSI font and background color support
+* Readable output for binary sequences
 
 ![Example](docs/images/formatted-exception.png)
+
+Pretty can print out a sequence of bytes; it includes color-coding inspired by
+[hexyl](https://github.com/sharkdp/hexyl):
+
+![Binary Output](docs/images/binary-output.png)
+
+Pretty can also print out a delta of two byte sequences, using background color
+to indicate where the two sequences differ.
+
+![Binary Delta](docs/images/binary-delta.png)
 
 Pretty is compatible with Clojure 1.10 and above.
 

@@ -3,10 +3,14 @@
     [clj-commons.pretty.repl :as repl]
     [clj-commons.format.exceptions :as e]
     [clj-commons.ansi :refer [compose]]
+    [clj-commons.format.binary :as b]
+    [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
     [criterium.core :as c]
     [clojure.test :refer [report]])
-  (:import (java.sql SQLException)))
+  (:import (java.nio.channels FileChannel)
+           (java.nio.file Files)
+           (java.sql SQLException)))
 
 (defn- jdbc-update
   []
@@ -71,7 +75,17 @@
   (pst (make-exception))
   (println "\nTesting reporting of repeats:")
   (try (countdown 20)
-       (catch Throwable t (e/print-exception t))))
+       (catch Throwable t (e/print-exception t)))
+  (println "\nBinary output:\n")
+  (-> (io/file "test/tiny-clojure.gif")
+       .toPath
+       Files/readAllBytes
+       (b/print-binary {:ascii true}))
+
+  (println "\nBinary delta:\n")
+  (b/print-binary-delta "Welcome, Friend"
+                        "We1come, Fiend")
+  (println))
 
 (comment
 

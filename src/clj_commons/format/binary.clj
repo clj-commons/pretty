@@ -4,6 +4,21 @@
             [clj-commons.pretty-impl :refer [padding]])
   (:import (java.nio ByteBuffer)))
 
+(def ^:dynamic *fonts*
+  "Mapping from byte category to a font (color)."
+  {:offset :bright-black
+   :null :bright-black
+   :printable :cyan
+   :whitespace :green
+   :other :faint.green
+   :non-ascii :yellow})
+
+(def ^:private placeholders
+  {:null "•"
+   :whitespace "_"
+   :other "•"
+   :non-ascii "×"})
+
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
   supports a length and random access to individual bytes.
@@ -11,7 +26,7 @@
   BinaryData is extended onto byte arrays, java.nio.ByteBuffer, java.lang.String, java.lang.StringBuilder, and onto nil."
 
   (data-length [this] "The total number of bytes available.")
-  (byte-at [this index] "The byte value at a specific offset."))
+  ^byte (byte-at [this index] "The byte value at a specific offset."))
 
 (extend-type (Class/forName "[B")
   BinaryData
@@ -46,30 +61,65 @@
 (def ^:private ^:const bytes-per-ascii-line 16)
 (def ^:private ^:const bytes-per-line (* 2 bytes-per-diff-line))
 
-(def ^:private printable-chars
-      (into #{}
-            (map byte (str "abcdefghijklmnopqrstuvwxyz"
-                           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                           "0123456789"
-                           " !@#$%^&*()-_=+[]{}\\|'\";:,./<>?`~"))))
+(def ^:private whitespace
+  #{0x09 0x0a 0x0b 0x0c 0x0d 0x20})
 
-(defn- nonprintable-placeholder [] (compose [:bright-magenta-bg " "]))
+(defn- category-for-byte
+  [^long value]
+  (cond
+    (zero? value)
+    :null
+
+    (< 0x7f value)
+    :non-ascii
+
+    (contains? whitespace value)
+    :whitespace
+
+    (<= 0x21 value 0x7e)
+    :printable
+
+    :else
+    :other))
+
+(defn- font-for-byte
+  [^long value]
+  (get *fonts* (category-for-byte value)))
 
 (defn- to-ascii
-  [b]
-  (if (printable-chars b)
-    (char b)
-    (nonprintable-placeholder)))
+  [^long b]
+  (let [category (category-for-byte b)]
+    [(get *fonts* category)
+     (if (or (= :printable category)
+             (= 0x20 b))
+       (char b)
+       (get placeholders category))]))
+
+(defn- hex-digit-count
+  [max-length]
+  (loop [digits 4
+         cutoff 0xffff]
+    (if (<= max-length cutoff)
+      digits
+      (recur (+ 2 digits)
+             (* cutoff 0xff)))))
+
+(defn- make-offset-format
+  [max-length]
+  (str "%0" (hex-digit-count max-length) "X:"))
 
 (defn- write-line
-  [write-ascii? offset data line-count per-line]
+  [write-ascii? offset-format offset data line-count per-line]
   (let [line-bytes (for [i (range line-count)]
-                     (byte-at data (+ offset i)))]
+                     (Byte/toUnsignedLong (byte-at data (+ offset i))))]
     (println
       (compose
-        (format "%04X:" offset)
+        [(:offset *fonts*)
+         (format offset-format offset)]
         (for [b line-bytes]
-          (format " %02X" b))
+          (list " "
+                [(font-for-byte b)
+                 (format "%02X" b)]))
         (when write-ascii?
           (list
             (padding (* 3 (- per-line line-count)))
@@ -102,20 +152,21 @@
       0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F |re that takes yo|
       0030: 75 2E                                           |u.              |
 
-  A placeholder character (a space with magenta background) is used for any non-printable
-  character."
+  When ANSI is enabled, the individual bytes and characters are color-coded as per the [[*fonts*]]."
   ([data]
    (print-binary data nil))
   ([data options]
    (let [{show-ascii? :ascii
           per-line-option :line-bytes} options
          per-line (or per-line-option
-                      (if show-ascii? bytes-per-ascii-line bytes-per-line))]
+                      (if show-ascii? bytes-per-ascii-line bytes-per-line))
+         input-length (data-length data)
+         offset-format (make-offset-format input-length)]
      (assert (pos? per-line) "must be at least one byte per line")
      (loop [offset 0]
-       (let [remaining (- (data-length data) offset)]
+       (let [remaining (- input-length offset)]
          (when (pos? remaining)
-           (write-line show-ascii? offset data (min per-line remaining) per-line)
+           (write-line show-ascii? offset-format offset data (min per-line remaining) per-line)
            (recur (long (+ per-line offset)))))))))
 
 (defn format-binary
@@ -133,35 +184,35 @@
     (< byte-offset alternate-length)
     (== (byte-at data byte-offset) (byte-at alternate byte-offset))))
 
-(defn- to-hex
-  [byte-array byte-offset]
-  ;; This could be made a lot more efficient!
-  (format "%02X" (byte-at byte-array byte-offset)))
-
-(defn- write-byte-deltas
-  [ansi-color pad? offset data-length data alternate-length alternate]
-  (doseq [i (range bytes-per-diff-line)]
-    (let [byte-offset (+ offset i)]
+(defn- compose-deltas
+  "Returns a composed value of one line (16 bytes) of data."
+  [mismatch-font offset data-length data alternate-length alternate]
+  (for [i (range bytes-per-diff-line)]
+    (let [byte-offset (+ offset i)
+          *value (delay
+                   (let [value (long (byte-at data byte-offset))
+                         byte-font (font-for-byte value)]
+                     [byte-font (format "%02X" value)]))]
       (cond
-        ;; Exact match on both sides is easy, just print it out.
-        (match? byte-offset data-length data alternate-length alternate) (print (str " " (to-hex data byte-offset)))
+        (match? byte-offset data-length data alternate-length alternate)
+        (list " " @*value)
+
         ;; Some kind of mismatch, so decorate with this side's color
-        (< byte-offset data-length) (print (compose " " [ansi-color (to-hex data byte-offset)]))
+        (< byte-offset data-length) (list " " [mismatch-font @*value])
         ;; Are we out of data on this side?  Print a "--" decorated with the color.
-        (< byte-offset alternate-length) (print (compose " "
-                                                         [ansi-color "--"]))
-        ;; This side must be longer than the alternate side.
-        ;; On the left/green side, we need to pad with spaces
-        ;; On the right/red side, we need nothing.
-        pad? (print "   ")))))
+        (< byte-offset alternate-length) (list " " [mismatch-font "--"])))))
 
 (defn- print-delta-line
-  [offset expected-length ^bytes expected actual-length actual]
-  (printf "%04X:" offset)
-  (write-byte-deltas :bold.bright-green true offset expected-length expected actual-length actual)
-  (print " |")
-  (write-byte-deltas :bold.bright-red false offset actual-length actual expected-length expected)
-  (println))
+  [offset-format offset expected-length expected actual-length actual]
+  (println
+    (compose
+      [(:offset *fonts*)
+       (format offset-format offset)]
+      [{:pad :right
+        :width (* 3 bytes-per-diff-line)}
+       (compose-deltas :bright-green-bg offset expected-length expected actual-length actual)]
+      " |"
+      (compose-deltas :bright-red-bg offset actual-length actual expected-length expected))))
 
 (defn print-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
@@ -175,14 +226,15 @@
   [expected actual]
   (let [expected-length (data-length expected)
         actual-length   (data-length actual)
-        target-length   (max actual-length expected-length)]
+        target-length   (max actual-length expected-length)
+        offset-format (make-offset-format (max actual-length target-length))]
     (loop [offset 0]
       (when (pos? (- target-length offset))
-        (print-delta-line offset expected-length expected actual-length actual)
+        (print-delta-line offset-format offset expected-length expected actual-length actual)
         (recur (long (+ bytes-per-diff-line offset)))))))
 
 (defn format-binary-delta
-  "Formats the delta using [[write-binary-delta]] and returns the result as a string."
+  "Formats the delta using [[print-binary-delta]] and returns the result as a string."
   [expected actual]
   (with-out-str
     (print-binary-delta expected actual)))
