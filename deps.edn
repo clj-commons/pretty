@@ -28,6 +28,10 @@
   :disable-colors
   {:jvm-opts ["-Dclj-commons.ansi.enabled=false"]}
 
+  :nrepl
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.0.0"}}
+   :main-opts ["-m" "nrepl.cmdline" ]}
+
   :repl
   {:main-opts ["-m" "clj-commons.pretty.repl"]}}
 

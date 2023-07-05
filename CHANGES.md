@@ -5,8 +5,8 @@ This release moves the library to clj-commons, and changes the root namespace fr
 the `columns`, `component`, and `logging` namespaces entirely.
 
 - Stripped out a lot of redundant documentation
-- Reworked the `ansi` namespace to primarily expose the `compose` function and not the dozens of constants and functions
-- `ansi` determines whether to enable or disable at execution time
+- Reworked the `ansi` namespace to primarily expose the `compose` function and not dozens of constants and functions
+- `ansi` determines whether to enable or disable ANSI codes at execution time
 - `ansi` now honors the `NO_COLOR` environment variable
 - Stripped out code for accessing the clipboard from the `repl` namespace
 - Some refactoring inside `exceptions` namespace, including changes to the `*fonts*` var
@@ -17,6 +17,7 @@ the `columns`, `component`, and `logging` namespaces entirely.
 - `write-exception` was renamed to `print-exception`
 - `write-binary` and `write-binary-delta` renamed to `print-binary` and `print-binary-delta`
 - `compose` can now pad a span of text with spaces (on the left or right) to a desired width
+-  Binary output now includes color coding
 
 ## 1.4.4 -- 20 Jun 2023
 
