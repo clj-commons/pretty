@@ -1,4 +1,4 @@
-## 2.0 -- UNRELEASED
+## 2.0 -- 14 Jul 2023
 
 This release moves the library to clj-commons, and changes the root namespace from 
 `io.aviso` to `clj-commons`. It strips down the library to its essentials, removing
