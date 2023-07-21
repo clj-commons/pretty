@@ -1,3 +1,9 @@
+## 2.0.1 -- 20 Jul 2023
+
+Bug Fixes
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/37?closed=1)
+
 ## 2.0 -- 14 Jul 2023
 
 This release moves the library to clj-commons, and changes the root namespace from 
@@ -24,20 +30,20 @@ the `columns`, `component`, and `logging` namespaces entirely.
 - Fixed: Incorrectly named font terms with `compose`
 - Fixed: Incorrect ANSI codes for bright and bright background colors
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/milestone/36?closed=1)
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/36?closed=1)
 
 ## 1.4.3 -- 24 May 2023
 
 The `compose` function would collapse blank strings to empty strings.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/milestone/33?closed=1)
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/33?closed=1)
 
 ## 1.4.1, 1.4.2 -- 5 May 2023
 
 `io.aviso.ansi`: Add support for `faint`, `underlined`, and `not-underlined` text, and improvements
 to docstrings.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/milestone/34?closed=1)
+[Closed issues](https://github.com/clj-commons/pretty/milestone/34?closed=1)
 
 ## 1.4 -- 27 Mar 2023
 
@@ -49,7 +55,7 @@ The override to enable or disable ANSI text has been amended: the first check is
 a JVM system property, `io.aviso.ansi.enable`, then if that is not set, the `ENABLE_ANSI_COLORS`
 environment variable.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/milestone/32?closed=1)
+[Closed issues](https://github.com/clj-commons/pretty/milestone/32?closed=1)
 
 ## 1.3 -- 20 Oct 2022
 
@@ -71,13 +77,13 @@ Output from `write-exception` is now buffered; this should reduce the
 interleaving of exception output when multiple threads are writing
 exceptions simultaneously.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=is%3Aclosed+milestone%3A1.2)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A1.2)
 
 ## 1.1.1 -- 15 Dec 2021
 
 Prevent warnings when using with Clojure 1.11.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=is%3Aclosed+milestone%3A1.1.1)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A1.1.1)
 
 ## 1.1 -- 16 May 2021
 
@@ -87,7 +93,7 @@ Restore compatibility with Clojure 1.7.0.
 
 BinaryData protocol extended onto java.nio.ByteBuffer.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A1.0+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A1.0+is%3Aclosed)
 
 ## 0.1.37 - 30 Jan 2019
 
@@ -100,7 +106,7 @@ BinaryData protocol extended onto java.nio.ByteBuffer.
   Leiningen is phasing out implicit middleware.
   See the manual for more details.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.37+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.37+is%3Aclosed)
 
 ## 0.1.36 - 22 Dec 2018
 
@@ -108,7 +114,7 @@ Support Clojure 1.10.
 
 Add support for highlighting application frames using `io.aviso.exception/*app-frame-names*`.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.36+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.36+is%3Aclosed)
 
 ## 0.1.35 - 28 Sep 2018
 
@@ -117,18 +123,18 @@ When printing sorted maps, the keys are presented in map order (not sorted).
 The new namespace, `io.aviso.component`, can be used to produce concise output
 for systems and components that are pretty printed as part of exception output.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.35+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.35+is%3Aclosed)
 
 ## 0.1.34 - 28 Jun 2017
 
 Added possibility to disable default ANSI fonts by setting an environment variable `DISABLE_DEFAULT_PRETTY_FONTS`
 to any value.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.34+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.34+is%3Aclosed)
 
 ## 0.1.33 - 28 Nov 2016
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.33+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.33+is%3Aclosed)
 
 ## 0.1.32 - 18 Nov 2016
 
@@ -141,7 +147,7 @@ Switch to using macros instead of eval to play nicer with AOT
 
 Support all arities of `clojure.repl/pst`
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.31+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.31+is%3Aclosed)
 
 ## 0.1.30 - 16 Aug 2016
 
@@ -157,7 +163,7 @@ ClassNotFoundException.
 A warning is now produced when using pretty as a plugin, but it is not a 
 project dependency.
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.28+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.28+is%3Aclosed)
 
 ## 0.1.27 - 1 Jul 2016
 
@@ -168,7 +174,7 @@ Qualified keys in exception maps are now printed properly.
 To get around Clojure 1.8 deep linking, `io.aviso.repl/install-pretty-exceptions` now reloads clojure.test
 after overriding other functions (such as `clojure.stacktrace/print-stack-trace`).
 
-[Closed Issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.26+is%3Aclosed)
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.26+is%3Aclosed)
 
 ## 0.1.25 - 5 Apr 2016
 
@@ -187,14 +193,14 @@ constructor methods), as well as other cases from real-life stack traces.
 
 Stack traces were omitted when the root exception was via `ex-info`; this has been corrected.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.23)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.23)
 
 ## 0.1.22 - 5 Feb 2016
 
 Fixed a bug where `parse-exception` would fail if the source was "Unknown Source" instead
 of a file name and line number.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.22)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.22)
 
 ## 0.1.21 - 8 Jan 2016
 
@@ -228,7 +234,7 @@ produced for both REPL sessions and test executions.
 
 The io.aviso.nrepl namespace has been removed.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.20)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.20)
 
 ## 0.1.19 - 27 Aug 2015
 
@@ -241,7 +247,7 @@ The built in stack frame filtering rules are now better documented, and speclj.*
 You may now add pretty to your Leiningen :plugins list; it will automatically add the Pretty nREPL
 middleware.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.19+is%3Aclosed)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.19+is%3Aclosed)
 
 
 ## 0.1.18 - 5 May 2015
@@ -253,7 +259,7 @@ calculate column widths automatically).
 
 The Clojure ExceptionInfo exception is now treated specially.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.18+is%3Aclosed)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.18+is%3Aclosed)
 
 
 ## 0.1.17 - 18 Feb 2015
@@ -271,7 +277,7 @@ This keeps the file name column as narrow as possible.
 io.aviso.exception/\*default-frame-filter\* has been added, and acts as the default frame filter for
 write-exception (previously there was no default).
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.16+is%3Aclosed)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.16+is%3Aclosed)
 
 ## 0.1.15 - 2 Feb 2015
 
@@ -281,11 +287,11 @@ behavior is still available via the io.aviso.exceptions/\*traditional\* dynamic 
 A new namespace, io.aviso.logging, includes code to setup clojure.tools.logging to make use of pretty
 exception output.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.15+is%3Aclosed)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.15+is%3Aclosed)
 
 ## 0.1.14 - 9 Jan 2015
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.14+is%3Aclosed)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.14+is%3Aclosed)
 
 ## 0.1.13 - 14 Nov 2014
 
@@ -309,4 +315,4 @@ Frames can be hidden (not displayed at all), or omitted (replaced with '...').
 This can remove _significant_ clutter from the exception output, making it that much easier
 to identify the true cause of the exception.
 
-[Closed issues](https://github.com/AvisoNovate/pretty/issues?q=milestone%3A0.1.11)
+[Closed issues](https://github.com/clj-commons/pretty/issues?q=milestone%3A0.1.11)
