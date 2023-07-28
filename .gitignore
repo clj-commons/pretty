@@ -14,3 +14,7 @@ doc
 pom.xml*
 manual/output-site
 *.asc
+.clj-kondo/.cache
+.lsp/.cache
+.portal/vs-code.edn
+.cpcache
