@@ -4,12 +4,11 @@
 
   Reference: [ANSI Escape Codes @ Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
   (:require [clojure.string :as str]
-            [clj-commons.pretty-impl :refer [csi padding]])
-  (:import (clojure.lang Namespace)))
+            [clj-commons.pretty-impl :refer [csi padding]]))
 
 (defn- is-ns-loaded?
   [sym]
-  (some? (Namespace/find sym)))
+  (some? (find-ns sym)))
 
 (defn- to-boolean
   [s]
@@ -311,4 +310,3 @@
     (when dirty?
       (.append buffer reset-font))
     (.toString buffer)))
-
