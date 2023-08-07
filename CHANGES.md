@@ -1,3 +1,9 @@
+## 2.0.2 - 7 Aug 2023
+
+Bug Fixes
+
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A2.0.2)
+
 ## 2.0.1 -- 20 Jul 2023
 
 Bug Fixes
