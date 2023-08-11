@@ -4,7 +4,8 @@
             [clojure.main :as main]
             [clojure.repl :as repl]
             [clojure.stacktrace :as st])
-  (:import (clojure.lang RT)))
+  (:import (clojure.lang RT)
+           (java.io Writer)))
 
 (defn- reset-var!
   [v override]
@@ -50,8 +51,13 @@
   "Installs an override that outputs pretty exceptions when caught by the main REPL loop. Also, overrides
   `clojure.repl/pst`, `clojure.stacktrace/print-stack-trace`, `clojure.stacktrace/print-cause-trace`.
 
-  In addition, installs an [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
-  will be printed reasonably.
+  Extends `clojure.core/print-method` for type Throwable to print a blank line followed by the
+  formatted exception. This allows an expression that evaluates to an exception to be printed prettily,
+  but more importantly, ensures that in `clojure.test/is` a failed `thrown-with-msg?` assertion
+  prints a formatted exception.
+
+  Finally, installs an [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
+  will be printed reasonably. More importantly,
 
   Caught exceptions do not print the stack trace; the pst replacement does."
   []
@@ -60,8 +66,12 @@
   (reset-var! #'st/print-stack-trace pretty-print-stack-trace)
   (reset-var! #'st/print-cause-trace pretty-print-stack-trace)
 
-  ;; This is necessary for Clojure 1.8 and above, due to direct linking
-  ;; (from clojure.test to clojure.stacktrace).
+  (defmethod print-method Throwable
+    [t ^Writer writer]
+    (.write writer ^String (System/lineSeparator))
+    (.write writer (e/format-exception t)))
+
+  ;; This is necessary due to direct linking (from clojure.test to clojure.stacktrace).
   (RT/loadResourceScript "clojure/test.clj")
 
   (Thread/setDefaultUncaughtExceptionHandler (uncaught-exception-handler))

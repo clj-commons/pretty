@@ -1,3 +1,13 @@
+## 2.1 - UNRELEASED
+ 
+`install-pretty-exceptions` has been changed to now extend 
+`clojure.core/print-method` for Throwable, using `format-exception`.
+Exceptions printed by the REPL are now formatted using Pretty; 
+further, when using `clojure.test`, when a `thrown-with-msg?` assertion fails, 
+the actual exception is now formatted (as this also, indirectly, uses `print-method`).
+
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A2.1)
+
 ## 2.0.2 - 7 Aug 2023
 
 Bug Fixes

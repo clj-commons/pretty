@@ -7,10 +7,10 @@
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
     [criterium.core :as c]
-    [clojure.test :refer [report]])
-  (:import (java.nio.channels FileChannel)
-           (java.nio.file Files)
-           (java.sql SQLException)))
+    [clojure.test :refer [report deftest is]])
+  (:import
+    (java.nio.file Files)
+    (java.sql SQLException)))
 
 (defn- jdbc-update
   []
@@ -21,9 +21,8 @@
 
 (defn make-jdbc-update-worker
   []
-  (reify
-      Worker
-    (do-work [this] (jdbc-update))))
+  (reify Worker
+    (do-work [_this] (jdbc-update))))
 
 (defn- update-row
   []
@@ -78,14 +77,25 @@
        (catch Throwable t (e/print-exception t)))
   (println "\nBinary output:\n")
   (-> (io/file "test/tiny-clojure.gif")
-       .toPath
-       Files/readAllBytes
-       (b/print-binary {:ascii true}))
+      .toPath
+      Files/readAllBytes
+      (b/print-binary {:ascii true}))
 
   (println "\nBinary delta:\n")
   (b/print-binary-delta "Welcome, Friend"
                         "We1come, Fiend")
   (println))
+
+(deftest fail-wrong-exception
+  (is (thrown? IllegalArgumentException
+               (jdbc-update))))
+
+(deftest error-thrown-exception
+  (jdbc-update))
+
+(deftest fail-wrong-message
+  (is (thrown-with-msg? SQLException #"validation failure"
+                        (jdbc-update))))
 
 (comment
 
@@ -100,21 +110,27 @@
         (e/print-exception e)))
     (close! ch))
 
+
+  (clojure.test/run-tests)
+
   (repl/install-pretty-exceptions)
 
   (countdown 10)
   (infinite-loop)
   (throw (make-ex-info))
+  (print (make-ex-info))
   (test-failure)
+  (e/print-exception (Throwable. "hello"))
 
   *clojure-version*
+  (str (Runtime/version))
 
   ;; 11 Feb 2016 -   553 µs (14 µs std dev) - Clojure 1.8
   ;; 13 Sep 2021 -   401 µs (16 µs std dev) - Clojure 1.11.1
   ;; 20 Jun 2023 -   713 µs (30 µs std dev) - Clojure 1.11.1, Corretto 17.0.7, M1
   ;; 25 Jun 2023 -   507 µs                 - Clojure 1.11.1, Corretto 17.0.7, M1
   ;; 26 Jun 2023 -  1.13 ms                 - Clojure 1.11.1, Corretto 17.0.7, M1
-
+  ;; 11 Aug 2023 -  1.09 ms                 - Clojure 1.11.1, Corretto 17.0.4, M1
   (let [e (make-ex-info)]
     (c/bench (e/format-exception e)))
 

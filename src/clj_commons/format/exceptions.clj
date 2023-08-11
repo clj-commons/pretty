@@ -124,7 +124,7 @@
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
-   [:name #"nrepl\.middleware\.interruptible-eval" :terminate]
+   [:name #"nrepl\.middleware\.interruptible-eval/.*" :terminate]
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
    [:name #"clojure\.main/main.*" :terminate]])
 
@@ -616,7 +616,7 @@
   (compose
     (render-exception exception-stack options)))
 
-(defn format-exception
+(defn ^String format-exception
   "Formats an exception, returning a single large string.
 
   By default, includes the stack trace, with no frame limit.
