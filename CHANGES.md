@@ -1,4 +1,4 @@
-## 2.1 - UNRELEASED
+## 2.1 - 11 Aug 2023
  
 `install-pretty-exceptions` has been changed to now extend 
 `clojure.core/print-method` for Throwable, using `format-exception`.
