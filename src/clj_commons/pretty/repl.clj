@@ -53,7 +53,8 @@
 
   Extends `clojure.core/print-method` for type Throwable to print a blank line followed by the
   formatted exception. This allows an expression that evaluates to an exception to be printed prettily,
-  but more importantly, ensures
+  but more importantly, ensures that in `clojure.test/is` a failed `thrown-with-msg?` assertion
+  prints a formatted exception.
 
   Finally, installs an [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
   will be printed reasonably. More importantly,
