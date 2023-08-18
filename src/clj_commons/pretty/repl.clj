@@ -34,11 +34,12 @@
   ([] (pretty-pst *e))
   ([e-or-depth]
    (if (instance? Throwable e-or-depth)
-     (print-exception e-or-depth nil)
+     (pretty-pst e-or-depth nil)
      (pretty-pst *e e-or-depth)))
   ([e depth]
    (binding [*out* *err*]
-     (print-exception e {:frame-limit depth}))))
+     (print-exception e (when depth
+                          {:frame-limit depth})))))
 
 (defn pretty-print-stack-trace
   "Replacement for `clojure.stacktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
