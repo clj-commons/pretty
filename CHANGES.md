@@ -1,3 +1,9 @@
+## 2.1.1 - 18 Aug 2023
+
+Bug fixes
+
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A2.1.1)
+
 ## 2.1 - 11 Aug 2023
  
 `install-pretty-exceptions` has been changed to now extend 
