@@ -2,7 +2,7 @@
   (:require
     [clj-commons.pretty.repl :as repl]
     [clj-commons.format.exceptions :as e]
-    [clj-commons.ansi :refer [compose]]
+    [clj-commons.ansi :refer [compose pcompose]]
     [clj-commons.format.binary :as b]
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
@@ -70,7 +70,7 @@
   (println "Clojure version: " *clojure-version*)
   (println "Installing pretty exceptions ...")
   (repl/install-pretty-exceptions)
-  (println (compose [:bold.green "ok"]))
+  (pcompose [:bold.green "ok"])
   (pst (make-exception))
   (println "\nTesting reporting of repeats:")
   (try (countdown 20)
