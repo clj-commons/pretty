@@ -13,18 +13,20 @@
   (-> (apply compose input)
       (str/replace csi "[CSI]")))
 
-(deftest nested-width-exception
-  (when-let [e (is (thrown? Exception
-                            (compose "START"
-                                     [{:width 10
-                                       :font :red} "A" "B"
-                                      [{:width 20
-                                        :font :blue} "C"]])))]
-    (is (= "can only track one span width at a time"
-           (ex-message e)))
-    (is (= {:input [{:width 20
-                     :font :blue} "C"]}
-           (ex-data e)))))
+(deftest nested-widths
+  (is (= "xyz <(      left)right             >"
+         ;      ..........
+         ;      ....!....! [10]
+         ;     xxxxXxxxxXxxxxXxxxxXxxxxXxxxxX [30]
+         (compose "xyz <"
+                  [{:width 30
+                    :pad :right}
+                   (list "("
+                         [{:width 10}
+                          "left"]
+                         ")")
+                   "right"]
+                  ">"))))
 
 (deftest invalid-font-decl
   (when-let [e (is (thrown? Exception

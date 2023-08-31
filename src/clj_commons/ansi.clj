@@ -130,9 +130,36 @@
   (or (nil? value)
       (= "" value)))
 
+(declare ^:private normalize-markup)
+
+(defn- normalize-and-pad-markup
+  "Given a span broken into decl and inputs, returns a map of :width (actual width, which may exceed
+   requested width) and :span (a replacement span vector with added spaces)."
+  [span-decl remaining-inputs]
+  (let [{:keys [width pad]} span-decl
+        ;; Transform this span and everything below it into easily managed span vectors, starting
+        ;; with a version of this span decl.
+        span-decl' (dissoc span-decl :width :pad)
+        *width (volatile! 0)
+        inputs' (into [span-decl'] (normalize-markup remaining-inputs *width))
+        actual-width @*width]
+    ;; If at or over desired width, don't need to pad
+    (if (<= width actual-width)
+      {:width actual-width
+       :span inputs'})
+    ;; Add the padding in the desired position; this ensures that the logic that generates
+    ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
+    (let [spaces (padding (- width actual-width))]
+      {:width width
+       :span (if (= :right pad)
+               (conj inputs' spaces)
+               ;; An "insert-at" for vectors would be nice
+               (into [(first inputs') spaces] (next inputs')))})))
+
+
 (defn- normalize-markup
   "Normalizes markup to span vectors, while keeping track of the total length of string values."
-  [coll *length]
+  [coll *width]
   (let [f (fn reducer [result input]
             (cond
               (blank? input)
@@ -140,12 +167,13 @@
 
               (vector? input)
               (let [decl (extract-span-decl (first input))
-                    ;; TODO: Maybe we can actually allow nested width-padded spans?
-                    _ (when (:width decl)
-                        (throw (ex-info "can only track one span width at a time"
-                                        {:input input})))
-                    ;; next on vector is not a vector itself, fortunately
-                    span (reduce reducer [decl] (next input))]
+                    more-inputs (next input)
+                    span (if (:width decl)
+                           (let [{:keys [width span]} (normalize-and-pad-markup decl more-inputs)]
+                             (vswap! *width + width)
+                             span)
+                           ;; Normalize contents while also tracking the width
+                           (reduce reducer [decl] more-inputs))]
                 (conj result span))
 
               (sequential? input)
@@ -155,7 +183,7 @@
 
               :else
               (let [value-str ^String (.toString input)]
-                (vswap! *length + (.length value-str))
+                (vswap! *width + (.length value-str))
                 (conj result value-str))))]
     (reduce f [] coll)))
 
@@ -167,21 +195,9 @@
 
     (vector? input)
     (let [[first-element & inputs] input
-          {:keys [font width pad] :as span-decl} (extract-span-decl first-element)]
+          {:keys [width font] :as span-decl} (extract-span-decl first-element)]
       (if width
-        (let [;; Transform this span and everything below it into easily managed span vectors, starting
-              ;; with a version of this span decl.
-              span-decl' (dissoc span-decl :width :pad)
-              *length (volatile! 0)
-              inputs' (into [span-decl'] (normalize-markup inputs *length))
-              spaces (padding (- width @*length))
-              ;; Add the padding in the desired position; this ensures that the logic that generates
-              ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
-              padded (if (= :right pad)
-                       (conj inputs' spaces)
-                       ;; An "insert-at" for vectors would be nice
-                       (into [(first inputs') spaces] (next inputs')))]
-          (recur state padded))
+        (recur state (:span (normalize-and-pad-markup span-decl inputs)))
         ;; Normal (no width tracking)
         (let [{:keys [current]} state]
           (-> (reduce collect-markup
@@ -189,8 +205,7 @@
                           (update :current update-font-data-from-font-def font)
                           (update :stack conj current))
                       inputs)
-              (assoc :current current
-                     :tracking-width? false)
+              (assoc :current current)
               (update :stack pop)))))
 
     ;; Lists, lazy-lists, etc: processed recursively
@@ -273,8 +288,8 @@
   A font def may also be nil, to indicate no change in font.
 
   `compose` presumes that on entry the current font is plain (default foreground and background, not bold,
-   or inverse, or italic, or underlined) and appends a reset sequence to the end of the returned string to
-   ensure that later output is also plain.
+  or inverse, or italic, or underlined) and appends a reset sequence to the end of the returned string to
+  ensure that later output is also plain.
 
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
@@ -298,9 +313,6 @@
 
   `compose` doesn't consider the characters; if the strings contain tabs, newlines, or ANSI code sequences
   not generated by `compose`, the calculation of the span width will be incorrect.
-
-  Only one span at a time can be tracked for width; if a nested span also specifies a width, `compose` will
-  throw an exception.
 
   Example:
 

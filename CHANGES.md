@@ -5,6 +5,9 @@ This release is bug fixes and minor improvements.
 The new `clj-commons.ansi.pcompose` function is used to compose an ANSI formatted string and then print it,
 and exceptionally common case.
 
+The prior restriction with `compose`, that spans nested within spans with a width could not also have a width,
+has been removed.
+
 [Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A2.2)
 
 ## 2.1.1 - 18 Aug 2023
