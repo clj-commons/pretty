@@ -130,6 +130,25 @@
   (or (nil? value)
       (= "" value)))
 
+(declare ^:private normalize-markup)
+
+(defn- collect-and-pad
+  [span-decl remaining-inputs]
+  (let [{:keys [width pad]} span-decl
+        ;; Transform this span and everything below it into easily managed span vectors, starting
+        ;; with a version of this span decl.
+        span-decl' (dissoc span-decl :width :pad)
+        *length (volatile! 0)
+        inputs' (into [span-decl'] (normalize-markup remaining-inputs *length))
+        spaces (padding (- width @*length))]
+    ;; Add the padding in the desired position; this ensures that the logic that generates
+    ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
+    (if (= :right pad)
+      (conj inputs' spaces)
+      ;; An "insert-at" for vectors would be nice
+      (into [(first inputs') spaces] (next inputs')))))
+
+
 (defn- normalize-markup
   "Normalizes markup to span vectors, while keeping track of the total length of string values."
   [coll *length]
@@ -140,12 +159,15 @@
 
               (vector? input)
               (let [decl (extract-span-decl (first input))
-                    ;; TODO: Maybe we can actually allow nested width-padded spans?
-                    _ (when (:width decl)
-                        (throw (ex-info "can only track one span width at a time"
-                                        {:input input})))
-                    ;; next on vector is not a vector itself, fortunately
-                    span (reduce reducer [decl] (next input))]
+                    more-inputs (next input)
+                    more-inputs'  (if (:width decl)
+                                    ;; This is slow and clumsy; we force a second pass to
+                                    ;; recalculate the actual width, which may be larger than the
+                                    ;; specified width, as the intent is to pad with spaces,
+                                    ;; never truncate.
+                                   (list (collect-and-pad decl more-inputs))
+                                   more-inputs)
+                    span (reduce reducer [decl] more-inputs')]
                 (conj result span))
 
               (sequential? input)
@@ -167,21 +189,9 @@
 
     (vector? input)
     (let [[first-element & inputs] input
-          {:keys [font width pad] :as span-decl} (extract-span-decl first-element)]
+          {:keys [width font] :as span-decl} (extract-span-decl first-element)]
       (if width
-        (let [;; Transform this span and everything below it into easily managed span vectors, starting
-              ;; with a version of this span decl.
-              span-decl' (dissoc span-decl :width :pad)
-              *length (volatile! 0)
-              inputs' (into [span-decl'] (normalize-markup inputs *length))
-              spaces (padding (- width @*length))
-              ;; Add the padding in the desired position; this ensures that the logic that generates
-              ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
-              padded (if (= :right pad)
-                       (conj inputs' spaces)
-                       ;; An "insert-at" for vectors would be nice
-                       (into [(first inputs') spaces] (next inputs')))]
-          (recur state padded))
+        (recur state (collect-and-pad span-decl inputs))
         ;; Normal (no width tracking)
         (let [{:keys [current]} state]
           (-> (reduce collect-markup
