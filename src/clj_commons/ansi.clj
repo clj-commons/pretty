@@ -210,6 +210,23 @@
       (.append buffer ^String (.toString input))
       state')))
 
+(defn- compose* [inputs]
+  (let [initial-font {:foreground "39"
+                      :background "49"
+                      :bold "22"
+                      :italic "23"
+                      :inverse "27"
+                      :underlined "24"}
+        buffer (StringBuilder. 100)
+        {:keys [dirty?]} (collect-markup {:stack []
+                                          :active initial-font
+                                          :current initial-font
+                                          :buffer buffer}
+                                         inputs)]
+    (when dirty?
+      (.append buffer reset-font))
+    (.toString buffer)))
+
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes ANSI formatting codes
   for font color and other characteristics.
@@ -295,18 +312,10 @@
   compose does not truncate a span to a width, it only pads if the span in too short."
   {:added "1.4.0"}
   [& inputs]
-  (let [initial-font {:foreground "39"
-                      :background "49"
-                      :bold "22"
-                      :italic "23"
-                      :inverse "27"
-                      :underlined "24"}
-        buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:stack []
-                                          :active initial-font
-                                          :current initial-font
-                                          :buffer buffer}
-                                         inputs)]
-    (when dirty?
-      (.append buffer reset-font))
-    (.toString buffer)))
+  (compose* inputs))
+
+(defn pcompose
+  "Composes its inputs as with [[compose]] and then prints the results, with a newline."
+  {:added "2.2"}
+  [& inputs]
+  (println (compose* inputs)))
