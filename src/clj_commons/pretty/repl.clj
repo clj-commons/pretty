@@ -14,7 +14,8 @@
 (defn pretty-repl-caught
   "A replacement for `clojure.main/repl-caught` that prints the exception to `*err*`, without a stack trace or properties."
   [e]
-  (print-exception e {:frame-limit 0 :properties false}))
+  (binding [*out* *err*]
+    (print-exception e {:frame-limit 0 :properties false})))
 
 (defn uncaught-exception-handler
   "Returns a reified UncaughtExceptionHandler that prints the formatted exception to `*err*`."
@@ -30,7 +31,7 @@
 
 
 (defn pretty-pst
-  "Used as an override of `clojure.repl/pst` but uses pretty formatting."
+  "Used as an override of `clojure.repl/pst` but uses pretty formatting.  Output is written to `*err*`."
   ([] (pretty-pst *e))
   ([e-or-depth]
    (if (instance? Throwable e-or-depth)
