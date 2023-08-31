@@ -132,26 +132,34 @@
 
 (declare ^:private normalize-markup)
 
-(defn- collect-and-pad
+(defn- normalize-and-pad-markup
+  "Given a span broken into decl and inputs, returns a map of :width (actual width, which may exceed
+   requested width) and :span (a replacement span vector with added spaces)."
   [span-decl remaining-inputs]
   (let [{:keys [width pad]} span-decl
         ;; Transform this span and everything below it into easily managed span vectors, starting
         ;; with a version of this span decl.
         span-decl' (dissoc span-decl :width :pad)
-        *length (volatile! 0)
-        inputs' (into [span-decl'] (normalize-markup remaining-inputs *length))
-        spaces (padding (- width @*length))]
+        *width (volatile! 0)
+        inputs' (into [span-decl'] (normalize-markup remaining-inputs *width))
+        actual-width @*width]
+    ;; If at or over desired width, don't need to pad
+    (if (<= width actual-width)
+      {:width actual-width
+       :span inputs'})
     ;; Add the padding in the desired position; this ensures that the logic that generates
     ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
-    (if (= :right pad)
-      (conj inputs' spaces)
-      ;; An "insert-at" for vectors would be nice
-      (into [(first inputs') spaces] (next inputs')))))
+    (let [spaces (padding (- width actual-width))]
+      {:width width
+       :span (if (= :right pad)
+               (conj inputs' spaces)
+               ;; An "insert-at" for vectors would be nice
+               (into [(first inputs') spaces] (next inputs')))})))
 
 
 (defn- normalize-markup
   "Normalizes markup to span vectors, while keeping track of the total length of string values."
-  [coll *length]
+  [coll *width]
   (let [f (fn reducer [result input]
             (cond
               (blank? input)
@@ -160,14 +168,12 @@
               (vector? input)
               (let [decl (extract-span-decl (first input))
                     more-inputs (next input)
-                    more-inputs'  (if (:width decl)
-                                    ;; This is slow and clumsy; we force a second pass to
-                                    ;; recalculate the actual width, which may be larger than the
-                                    ;; specified width, as the intent is to pad with spaces,
-                                    ;; never truncate.
-                                   (list (collect-and-pad decl more-inputs))
-                                   more-inputs)
-                    span (reduce reducer [decl] more-inputs')]
+                    span (if (:width decl)
+                           (let [{:keys [width span]} (normalize-and-pad-markup decl more-inputs)]
+                             (vswap! *width + width)
+                             span)
+                           ;; Normalize contents while also tracking the width
+                           (reduce reducer [decl] more-inputs))]
                 (conj result span))
 
               (sequential? input)
@@ -177,7 +183,7 @@
 
               :else
               (let [value-str ^String (.toString input)]
-                (vswap! *length + (.length value-str))
+                (vswap! *width + (.length value-str))
                 (conj result value-str))))]
     (reduce f [] coll)))
 
@@ -191,7 +197,7 @@
     (let [[first-element & inputs] input
           {:keys [width font] :as span-decl} (extract-span-decl first-element)]
       (if width
-        (recur state (collect-and-pad span-decl inputs))
+        (recur state (:span (normalize-and-pad-markup span-decl inputs)))
         ;; Normal (no width tracking)
         (let [{:keys [current]} state]
           (-> (reduce collect-markup
@@ -199,8 +205,7 @@
                           (update :current update-font-data-from-font-def font)
                           (update :stack conj current))
                       inputs)
-              (assoc :current current
-                     :tracking-width? false)
+              (assoc :current current)
               (update :stack pop)))))
 
     ;; Lists, lazy-lists, etc: processed recursively
