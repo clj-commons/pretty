@@ -1,4 +1,4 @@
-## 2.2 - UNRELEASED
+## 2.2 - 1 Sep 2023
 
 This release is bug fixes and minor improvements.  
 
