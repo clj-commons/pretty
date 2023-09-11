@@ -426,7 +426,7 @@
   [^Throwable exception options]
   (if (instance? ExceptionInfo exception)
     (wrap-exception exception (ex-data exception) options)
-    (let [properties          (try (bean exception)
+    (let [properties          (try (into {} (bean exception))
                                    (catch Throwable _ nil))
           ;; Ignore basic properties of Throwable, any nil properties, and any properties
           ;; that are themselves Throwables
