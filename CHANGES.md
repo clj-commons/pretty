@@ -1,4 +1,4 @@
-## 2.2.1 - UNRELEASED
+## 2.2.1 - 14 Nov 2023
 
 This release contains only minor bug fixes:
 
