@@ -1,3 +1,9 @@
+## 2.2.1 - UNRELEASED
+
+This release contains only minor bug fixes:
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/42?closed=1)
+
 ## 2.2 - 1 Sep 2023
 
 This release is bug fixes and minor improvements.  

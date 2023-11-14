@@ -59,9 +59,9 @@
   prints a formatted exception.
 
   Finally, installs an [[uncaught-exception-handler]] so that uncaught exceptions in non-REPL threads
-  will be printed reasonably. More importantly,
+  will be printed reasonably.
 
-  Caught exceptions do not print the stack trace; the pst replacement does."
+  Caught exceptions do not print the stack trace; the pretty replacement for `pst` does."
   []
   (reset-var! #'main/repl-caught pretty-repl-caught)
   (reset-var! #'repl/pst pretty-pst)
