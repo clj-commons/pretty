@@ -182,7 +182,7 @@
                 (conj result sub-span))
 
               :else
-              (let [value-str ^String (.toString input)]
+              (let [value-str ^String (str input)]
                 (vswap! *width + (.length value-str))
                 (conj result value-str))))]
     (reduce f [] coll)))
@@ -222,7 +222,7 @@
                      (cond-> (assoc state :active current)
                              ;; Signal that a reset is needed at the very end
                              font-str (assoc :dirty? true))))]
-      (.append buffer ^String (.toString input))
+      (.append buffer (str input))
       state')))
 
 (defn- compose* [inputs]
