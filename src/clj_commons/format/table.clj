@@ -13,11 +13,12 @@
 ;; license.
 
 (ns clj-commons.format.table
-  "Support for tabular output."
+  "Formatted tablular output.
+
+  Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
-  (:require [clojure.spec.alpha :as s]
-            [clojure.string :as string]
-            [clj-commons.ansi :refer [compose pcompose]]))
+  (:require [clojure.string :as string]
+            [clj-commons.ansi :refer [compose]]))
 
 (defn- bar
   [width]
@@ -62,8 +63,8 @@
   The rows are a seq of associative values, usually maps.
 
   In simple mode, each column is just a keyword; the column title is derived
-  from the keyword, and the columns width is set from the width of the title,
-  and the width of the longest value in the rows.
+  from the keyword, and the column's width is set to the maximum
+  of the title width and the width of the longest value in the rows.
 
   Alternately, a column can be a map with keys :key and :title, and optional
   keys :width and :decorator.
@@ -73,7 +74,10 @@
   [[compose]], so it can feature fonts and padding ... but when doing so,
   be sure to specify the actual :width.
 
-  The decorator, if present, is passed the row index and the value for the column,
+  Note that when :key is not a function, :title must be specified explicitly.
+
+  The decorator, if present, is a function; it will be
+  passed the row index and the value for the column,
   and returns a font keyword (or nil)."
   [columns rows]
   (let [columns' (->> columns
@@ -129,26 +133,4 @@
         (print "━┻━")))
     (println "━┛")))
 
-(s/fdef print-table
-        :args (s/cat :columns (s/coll-of ::column)
-                     :data (s/coll-of map?)))
 
-(s/def ::column
-  (s/or :simple keyword?
-        :full ::column-full))
-
-(s/def ::column-full
-  (s/keys :req-un [::key
-                   ]
-          :opt-un [::title
-                   ::width
-                   ::decorator]))
-
-(s/def ::key ifn?)
-(s/def ::title string?)
-(s/def ::width (s/and int? pos?))
-(s/def ::decorator (s/fspec
-                     :args (s/cat
-                             :index int?
-                             :value any?)
-                     :ret (s/nilable keyword?)))
