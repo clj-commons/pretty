@@ -117,21 +117,27 @@
   which pads on the right; the :align key can be :left or :right to override this
   (affecting both the header row and each data row).
 
-  opts can be a seq of columns, or it can be a map
-  with keys :columns (required, a seq of columns),
-  :style (optional, overrides the output style),
-  and :default-decorator.
+  opts can be a seq of columns, or it can be a map of options:
 
-  For :style, there's the [[default-style]] which uses thicker blocks, and
-  the [[skinny-style]] which is simpler.
+  :columns (seq of columns) is required, the others are optional.
 
-  The :default-decorator, if provided, is used for all columns that do not
-  have a specific decorator."
+  :style - overrides the default styling of the table; for example,
+  [[skinny-style]].
+
+  :default-decorator - a column decorator used when a column does not
+  provide its own decorator; this can be used (for example) to
+  alternate the background colors of cells.
+
+  :row-annotator - a function passed the row index and the row
+  and returns a composed string that is appended immediately after
+  the end of the row (but outside any border), which can be used to
+  add a note next to a row.
+  "
   [opts rows]
   (let [opts' (if (sequential? opts)
                 {:columns opts}
                 opts)
-        {:keys [columns style default-decorator]
+        {:keys [columns style default-decorator row-annotator]
          :or   {style default-style}} opts'
         {:keys [header?
                 footer?
@@ -185,24 +191,26 @@
       divider-right)
 
     (when (seq rows)
-      (loop [[datum & more-data] rows
+      (loop [[row & more-rows] rows
              row-index 0]
         (pcompose
           row-left
           (for [{:keys [width key decorator last? pad]} columns'
-                :let [value (get datum key)
+                :let [value (get row key)
                       decorator' (or decorator default-decorator)
                       font (when decorator'
                              (decorator' row-index value))]]
             (list [{:font  font
                     :pad   (or pad (if last? :right :left))
                     :width width}
-                   (get datum key)]
+                   (get row key)]
                   (when-not last?
                     row-sep)))
-          row-right)
-        (when more-data
-          (recur more-data (inc row-index)))))
+          row-right
+          (when row-annotator
+            (row-annotator row-index row)))
+        (when more-rows
+          (recur more-rows (inc row-index)))))
 
     (when footer?
       (print footer-left)

@@ -16,11 +16,14 @@
                               :bold))}])
 (comment
   (print-table columns row)
-  (print-table {:style   t/skinny-style
+  (print-table {:style         t/skinny-style
+                :row-annotator (fn [i row]
+                                 (when (= i 2)
+                                   [:italic " (prescient)"]))
                 :default-decorator
                 (fn [i _]
                   (when (odd? i)
                     :blue))
-                :columns columns} row)
+                :columns       columns} row)
 
   )

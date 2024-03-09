@@ -24,7 +24,15 @@
 
 (s/def ::options (s/keys :req-un [::columns]
                          :opt-un [::style
-                                  ::default-decorator]))
+                                  ::default-decorator
+                                  ::row-annotator]))
+
+(s/def ::row-annotator
+  (s/fspec
+    :args (s/cat
+            :index int?
+            :value any?)
+    :ret any?))
 
 ;; Not a lot of gain for breaking down what's in a style map.
 (s/def ::style map?)
