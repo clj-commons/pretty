@@ -17,9 +17,18 @@
             [clj-commons.format.table.specs :refer [format-table]]))
 
 (s/fdef print-table
-        :args (s/cat :columns (s/coll-of ::column)
+        :args (s/cat :columns
+                     (s/or :columns ::columns
+                           :opts ::options)
                      :data (s/coll-of map?)))
 
+(s/def ::options (s/keys :req-un [::columns]
+                         :opt-un [::style]))
+
+;; Not a lot of gain for breaking down what's in a style map.
+(s/def ::style map?)
+
+(s/def ::columns (s/coll-of ::column))
 (s/def ::column
   (s/or :simple keyword?
         :full ::column-full))
@@ -28,7 +37,10 @@
   (s/keys :req-un [::key]
           :opt-un [::title
                    ::width
-                   ::decorator]))
+                   ::decorator
+                   ::pad]))
+
+(s/def ::pad #{:left :right})
 
 (s/def ::key ifn?)
 (s/def ::title string?)
