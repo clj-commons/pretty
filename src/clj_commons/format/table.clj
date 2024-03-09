@@ -13,7 +13,8 @@
 ;; license.
 
 (ns clj-commons.format.table
-  "Formatted tablular output.
+  "Formatted tabular output, similar to (but much prettier and more flexible than)
+   clojure.pprint/print-table.
 
   Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
@@ -47,14 +48,16 @@
 
 (defn- set-width
   [column data]
-  (let [{:keys [key ^String title]} column
+  (let [{:keys [key ^String title width]} column
         title-width (.length title)
-        width (->> data
-                   (map key)
-                   (map str)
-                   (map #(.length %))
-                   (reduce max title-width))]
-    (assoc column :width width)))
+        width' (if width
+                 (max width title-width)
+                 (->> data
+                      (map key)
+                      (map str)
+                      (map #(.length %))
+                      (reduce max title-width)))]
+    (assoc column :width width')))
 
 (def default-style
   "Default style, with thick borders (using character graphics) and a header and footer."
@@ -75,8 +78,7 @@
    :footer-right  "━┛"})
 
 (def skinny-style
-  "A skinny style, which removes most of the borders and uses simple characters for
-   column separators."
+  "Removes most of the borders and uses simple characters for column separators."
   {:hbar          "-"
    :header?       false
    :divider-left  nil
@@ -116,16 +118,20 @@
   (affecting both the header row and each data row).
 
   opts can be a seq of columns, or it can be a map
-  with keys :columns (required, a seq of columns) and
-  :style (optional, overrides the output style).
+  with keys :columns (required, a seq of columns),
+  :style (optional, overrides the output style),
+  and :default-decorator.
 
-  For style, there's the [[default-style]] which uses thicker blocks, and
-  the [[skinny-style]] which is simpler."
+  For :style, there's the [[default-style]] which uses thicker blocks, and
+  the [[skinny-style]] which is simpler.
+
+  The :default-decorator, if provided, is used for all columns that do not
+  have a specific decorator."
   [opts rows]
   (let [opts' (if (sequential? opts)
                 {:columns opts}
                 opts)
-        {:keys [columns style]
+        {:keys [columns style default-decorator]
          :or   {style default-style}} opts'
         {:keys [header?
                 footer?
@@ -185,8 +191,9 @@
           row-left
           (for [{:keys [width key decorator last? pad]} columns'
                 :let [value (get datum key)
-                      font (when decorator
-                             (decorator row-index value))]]
+                      decorator' (or decorator default-decorator)
+                      font (when decorator'
+                             (decorator' row-index value))]]
             (list [{:font  font
                     :pad   (or pad (if last? :right :left))
                     :width width}

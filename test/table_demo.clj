@@ -7,7 +7,7 @@
           {:first "Fred" :last "Flintstone"}])
 (def columns [:first
               {:key   :middle
-               :width 50
+               :width 15
                :align :right}
               {:key       :last
                :title     "Family Name"
@@ -17,6 +17,10 @@
 (comment
   (print-table columns row)
   (print-table {:style   t/skinny-style
+                :default-decorator
+                (fn [i _]
+                  (when (odd? i)
+                    :blue))
                 :columns columns} row)
 
   )

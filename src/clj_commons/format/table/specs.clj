@@ -23,7 +23,8 @@
                      :data (s/coll-of map?)))
 
 (s/def ::options (s/keys :req-un [::columns]
-                         :opt-un [::style]))
+                         :opt-un [::style
+                                  ::default-decorator]))
 
 ;; Not a lot of gain for breaking down what's in a style map.
 (s/def ::style map?)
@@ -50,3 +51,4 @@
                              :index int?
                              :value any?)
                      :ret (s/nilable keyword?)))
+(s/def ::default-decorator ::decorator)
