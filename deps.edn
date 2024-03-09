@@ -15,7 +15,7 @@
   ;; clj -T:build <command>
   :build
   {:deps {io.github.hlship/build-tools
-          {:git/tag "0.9" :git/sha "4efa3c9"}}
+          {:git/tag "0.10.1" :git/sha "7ecff5b"}}
    :ns-default build}
 
   :1.10
@@ -36,7 +36,8 @@
   {:main-opts ["-m" "clj-commons.pretty.repl"]}}
 
  :net.lewisship.build/scm
- {:url "https://github.com/clj-commons/pretty"}
+ {:url "https://github.com/clj-commons/pretty"
+  :license :asl}
 
  :codox/config
  {:description "Clojure library to help print things, prettily"

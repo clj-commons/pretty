@@ -1,10 +1,12 @@
-# 2.3 - UNRELEAED
+# 2.3 - 9 Mar 2023
 
 A new function, `clj-commons.ansi.perr` composes its inputs and prints
 them to `*err*`, a common behavior for command line tools.
 
 New namespace `clj-commons.format.table` is used to format tabular output; a
 prettier version of `clojure.pprint/print-table`
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/44?closed=1)
 
 ## 2.2.1 - 14 Nov 2023
 
