@@ -26,4 +26,18 @@
                     :blue))
                 :columns       columns} row)
 
-  )
+  (print-table
+    [:method
+     :path
+     {:key :route-name :title "Name"}]
+    [{:method     :get
+      :path       "/"
+      :route-name :root-page}
+     {:method     :post
+      :path       "/reset"
+      :route-name :reset}
+     {:method     :get
+      :path       "/status"
+      :route-name :status}])
+
+   )
