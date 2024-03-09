@@ -1,3 +1,11 @@
+# 2.3 - UNRELEAED
+
+A new function, `clj-commons.ansi.perr` composes its inputs and prints
+them to `*err*`, a common behavior for command line tools.
+
+New namespace `clj-commons.format.table` is used to format tabular output; a
+prettier version of `clojure.pprint/print-table`
+
 ## 2.2.1 - 14 Nov 2023
 
 This release contains only minor bug fixes:
@@ -9,7 +17,7 @@ This release contains only minor bug fixes:
 This release is bug fixes and minor improvements.  
 
 The new `clj-commons.ansi.pcompose` function is used to compose an ANSI formatted string and then print it,
-and exceptionally common case.
+an exceptionally common case.
 
 The prior restriction with `compose`, that spans nested within spans with a width could not also have a width,
 has been removed.

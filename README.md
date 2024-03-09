@@ -26,8 +26,45 @@ to indicate where the two sequences differ.
 
 ![Binary Delta](docs/images/binary-delta.png)
 
+Pretty can output pretty tabular data:
+
+```
+(print-table
+    [:method
+     :path
+     {:key :route-name :title "Name"}]
+    [{:method     :get
+      :path       "/"
+      :route-name :root-page}
+     {:method     :post
+      :path       "/reset"
+      :route-name :reset}
+     {:method     :get
+      :path       "/status"
+      :route-name :status}])
+┏━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Method ┃    Path ┃ Name       ┃
+┣━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━━━━┫
+┃   :get ┃       / ┃ :root-page ┃
+┃  :post ┃  /reset ┃ :reset     ┃
+┃   :get ┃ /status ┃ :status    ┃
+┗━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━━━━┛
+=> nil
+```
+
+The `print-table` function has many options to easily adjust the output to your needs.
+
+
+## Compatibility
+
 Pretty is compatible with Clojure 1.10 and above.
 
 Parts of Pretty can be used with [Babashka](https://book.babashka.org/#introduction), such as the `clj-commons.ansi`
 namespace; however, Babashka runs in an interpreter and its approach to exceptions is
 incompatible with JVM exceptions.
+
+## License
+
+The majority of this code is available under the terms of the Apache Software License 1.0; some portions
+are available under the terms of the Eclipse Public Licence 1.0.
+

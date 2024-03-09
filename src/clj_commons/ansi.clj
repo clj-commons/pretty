@@ -56,23 +56,23 @@
 
 (def ^:private font-terms
   (reduce merge
-          {:bold [:bold "1"]
-           :plain [:bold "22"]
-           :faint [:bold "2"]
+          {:bold           [:bold "1"]
+           :plain          [:bold "22"]
+           :faint          [:bold "2"]
 
-           :italic [:italic "3"]
-           :roman [:italic "23"]
+           :italic         [:italic "3"]
+           :roman          [:italic "23"]
 
-           :inverse [:inverse "7"]
-           :normal [:inverse "27"]
+           :inverse        [:inverse "7"]
+           :normal         [:inverse "27"]
 
-           :underlined [:underlined "4"]
+           :underlined     [:underlined "4"]
            :not-underlined [:underlined "24"]}
           (map-indexed
             (fn [index color-name]
-              {(keyword color-name) [:foreground (str (+ 30 index))]
-               (keyword (str "bright-" color-name)) [:foreground (str (+ 90 index))]
-               (keyword (str color-name "-bg")) [:background (str (+ 40 index))]
+              {(keyword color-name)                       [:foreground (str (+ 30 index))]
+               (keyword (str "bright-" color-name))       [:foreground (str (+ 90 index))]
+               (keyword (str color-name "-bg"))           [:background (str (+ 40 index))]
                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
@@ -103,8 +103,8 @@
           f (fn [font-data term]
               (let [[font-k font-value] (or (get font-terms term)
                                             (throw (ex-info (str "unexpected font term: " term)
-                                                            {:font-term term
-                                                             :font-def font-def
+                                                            {:font-term       term
+                                                             :font-def        font-def
                                                              :available-terms (->> font-terms keys sort vec)})))]
                 (assoc! font-data font-k font-value)))]
       (persistent! (reduce f (transient font-data) ks)))
@@ -146,15 +146,15 @@
     ;; If at or over desired width, don't need to pad
     (if (<= width actual-width)
       {:width actual-width
-       :span inputs'})
+       :span  inputs'})
     ;; Add the padding in the desired position; this ensures that the logic that generates
     ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
     (let [spaces (padding (- width actual-width))]
       {:width width
-       :span (if (= :right pad)
-               (conj inputs' spaces)
-               ;; An "insert-at" for vectors would be nice
-               (into [(first inputs') spaces] (next inputs')))})))
+       :span  (if (= :right pad)
+                (conj inputs' spaces)
+                ;; An "insert-at" for vectors would be nice
+                (into [(first inputs') spaces] (next inputs')))})))
 
 
 (defn- normalize-markup
@@ -228,15 +228,15 @@
 (defn- compose* [inputs]
   (let [initial-font {:foreground "39"
                       :background "49"
-                      :bold "22"
-                      :italic "23"
-                      :inverse "27"
+                      :bold       "22"
+                      :italic     "23"
+                      :inverse    "27"
                       :underlined "24"}
         buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:stack []
-                                          :active initial-font
+        {:keys [dirty?]} (collect-markup {:stack   []
+                                          :active  initial-font
                                           :current initial-font
-                                          :buffer buffer}
+                                          :buffer  buffer}
                                          inputs)]
     (when dirty?
       (.append buffer reset-font))
@@ -331,3 +331,10 @@
   {:added "2.2"}
   [& inputs]
   (println (compose* inputs)))
+
+(defn perr
+  "Composes its inputs as with [[compose]] and then prints the result with a newline to `*err*`."
+  {:added "2.3"}
+  [& inputs]
+  (binding [*out* *err*]
+    (println (compose* inputs))))
