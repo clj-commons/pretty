@@ -31,3 +31,9 @@ Pretty is compatible with Clojure 1.10 and above.
 Parts of Pretty can be used with [Babashka](https://book.babashka.org/#introduction), such as the `clj-commons.ansi`
 namespace; however, Babashka runs in an interpreter and its approach to exceptions is
 incompatible with JVM exceptions.
+
+## License
+
+The majority of this code is available under the terms of the Apache Software License 1.0; some portions
+are available under the terms of the Eclipse Public Licence 1.0.
+
