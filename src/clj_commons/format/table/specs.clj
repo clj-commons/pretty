@@ -14,7 +14,7 @@
 
 (ns clj-commons.format.table.specs
   (:require [clojure.spec.alpha :as s]
-            [clj-commons.format.table.specs :refer [format-table]]))
+            [clj-commons.format.table :refer [print-table]]))
 
 (s/fdef print-table
         :args (s/cat :columns
