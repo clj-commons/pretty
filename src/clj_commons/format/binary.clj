@@ -134,16 +134,14 @@
       0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65
       0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F 75 2E
 
-  The full version specifies:
+  The full version specifies the [[BinaryData]] to write, and options:
 
-  - [[BinaryData]] to write
-  - option keys and values:
+  Key         | Type    | Description
+  --          |--       |--
+  :ascii      | boolean | If true, enable ASCII mode
+  :line-bytes | number  | Bytes printed per line
 
-      :ascii - boolean
-      : true to enable ASCII mode
-
-      :line-bytes - number
-      : number of bytes per line (defaults to 16 for ASCII, 32 otherwise)
+  :line-bytes defaults to 16 for ASCII, and 32 otherwise.
 
   In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
 

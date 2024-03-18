@@ -99,17 +99,28 @@
   from the keyword, and the column's width is set to the maximum
   of the title width and the width of the longest value in the rows.
 
-  Alternately, a column can be a map with keys :key and :title, and optional
-  keys :width and :decorator, and :align.
+  Alternately, a column can me a map:
 
-  With a map, the :key can be any function that, passed a single row,
-  returns the printable value; this will ultimately be passed to
-  [[compose]], so it can feature fonts and padding ... but when doing so,
-  be sure to specify the actual :width.
+  Key        | Type             | Description
+  --         |--                |--
+  :key       | keyword/function | Passed the row data and returns the value for the column (required)
+  :title     | String           | The title for the column
+  :width     | number           | Width of the column
+  :decorator | function         | May return a font for the cell
 
-  Note that when :key is not a function, :title must be specified explicitly.
+  :key is typically a keyword but can be an arbitrary function
+  (in which case, you must also provide :title). The return
+  value is a composed string (passed to [[compose]]); if this case,
+  you should also provide an explicit :width.
 
-  The decorator, if present, is a function; it will be
+  :title is deduced from :key, when omitted and :key is a keyword;
+  the keyword is converted to a string, capitalized, and embedded dashes
+  converted to spaces.
+
+  :width will be determined as the maximum width of the title or of any
+  value in the data.
+
+  The decorator is a function; it will be
   passed the row index and the value for the column,
   and returns a font keyword (or nil).
 
@@ -119,20 +130,23 @@
 
   opts can be a seq of columns, or it can be a map of options:
 
-  :columns (seq of columns) is required, the others are optional.
+  Key                | Type           | Description
+  --                 |--              |--
+  :columns           | seq of columns | Describes the columns to print
+  :style             | map            | Overrides the default styling of the table
+  :default-decorator | function       | Used when a column doesn't define it own decorator
+  :row-annotator     | function       | Can add text immediately after the end of the row
 
-  :style - overrides the default styling of the table; for example,
-  [[skinny-style]].
+  :default-decorator is only used for columns that do not define their own
+  decorator.  This can be used, for example, to alternate the background color
+  of cells.
 
-  :default-decorator - a column decorator used when a column does not
-  provide its own decorator; this can be used (for example) to
-  alternate the background colors of cells.
-
-  :row-annotator - a function passed the row index and the row
+  The :row-annotator is passed the row index and the row data,
   and returns a composed string that is appended immediately after
   the end of the row (but outside any border), which can be used to
   add a note next to a row.
-  "
+
+ "
   [opts rows]
   (let [opts' (if (sequential? opts)
                 {:columns opts}
