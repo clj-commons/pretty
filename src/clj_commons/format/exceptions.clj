@@ -307,37 +307,18 @@
 (defn expand-stack-trace
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
 
-  :file String
-  : file name
-
-  :line Integer
-  : line number as an integer, or nil
-
-  :class String
-  : fully qualified Java class name
-
-  :package String
-  : Java package name, or nil for root package
-
-  :simple-class String
-  : simple name of Java class (without package prefix)
-
-  :method String
-  : Java method name
-
-  :is-clojure?
-  : true if this represents a Clojure function call, rather than a Java
-    method invocation.
-
-  :id String
-  : An id that can be used to identify repeating stack frames; consists of the fully qualified method name (for Java
-    frames) or fully qualified Clojure name (for Clojure frames) appended with the line number.
-
-  :name String
-  : Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
-
-  :names seq of String
-  : Clojure name split at slashes (empty for non-Clojure stack frames)"
+  Key           | Type          | Description
+  --            |--             |--
+  :file         | String        | Source file name
+  :line         | Integer       | Line number as integer, or nil
+  :class        | String        | Fully qualified Java class name
+  :package      | String        | Java package name, or nil for root package
+  :simple-class | String        | Simple name of Java class, without the package prefix
+  :method       | String        | Java method name
+  :is-clojure?  | Boolean       | If true, this represents a Clojure function call, rather than a Java method invocation
+  :id           | String        | An id that can be used to identify repeating stack frames; consists of the fully qualified method name (for Java frames) or fully qualified Clojure name (for Clojure frames) appended with the line number.
+  :name         | String        | Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
+  :names        | seq of String | Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
   (let [elements (map (partial expand-stack-trace-element current-dir-prefix) (.getStackTrace exception))]
     (when (empty? elements)
@@ -446,18 +427,12 @@
 
   Each exception map contains:
 
-  :class-name String
-  : name of the Java class for the exception
-
-  :message String
-  : value of the exception's message property (possibly nil)
-
-  :properties Map
-  : map of properties to (optionally) present in the exception report
-
-  :stack-trace Vector
-  : stack trace element maps, or nil.
-    Only present in the root exception.
+  | Key          | Type   | Description
+  |--            |--      |--
+  | :class-name  | String | Name of Java class for the exception
+  | :message     | String | Value of the exception's message property (possibly nil)
+  | :properties  | String | Map of properties to (optionally) present in the exception report
+  | :stack-trace | Vector | Stack trace element maps (as per [[expand-stack-trace]]), or nil; only present in the root exception
 
   The :properties map does not include any properties that are assignable to type Throwable.
 
@@ -623,15 +598,11 @@
 
   The options map may have the following keys:
 
-  :filter
-  : The stack frame filter, which defaults to [[*default-stack-frame-filter*]].
-
-  :properties
-  : If true (the default) then properties of exceptions will be output.
-
-  :frame-limit
-  : If non-nil, the number of stack frames to keep when outputting the stack trace
-    of the deepest exception.
+  Key          | Description
+  --           |--
+  :filter      | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
+  :properties  | If true (the default) then properties of exceptions will be output
+  :frame-limit | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
 
   Output may be traditional or modern, as controlled by [[*traditional*]].
   Traditional is the typical output order for Java: the stack of exceptions comes first (outermost to
@@ -648,18 +619,14 @@
   The stack frame filter is passed the map detailing each stack frame
   in the stack trace, and must return one of the following values:
 
-  :show
-  : is the normal state; display the stack frame.
+  Value      | Description
+  --         |--
+  :show      | The normal state; display the stack frame
+  :hide      | Prevents the frame from being displayed, as if it never existed
+  :omit      | Replaces the frame with a \"...\" placeholder
+  :terminate | Hides the frame AND all later frames
 
-  :hide
-  : prevents the frame from being displayed, as if it never existed.
-
-  :omit
-  : replaces the frame with a \"...\" placeholder; multiple consecutive :omits will be collapsed to a single line.
-    Use :omit for \"uninteresting\" stack frames.
-
-  :terminate
-  : hides the frame AND all later frames.
+  Multiple consecutive :omits will be collapsed to a single line; use :omit for \"uninteresting\" stack frames.
 
   The default filter is [[*default-frame-filter*]].  An explicit filter of nil will display all stack frames.
 
