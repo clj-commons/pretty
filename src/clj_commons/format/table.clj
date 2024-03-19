@@ -99,7 +99,7 @@
   from the keyword, and the column's width is set to the maximum
   of the title width and the width of the longest value in the rows.
 
-  Alternately, a column can me a map:
+  Alternately, a column can be a map:
 
   Key        | Type             | Description
   --         |--                |--
@@ -107,6 +107,7 @@
   :title     | String           | The title for the column
   :width     | number           | Width of the column
   :decorator | function         | May return a font for the cell
+  :pad       | :left or :right  | Defaults to :left except for last column
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
@@ -124,9 +125,7 @@
   passed the row index and the value for the column,
   and returns a font keyword (or nil).
 
-  By default, columns are padded on the left, except for the final column
-  which pads on the right; the :align key can be :left or :right to override this
-  (affecting both the header row and each data row).
+  Padding affects both the column title and the column values below it.
 
   opts can be a seq of columns, or it can be a map of options:
 
