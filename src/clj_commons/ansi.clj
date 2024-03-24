@@ -262,12 +262,14 @@
 
   The terms:
 
-  - foreground color:  e.g. `red` or `bright-red`
-  - background color: e.g., `green-bg` or `bright-green-bg`
-  - boldness: `bold`, `faint`, or `plain`
-  - italics: `italic` or `roman`
-  - inverse: `inverse` or `normal`
-  - underline: `underlined` or `not-underlined`
+  Characteristic   | Values
+  --               |--
+  foreground color | `red` or `bright-red` (for each color)
+  background color |  same as foreground color
+  boldness         | `bold`, `faint`, or `plain`
+  italics          | `italic` or `roman`
+  inverse          | `inverse` or `normal`
+  underline        | `underlined` or `not-underlined`
 
   e.g.
 
@@ -298,14 +300,11 @@
 
   The span's font declaration may also be a map with the following keys:
 
-  :font keyword
-  : the font declaration
-
-  :width number
-  : the visual width of the span
-
-  :pad keyword
-  : where to pad the span, :left or :right; default is :left
+  Key    | Type    | Description
+  --     |--       |--
+  :font  | keyword | The font declaration
+  :width | number  | The visual width of the span
+  :pad   | keyword | Where to pad the span, :left or :right; default is :left
 
   The map form of the font declaration is typically only used when a span width is specified.
   The span will be padded with spaces to ensure that it is the specified width.  `compose` tracks the number
