@@ -101,20 +101,21 @@
 
   Alternately, a column can be a map:
 
-  Key        | Type             | Description
-  --         |--                |--
-  :key       | keyword/function | Passed the row data and returns the value for the column (required)
-  :title     | String           | The title for the column
-  :width     | number           | Width of the column
-  :decorator | function         | May return a font for the cell
-  :pad       | :left or :right  | Defaults to :left except for last column
+  Key        | Type                 | Description
+  --         |--                    |--
+  :key       | keyword/function     | Passed the row data and returns the value for the column (required)
+  :title     | String               | The title for the column
+  :title-pad | :left, :right, :both | How to pad the title column; default is :both to center the title
+  :width     | number               | Width of the column
+  :decorator | function             | May return a font keyword for the cell
+  :pad       | :left, :right, :both | Defaults to :left except for last column
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
-  value is a composed string (passed to [[compose]]); if this case,
-  you should also provide an explicit :width.
+  value is a composed string (passed to [[compose]]); if returning a composed string,
+  you must also provide an explicit :width.
 
-  :title is deduced from :key, when omitted and :key is a keyword;
+  The default for :title is deduced from :key; when omitted and :key is a keyword;
   the keyword is converted to a string, capitalized, and embedded dashes
   converted to spaces.
 
@@ -124,8 +125,6 @@
   The decorator is a function; it will be
   passed the row index and the value for the column,
   and returns a font keyword (or nil).
-
-  Padding affects both the column title and the column values below it.
 
   opts can be a seq of columns, or it can be a map of options:
 
@@ -143,9 +142,7 @@
   The :row-annotator is passed the row index and the row data,
   and returns a composed string that is appended immediately after
   the end of the row (but outside any border), which can be used to
-  add a note next to a row.
-
- "
+  add a note to the right of a row."
   [opts rows]
   (let [opts' (if (sequential? opts)
                 {:columns opts}
@@ -187,9 +184,9 @@
 
     (pcompose
       row-left
-      (for [{:keys [width title last? pad]} columns']
+      (for [{:keys [width title title-pad last?]} columns']
         (list [{:width width
-                :pad   (or pad (if last? :right :left))
+                :pad   (or title-pad :both)
                 :font  :bold} title]
               (when-not last?
                 row-sep)))

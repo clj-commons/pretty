@@ -1,9 +1,16 @@
-## 2.4 - UNRELEASED
+## 2.4.0 - UNRELEASED
+
+*BREAKING CHANGES*
+
+- `clj-commons.format.table/print-table` now centers title columns by default,
+  and adds a :title-pad key to the column map to control this explicitly.
+
+Other changes:
 
 `compose` now supports a new value for :pad; the value :both is used to
 center the content, adding spaces on both sides.
 
-## 2.3 - 9 Mar 2023
+## 2.3.0 - 9 Mar 2023
 
 A new function, `clj-commons.ansi/perr`, composes its inputs and prints
 them to `*err*`, a common behavior for command line tools.
