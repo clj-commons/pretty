@@ -29,7 +29,7 @@
   (print-table
     [:method
      :path
-     {:key :route-name :title "Name"}]
+     {:key :route-name :title "Name" :title-pad :right}]
     [{:method     :get
       :path       "/"
       :route-name :root-page}
