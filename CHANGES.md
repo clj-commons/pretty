@@ -1,6 +1,11 @@
+## 2.4 - UNRELEASED
+
+`compose` now supports a new value for :pad; the value :both is used to
+center the content, adding spaces on both sides.
+
 ## 2.3 - 9 Mar 2023
 
-A new function, `clj-commons.ansi.perr`, composes its inputs and prints
+A new function, `clj-commons.ansi/perr`, composes its inputs and prints
 them to `*err*`, a common behavior for command line tools.
 
 A new namespace, `clj-commons.format.table`, is used to format tabular output; a

@@ -190,3 +190,16 @@
                               :yellow-bg]}
           (ex-data e)))))
 
+(deftest pad-both-even-padding
+  (is (= "|    XX    |"
+         ; ....  ....
+         (compose "|" [{:width 10
+                        :pad   :both}
+                       "XX"] "|"))))
+
+(deftest pad-both-odd-padding
+  (is (= "|     X    |"
+         ; .....  ....
+         (compose "|" [{:width 10
+                        :pad   :both}
+                       "X"] "|"))))
