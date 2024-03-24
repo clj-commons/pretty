@@ -1,4 +1,4 @@
-## 2.4.0 - UNRELEASED
+## 2.4.0 - 24 Mar 202
 
 *BREAKING CHANGES*
 
@@ -10,7 +10,9 @@ Other changes:
 `compose` now supports a new value for :pad; the value :both is used to
 center the content, adding spaces on both sides.
 
-## 2.3.0 - 9 Mar 2023
+[Closed Issues](https://github.com/clj-commons/pretty/issues?q=is%3Aclosed+milestone%3A2.4.0)
+
+## 2.3.0 - 9 Mar 2024
 
 A new function, `clj-commons.ansi/perr`, composes its inputs and prints
 them to `*err*`, a common behavior for command line tools.

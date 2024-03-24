@@ -43,7 +43,7 @@ Pretty can output pretty tabular data:
       :path       "/status"
       :route-name :status}])
 ┏━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ Method ┃    Path ┃ Name       ┃
+┃ Method ┃   Path  ┃    Name    ┃
 ┣━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━━━━┫
 ┃   :get ┃       / ┃ :root-page ┃
 ┃  :post ┃  /reset ┃ :reset     ┃
@@ -52,7 +52,7 @@ Pretty can output pretty tabular data:
 => nil
 ```
 
-The `print-table` function has many options to easily adjust the output to your needs.
+The `print-table` function has many options to easily adjust the output to your needs, including fonts, text alignment, and the table border.
 
 
 ## Compatibility
