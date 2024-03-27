@@ -285,14 +285,14 @@
 
   The terms:
 
-  | Characteristic   | Values                                 |
-  | --               | --                                     |
-  | foreground color | `red` or `bright-red` (for each color) |
-  | background color |  same as foreground color              |
-  | boldness         | `bold`, `faint`, or `plain`            |
-  | italics          | `italic` or `roman`                    |
-  | inverse          | `inverse` or `normal`                  |
-  | underline        | `underlined` or `not-underlined`       |
+  Characteristic   | Values
+  ---              | ---
+  foreground color | `red` or `bright-red` (for each color)
+  background color |  same as foreground color
+  boldness         | `bold`, `faint`, or `plain`
+  italics          | `italic` or `roman`
+  inverse          | `inverse` or `normal`
+  underline        | `underlined` or `not-underlined`
 
   e.g.
 
