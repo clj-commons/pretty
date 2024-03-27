@@ -5,6 +5,7 @@
             [clojure.string :as str]
             [clj-commons.ansi :refer [compose]]
             [clj-commons.pretty-impl :refer [padding]])
+  (:refer-clojure :exclude [*print-level* *print-length*])
   (:import (java.lang StringBuilder StackTraceElement)
            (clojure.lang Compiler ExceptionInfo Named)
            (java.util.regex Pattern)))
@@ -116,7 +117,7 @@
 
   The default rules:
 
-  * omit everything in `clojure.lang` and `java.lang.reflect`.
+  * omit everything in `clojure.lang`, `java.lang.reflect`, and the function `clojure.core/apply`
   * hide everything in `sun.reflect`
   * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
   "
@@ -124,6 +125,7 @@
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
+   [:name "clojure.core/apply" :omit]
    [:name #"nrepl\.middleware\.interruptible-eval/.*" :terminate]
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
    [:name #"clojure\.main/main.*" :terminate]])
@@ -301,7 +303,7 @@
       (println (compose
                  [:bright-yellow "WARNING: "]
                  "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with "
-                 [:bold "-XX:-OmitStackTraceInFastThrow" "."]))
+                 [:bold "-XX:-OmitStackTraceInFastThrow"] "."))
       (flush))))
 
 (defn expand-stack-trace
@@ -514,9 +516,26 @@
         sep (str "\n" (padding indentation))]
     (interpose sep lines)))
 
+(def ^{:added "2.5.0"
+       :dynamic true}
+  *print-length*
+  "The number of elements of collections to pretty-print; defaults to 10."
+  10)
+
+(def ^{:added "2.5.0"
+       :dynamic true}
+  *print-level*
+  "The depth to which to pretty-printed nested collections; defaults to 2."
+  2)
+
+
 (defn- format-property-value
   [indentation value]
-  (let [pretty-value (pp/write value :stream nil :length (or *print-length* 10) :dispatch exception-dispatch)]
+  (let [pretty-value (pp/write value
+                               :stream nil
+                               :length *print-length*
+                               :level *print-level*
+                               :dispatch exception-dispatch)]
     (indented-value indentation pretty-value)))
 
 (defn- qualified-name
@@ -639,9 +658,9 @@
   after repeating stack frames have been identified and coalesced ... :frame-limit is really the number
   of _output_ lines to present.
 
-  Properties of exceptions will be output using Clojure's pretty-printer, honoring all normal vars used
-  to configure pretty-printing; however, if `*print-length*` is left as its default (nil), the print length will be set to 10.
-  This is to ensure that infinite lists do not cause endless output or other exceptions.
+  Properties of exceptions will be output using Clojure's pretty-printer, but using
+  this namespace's versions of [[*print-length*]] and [[*print-level*]], which default to
+  10 and 2, respectively.
 
   The `*fonts*` var contains a map from output element names (as :exception or :clojure-frame) to
   a font def used with [[compose]]; this allows easy customization of the output."

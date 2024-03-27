@@ -110,6 +110,16 @@
         (e/print-exception e)))
     (close! ch))
 
+  (e/print-exception (ex-info "Failure"
+                              {:key1 (range 20)
+                               :key2 {:key3 3
+                                      :key4 {:key5 5}}}))
+
+  ;; Default *print-level* of 2:
+
+  ;; clojure.lang.ExceptionInfo: Failure
+  ;;     key1: (0 1 2 3 4 5 6 7 8 9 ...)
+  ;;     key2: {:key3 3, :key4 #}
 
   (clojure.test/run-tests)
 
