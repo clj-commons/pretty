@@ -102,7 +102,7 @@
   Alternately, a column can be a map:
 
   Key        | Type                 | Description
-  --         |--                    |--
+  ---        |---                   |---
   :key       | keyword/function     | Passed the row data and returns the value for the column (required)
   :title     | String               | The title for the column
   :title-pad | :left, :right, :both | How to pad the title column; default is :both to center the title
@@ -129,7 +129,7 @@
   opts can be a seq of columns, or it can be a map of options:
 
   Key                | Type           | Description
-  --                 |--              |--
+  ---                |---             |---
   :columns           | seq of columns | Describes the columns to print
   :style             | map            | Overrides the default styling of the table
   :default-decorator | function       | Used when a column doesn't define it own decorator

@@ -1,12 +1,12 @@
 {:paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.11.1"}}
+ :deps {org.clojure/clojure {:mvn/version "1.11.2"}}
 
  :aliases
  {:test
   ;; clj -X:test
   {:extra-paths ["test"]
    :extra-deps {criterium/criterium {:mvn/version "0.4.6"}
-                org.clojure/core.async {:mvn/version "1.6.673"}
+                org.clojure/core.async {:mvn/version "1.6.681"}
                 io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                       :git/sha "dfb30dd"}}
    :jvm-opts ["-Dclj-commons.ansi.enabled=true"]
@@ -15,11 +15,11 @@
   ;; clj -T:build <command>
   :build
   {:deps {io.github.hlship/build-tools
-          {:git/tag "0.10.1" :git/sha "7ecff5b"}}
+          {:git/tag "0.10.2" :git/sha "3c446e4"}}
    :ns-default build}
 
   :1.10
-  {:override-deps {org.clojure/clojure {:mvn/version "1.10.0"}}}
+  {:override-deps {org.clojure/clojure {:mvn/version "1.11.2"}}}
 
   ;; clj -M:test:demo
   :demo
@@ -29,7 +29,7 @@
   {:jvm-opts ["-Dclj-commons.ansi.enabled=false"]}
 
   :nrepl
-  {:extra-deps {nrepl/nrepl {:mvn/version "1.0.0"}}
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.1.1"}}
    :main-opts ["-m" "nrepl.cmdline" ]}
 
   :repl
