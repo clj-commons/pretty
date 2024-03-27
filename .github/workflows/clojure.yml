@@ -44,6 +44,13 @@ jobs:
       - name: Run tests (Clojure 1.10)
         run: clojure -X:1.10:test
 
+      - uses: actions/checkout@v1
+      - name: Build JAR for cljdoc analysis
+        run: clojure -T:build jar
+
+      - name: CljDoc Check
+        uses: cljdoc/cljdoc-check-action@v1
+
 
 
 
