@@ -310,7 +310,7 @@
   "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
 
   Key           | Type          | Description
-  --            |--             |--
+  ---           |---            |---
   :file         | String        | Source file name
   :line         | Integer       | Line number as integer, or nil
   :class        | String        | Fully qualified Java class name
@@ -429,12 +429,12 @@
 
   Each exception map contains:
 
-  | Key          | Type   | Description
-  |--            |--      |--
-  | :class-name  | String | Name of Java class for the exception
-  | :message     | String | Value of the exception's message property (possibly nil)
-  | :properties  | String | Map of properties to (optionally) present in the exception report
-  | :stack-trace | Vector | Stack trace element maps (as per [[expand-stack-trace]]), or nil; only present in the root exception
+  Key          | Type   | Description
+  ---          |---     |---
+  :class-name  | String | Name of Java class for the exception
+  :message     | String | Value of the exception's message property (possibly nil)
+  :properties  | String | Map of properties to (optionally) present in the exception report
+  :stack-trace | Vector | Stack trace element maps (as per [[expand-stack-trace]]), or nil; only present in the root exception
 
   The :properties map does not include any properties that are assignable to type Throwable.
 
@@ -618,7 +618,7 @@
   The options map may have the following keys:
 
   Key          | Description
-  --           |--
+  ---          |---
   :filter      | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
   :properties  | If true (the default) then properties of exceptions will be output
   :frame-limit | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
@@ -639,7 +639,7 @@
   in the stack trace, and must return one of the following values:
 
   Value      | Description
-  --         |--
+  ---        |---
   :show      | The normal state; display the stack frame
   :hide      | Prevents the frame from being displayed, as if it never existed
   :omit      | Replaces the frame with a \"...\" placeholder

@@ -136,8 +136,9 @@
 
   The full version specifies the [[BinaryData]] to write, and options:
 
+
   Key         | Type    | Description
-  --          |--       |--
+  ---         |---      |---
   :ascii      | boolean | If true, enable ASCII mode
   :line-bytes | number  | Bytes printed per line
 

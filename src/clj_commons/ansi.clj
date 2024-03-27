@@ -286,7 +286,7 @@
   The terms:
 
   Characteristic   | Values
-  ---              | ---
+  ---              |---
   foreground color | `red` or `bright-red` (for each color)
   background color |  same as foreground color
   boldness         | `bold`, `faint`, or `plain`
@@ -324,7 +324,7 @@
   The span's font declaration may also be a map with the following keys:
 
   Key    | Type    | Description
-  --     |--       |--
+  ---    |---      |---
   :font  | keyword | The font declaration
   :width | number  | The visual width of the span
   :pad   | keyword | Where to pad the span, :left, :right, or :both; default is :left
