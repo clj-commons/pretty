@@ -1,3 +1,10 @@
+## 2.5.0 - UNRELEASED
+
+*BREAKING CHANGES*
+
+- The function `clojure.core/apply` is now omitted (in formatted stack traces)
+- Properties inside exceptions are now pretty-printed a default depth of 2; previously, the depth was unlimited
+
 ## 2.4.0 - 24 Mar 202
 
 *BREAKING CHANGES*
