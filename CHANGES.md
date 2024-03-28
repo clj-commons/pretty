@@ -3,11 +3,13 @@
 *BREAKING CHANGES*
 
 - The function `clojure.core/apply` is now omitted (in formatted stack traces)
-- Properties inside exceptions are now pretty-printed a default depth of 2; previously, the depth was unlimited
+- Properties inside exceptions are now pretty-printed  to a default depth of 2; previously, the depth was unlimited
 
 Other changes:
 
 A limited number of vars and functions defined by the io.aviso/pretty artifact have been added, allowing org.clj-commons/pretty to swap in for io.aviso/pretty in many cases.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/46?closed=1)
 
 ## 2.4.0 - 24 Mar 202
 
