@@ -1,6 +1,8 @@
-## 2.5.1 - UNRELEASED
+## 2.5.1 - 12 Apr 2024
 
-
+Minor bug fixes.
+ 
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/48?closed=1)
 
 ## 2.5.0 - 27 Mar 2024
 
