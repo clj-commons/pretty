@@ -248,7 +248,8 @@
       (.append buffer (str input))
       state')))
 
-(defn- compose* [inputs]
+(defn- compose*
+  [inputs]
   (let [initial-font {:foreground "39"
                       :background "49"
                       :bold       "22"
@@ -288,7 +289,7 @@
   Characteristic   | Values
   ---              |---
   foreground color | `red` or `bright-red` (for each color)
-  background color |  same as foreground color
+  background color |  same as foreground color, with a `-bg` suffix (e.g., `red-bg`)
   boldness         | `bold`, `faint`, or `plain`
   italics          | `italic` or `roman`
   inverse          | `inverse` or `normal`
@@ -305,7 +306,6 @@
 
   The order of the terms does not matter. Behavior for conflicting terms (e.g., `:blue.green.black`)
   is not defined.
-
 
   Font defs apply on top of the font def of the enclosing span, and the outer span's font def
   is restored at the end of the inner span, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.

@@ -525,8 +525,8 @@
 (def ^{:added "2.5.0"
        :dynamic true}
   *print-level*
-  "The depth to which to pretty-printed nested collections; defaults to 2."
-  2)
+  "The depth to which to pretty-printed nested collections; defaults to 5."
+  5)
 
 
 (defn- format-property-value
