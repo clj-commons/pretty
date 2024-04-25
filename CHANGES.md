@@ -1,3 +1,10 @@
+## 2.6.0 - UNRELEASED
+
+- Font declaration in `compose` can now be a vector of individual terms, rather than a single keyword; e.g. `[:bold :red]` 
+  rather than `:bold.red`.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/49?closed=1)
+
 ## 2.5.1 - 12 Apr 2024
 
 Minor bug fixes.
