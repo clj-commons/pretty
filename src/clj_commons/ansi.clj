@@ -56,23 +56,23 @@
 
 (def ^:private font-terms
   (reduce merge
-          {:bold           [:bold "1"]
-           :plain          [:bold "22"]
-           :faint          [:bold "2"]
+          {:bold [:bold "1"]
+           :plain [:bold "22"]
+           :faint [:bold "2"]
 
-           :italic         [:italic "3"]
-           :roman          [:italic "23"]
+           :italic [:italic "3"]
+           :roman [:italic "23"]
 
-           :inverse        [:inverse "7"]
-           :normal         [:inverse "27"]
+           :inverse [:inverse "7"]
+           :normal [:inverse "27"]
 
-           :underlined     [:underlined "4"]
+           :underlined [:underlined "4"]
            :not-underlined [:underlined "24"]}
           (map-indexed
             (fn [index color-name]
-              {(keyword color-name)                       [:foreground (str (+ 30 index))]
-               (keyword (str "bright-" color-name))       [:foreground (str (+ 90 index))]
-               (keyword (str color-name "-bg"))           [:background (str (+ 40 index))]
+              {(keyword color-name) [:foreground (str (+ 30 index))]
+               (keyword (str "bright-" color-name)) [:foreground (str (+ 90 index))]
+               (keyword (str color-name "-bg")) [:background (str (+ 40 index))]
                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
@@ -94,19 +94,28 @@
   (assert (simple-keyword? font-def) "expected a simple keyword to define the font characteristics")
   (mapv keyword (str/split (name font-def) #"\.")))
 
-(def ^:private split-font-def (memoize split-font-def*))
+(def ^:private memoized-split-font-def* (memoize split-font-def*))
+
+(defn ^:private split-font-def
+  [font-def]
+  (if (vector? font-def)
+    font-def
+    (memoized-split-font-def* font-def)))
 
 (defn- update-font-data-from-font-def
   [font-data font-def]
   (if (some? font-def)
     (let [ks (split-font-def font-def)
           f (fn [font-data term]
-              (let [[font-k font-value] (or (get font-terms term)
-                                            (throw (ex-info (str "unexpected font term: " term)
-                                                            {:font-term       term
-                                                             :font-def        font-def
-                                                             :available-terms (->> font-terms keys sort vec)})))]
-                (assoc! font-data font-k font-value)))]
+              ;; nils are allowed in the vector form of a font def
+              (if (nil? term)
+                font-data
+                (let [[font-k font-value] (or (get font-terms term)
+                                              (throw (ex-info (str "unexpected font term: " term)
+                                                              {:font-term term
+                                                               :font-def font-def
+                                                               :available-terms (->> font-terms keys sort vec)})))]
+                  (assoc! font-data font-k font-value))))]
       (persistent! (reduce f (transient font-data) ks)))
     font-data))
 
@@ -116,7 +125,10 @@
     (nil? value)
     nil
 
-    (keyword? value)
+    ;; It would be tempting to split the keyword here, but that would obscure an error if the keyword
+    ;; contains a substring that isn't an expected font term.
+    (or (keyword? value)
+        (vector? value))
     {:font value}
 
     (map? value)
@@ -173,11 +185,11 @@
     ;; If at or over desired width, don't need to pad
     (if (<= width actual-width)
       {:width actual-width
-       :span  inputs'})
+       :span inputs'})
     ;; Add the padding in the desired position(s); this ensures that the logic that generates
     ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
     {:width width
-     :span  (apply-padding inputs' pad width actual-width)}))
+     :span (apply-padding inputs' pad width actual-width)}))
 
 
 (defn- normalize-markup
@@ -252,15 +264,15 @@
   [inputs]
   (let [initial-font {:foreground "39"
                       :background "49"
-                      :bold       "22"
-                      :italic     "23"
-                      :inverse    "27"
+                      :bold "22"
+                      :italic "23"
+                      :inverse "27"
                       :underlined "24"}
         buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:stack   []
-                                          :active  initial-font
+        {:keys [dirty?]} (collect-markup {:stack []
+                                          :active initial-font
                                           :current initial-font
-                                          :buffer  buffer}
+                                          :buffer buffer}
                                          inputs)]
     (when dirty?
       (.append buffer reset-font))
@@ -310,6 +322,10 @@
   Font defs apply on top of the font def of the enclosing span, and the outer span's font def
   is restored at the end of the inner span, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.
 
+  Alternately, a font def may be a vector of individual keyword, e.g., `[[:bold :red] ...]` rather than
+  `[:bold.red ...]`.  This works better when the exact font characteristics are determined
+  dynamically.
+
   A font def may also be nil, to indicate no change in font.
 
   `compose` presumes that on entry the current font is plain (default foreground and background, not bold,
@@ -323,11 +339,11 @@
 
   The span's font declaration may also be a map with the following keys:
 
-  Key    | Type    | Description
-  ---    |---      |---
-  :font  | keyword | The font declaration
-  :width | number  | The visual width of the span
-  :pad   | keyword | Where to pad the span, :left, :right, or :both; default is :left
+  Key    | Type                          | Description
+  ---    |---                            |---
+  :font  | keyword or vector of keywords | The font declaration
+  :width | number                        | The desired width of the span
+  :pad   | :left, :right, :both          | Where to pad the span if :width specified, default is :left
 
   The map form of the font declaration is typically only used when a span width is specified.
   The span will be padded with spaces to ensure that it is the specified width.  `compose` tracks the number

@@ -59,7 +59,7 @@
 
     ;; Check for skipping nils and blank strings, and not emitting the reset if no font
     ;; changes occurred.
-    ["Prefix--"  [:bold nil ""] "--Suffix"]
+    ["Prefix--" [:bold nil ""] "--Suffix"]
     "Prefix----Suffix"
 
     ;; A bug caused blank strings to be omitted, this checks for the fix:
@@ -188,18 +188,36 @@
                               :white-bg
                               :yellow
                               :yellow-bg]}
-          (ex-data e)))))
+           (ex-data e)))))
+
+(deftest unrecognized-vector-font-modifier
+  (when-let [e (is (thrown? Throwable (compose [[:what :is :this?] "Fail!"])))]
+    (is (= "unexpected font term: :what" (ex-message e)))
+    (is (match? {:font-term :what
+                 :font-def [:what :is :this?]}
+                (ex-data e)))))
 
 (deftest pad-both-even-padding
   (is (= "|    XX    |"
          ; ....  ....
          (compose "|" [{:width 10
-                        :pad   :both}
+                        :pad :both}
                        "XX"] "|"))))
 
 (deftest pad-both-odd-padding
   (is (= "|     X    |"
          ; .....  ....
          (compose "|" [{:width 10
-                        :pad   :both}
+                        :pad :both}
                        "X"] "|"))))
+
+(deftest use-of-vector-font-defs
+  (doseq [[font-kw font-vector] [[:red.green-bg [:red :green-bg]]
+                                 [:blue.italic [:italic :blue]]
+                                 [:green.underlined [:green nil :underlined]]]]
+    (is (= (compose [font-kw "some text"])
+           (compose [font-vector "some text"])))
+
+
+    (is (= (compose [{:font font-kw} "text"])
+           (compose [{:font font-vector} "text"])))))
