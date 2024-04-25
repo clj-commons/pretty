@@ -12,14 +12,14 @@
 
 (def default-fonts
   "A default map of [[compose]] font defs for different elements in the formatted exception report."
-  {:exception     :bold.red
-   :message       :italic
-   :property      :bold
-   :source        :green
-   :app-frame     :bold.yellow
+  {:exception :bold.red
+   :message :italic
+   :property :bold
+   :source :green
+   :app-frame :bold.yellow
    :function-name :bold.yellow
    :clojure-frame :yellow
-   :java-frame    :white
+   :java-frame :white
    :omitted-frame :faint.white})
 
 (def ^:dynamic *app-frame-names*
@@ -33,8 +33,8 @@
   default-fonts)
 
 (def ^{:dynamic true
-       :added   "0.1.15"}
-*traditional*
+       :added "0.1.15"}
+  *traditional*
   "If bound to true, then exceptions will be formatted the traditional way - the same as Java exceptions
   with the deepest stack frame first.  By default, the stack trace is inverted, so that the deepest
   stack frames come last, mimicking chronological order."
@@ -85,7 +85,7 @@
   back into simple characters."
   [^String s]
   (let [in-length (.length s)
-        result    (StringBuilder. in-length)]
+        result (StringBuilder. in-length)]
     (loop [i 0]
       (cond
         (>= i in-length) (.toString result)
@@ -103,9 +103,9 @@
   (reduce (fn [result [k v]] (if (f v) (conj result k) result)) [] (seq m)))
 
 
-(def ^{:added   "0.1.18"
+(def ^{:added "0.1.18"
        :dynamic true}
-*default-frame-rules*
+  *default-frame-rules*
   "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector of vectors.
 
   Each rule is a vector of three values:
@@ -146,12 +146,16 @@
 
 (defn *default-frame-filter*
   "Default stack frame filter used when printing REPL exceptions, driven by [[*default-frame-rules*]]."
-  {:added   "0.1.16"
+  {:added "0.1.16"
    :dynamic true}
   [frame]
-  (-> (keep #(apply-rule frame %) *default-frame-rules*)
-      first
-      (or :show)))
+  (or
+    (reduce (fn [_ rule]
+              (when-let [result (apply-rule frame rule)]
+                (reduced result)))
+            nil
+            *default-frame-rules*)
+    :show))
 
 (defn- convert-to-clojure
   [class-name method-name]
@@ -161,9 +165,9 @@
         ;; In a degenerate case, a protocol method could be called "invoke" or "doInvoke"; we're ignoring
         ;; that possibility here and assuming it's the IFn.invoke(), doInvoke() or
         ;; the invokeStatic method introduced with direct linking in Clojure 1.8.
-        all-ids      (if (#{"invoke" "doInvoke" "invokeStatic" "invokePrim"} method-name)
-                       function-ids
-                       (-> function-ids vec (conj method-name)))]
+        all-ids (if (#{"invoke" "doInvoke" "invokeStatic" "invokePrim"} method-name)
+                  function-ids
+                  (-> function-ids vec (conj method-name)))]
     ;; The assumption is that no real namespace or function name will contain underscores (the underscores
     ;; are name-mangled dashes).
     (->>
@@ -188,68 +192,72 @@
       (re-matches #"form-init\d+\.clj" file-name))))
 
 (defn- expand-stack-trace-element
-  [file-name-prefix ^StackTraceElement element]
-  (let [class-name (.getClassName element)
-        method-name (.getMethodName element)
-        dotx (str/last-index-of class-name ".")
-        file-name (or (.getFileName element) "")
-        repl-input (is-repl-input? file-name)
-        [file line] (if repl-input
-                      ["REPL Input"]
-                      [(strip-prefix file-name-prefix file-name)
-                       (-> element .getLineNumber)])
-        is-clojure? (or repl-input
-                        (->> file-name extension (contains? clojure-extensions)))
-        names (if is-clojure? (convert-to-clojure class-name method-name) [])
-        name (str/join "/" names)
-        id (cond-> (if is-clojure?
-                     name
-                     (str class-name "." method-name))
-                   line (str ":" line))]
-    {:file file
-     :line (when (and line
-                      (pos? line))
-             line)
-     :class class-name
-     :package (when dotx (subs class-name 0 dotx))
-     :is-clojure? is-clojure?
-     :simple-class (if dotx
-                     (subs class-name (inc dotx))
-                     class-name)
-     :method method-name
-     ;; Used to detect repeating frames
-     :id id
-     ;; Used to calculate column width
-     :name name
-     ;; Used to present compound Clojure name with last term highlighted
-     :names names}))
+  [file-name-prefix *cache ^StackTraceElement element]
+  (or (get @*cache element)
+      (let [class-name (.getClassName element)
+            method-name (.getMethodName element)
+            dotx (str/last-index-of class-name ".")
+            file-name (or (.getFileName element) "")
+            repl-input (is-repl-input? file-name)
+            [file line] (if repl-input
+                          ["REPL Input"]
+                          [(strip-prefix file-name-prefix file-name)
+                           (-> element .getLineNumber)])
+            is-clojure? (or repl-input
+                            (->> file-name extension (contains? clojure-extensions)))
+            names (if is-clojure? (convert-to-clojure class-name method-name) [])
+            name (str/join "/" names)
+            id (cond-> (if is-clojure?
+                         name
+                         (str class-name "." method-name))
+                       line (str ":" line))
+            expanded {:file file
+                      :line (when (and line
+                                       (pos? line))
+                              line)
+                      :class class-name
+                      :package (when dotx (subs class-name 0 dotx))
+                      :is-clojure? is-clojure?
+                      :simple-class (if dotx
+                                      (subs class-name (inc dotx))
+                                      class-name)
+                      :method method-name
+                      ;; Used to detect repeating frames
+                      :id id
+                      ;; Used to calculate column width
+                      :name name
+                      ;; Used to present compound Clojure name with last term highlighted
+                      :names names}]
+        (vswap! *cache assoc element expanded)
+        expanded)))
 
 (defn- apply-frame-filter
   [frame-filter frames]
   (if (nil? frame-filter)
     frames
-    (loop [result   (transient [])
-           [frame & more-frames] frames
-           omitting false]
-      (case (if frame (frame-filter frame) :terminate)
+    (let [*omitting? (volatile! false)
+          result (reduce (fn [result frame]
+                           (case (frame-filter frame)
+                             :terminate
+                             (reduced result)
 
-        :terminate
-        (persistent! result)
+                             :show
+                             (do
+                               (vreset! *omitting? false)
+                               (conj! result frame))
 
-        :show
-        (recur (conj! result frame)
-               more-frames
-               false)
+                             :hide
+                             result
 
-        :hide
-        (recur result more-frames omitting)
-
-        :omit
-        (if omitting
-          (recur result more-frames true)
-          (recur (conj! result (assoc frame :omitted true))
-                 more-frames
-                 true))))))
+                             :omit
+                             (if @*omitting?
+                               result
+                               (do
+                                 (vreset! *omitting? true)
+                                 (conj! result (assoc frame :omitted true))))))
+                         (transient [])
+                         frames)]
+      (persistent! result))))
 
 (defn- remove-direct-link-frames
   "With Clojure 1.8, in code (such as clojure.core) that is direct linked,
@@ -260,9 +268,9 @@
   This function filters out the .invoke frames so that a single Clojure
   function call is represented in the output as a single stack frame."
   [elements]
-  (loop [filtered   (transient [])
+  (loop [filtered (transient [])
          prev-frame nil
-         remaining  elements]
+         remaining elements]
     (if (empty? remaining)
       (persistent! filtered)
       (let [[this-frame & rest] remaining]
@@ -284,7 +292,7 @@
 
 (defn- repeating-frame-reducer
   [output-frames frame]
-  (let [output-count      (count output-frames)
+  (let [output-count (count output-frames)
         last-output-index (dec output-count)]
     (cond
       (zero? output-count)
@@ -322,7 +330,8 @@
   :name         | String        | Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
   :names        | seq of String | Clojure name split at slashes (empty for non-Clojure stack frames)"
   [^Throwable exception]
-  (let [elements (map (partial expand-stack-trace-element current-dir-prefix) (.getStackTrace exception))]
+  (let [*cache (volatile! {})
+        elements (map #(expand-stack-trace-element current-dir-prefix *cache %) (.getStackTrace exception))]
     (when (empty? elements)
       @stack-trace-warning)
     elements))
@@ -332,9 +341,14 @@
 
   When provided a frame matching *app-frame-names*, returns :app-frame, otherwise :clojure-frame."
   [frame]
-  (-> (keep #(apply-rule frame [:name % :app-frame]) *app-frame-names*)
-      first
-      (or :clojure-frame)))
+  (or
+    (when *app-frame-names*
+      (reduce (fn [_ app-frame-name]
+                (when-let [match (apply-rule frame [:name app-frame-name :app-frame])]
+                  (reduced match)))
+              nil
+              *app-frame-names*))
+    :clojure-frame))
 
 (defn- format-stack-frame
   [{:keys [file line names repeats] :as frame}]
@@ -345,7 +359,7 @@
 
     ;; When :names is empty, it's a Java (not Clojure) frame
     (empty? names)
-    (let [full-name      (str (:class frame) "." (:method frame))]
+    (let [full-name (str (:class frame) "." (:method frame))]
       {:name [(:java-frame *fonts*) full-name]
        :name-width (length full-name)
        :file file
@@ -387,21 +401,21 @@
 (defn- wrap-exception
   [^Throwable exception properties options]
   (let [throwable-property-keys (match-keys properties is-throwable?)
-        nested-exception        (or (->> (select-keys properties throwable-property-keys)
-                                         vals
-                                         (remove nil?)
-                                         ;; Avoid infinite loop!
-                                         (remove #(= % exception))
-                                         first)
-                                    (.getCause exception))
-        stack-trace             (when-not nested-exception
-                                  (extract-stack-trace exception options))]
-    [{:class-name  (-> exception .getClass .getName)
-      :message     (.getMessage exception)
+        nested-exception (or (->> (select-keys properties throwable-property-keys)
+                                  vals
+                                  (remove nil?)
+                                  ;; Avoid infinite loop!
+                                  (remove #(= % exception))
+                                  first)
+                             (.getCause exception))
+        stack-trace (when-not nested-exception
+                      (extract-stack-trace exception options))]
+    [{:class-name (-> exception .getClass .getName)
+      :message (.getMessage exception)
       ;; Don't ever want to include throwables since they will wreck the output format.
       ;; Would only expect a single throwable (either an explicit property, or as the cause)
       ;; per exception.
-      :properties  (apply dissoc properties throwable-property-keys)
+      :properties (apply dissoc properties throwable-property-keys)
       :stack-trace stack-trace}
      nested-exception]))
 
@@ -409,13 +423,13 @@
   [^Throwable exception options]
   (if (instance? ExceptionInfo exception)
     (wrap-exception exception (ex-data exception) options)
-    (let [properties          (try (into {} (bean exception))
-                                   (catch Throwable _ nil))
+    (let [properties (try (into {} (bean exception))
+                          (catch Throwable _ nil))
           ;; Ignore basic properties of Throwable, any nil properties, and any properties
           ;; that are themselves Throwables
-          discarded-keys      (concat [:suppressed :message :localizedMessage :class :stackTrace :cause]
-                                      (match-keys properties nil?)
-                                      (match-keys properties is-throwable?))
+          discarded-keys (concat [:suppressed :message :localizedMessage :class :stackTrace :cause]
+                                 (match-keys properties nil?)
+                                 (match-keys properties is-throwable?))
           retained-properties (apply dissoc properties discarded-keys)]
       (wrap-exception exception retained-properties options))))
 
@@ -441,7 +455,7 @@
   The first property that is assignable to type Throwable (not necessarily the rootCause property)
   will be used as the nested exception (for the next map in the sequence)."
   [^Throwable e options]
-  (loop [result  []
+  (loop [result []
          current e]
     (let [[expanded nested] (expand-exception current options)
           result' (conj result expanded)]
@@ -541,7 +555,7 @@
 (defn- qualified-name
   [x]
   (if (instance? Named x)
-    (let [x-ns   (namespace x)
+    (let [x-ns (namespace x)
           x-name (name x)]
       (if x-ns
         (str x-ns "/" x-name)
@@ -679,10 +693,11 @@
 
 (defn- assemble-final-stack
   [exceptions stack-trace stack-trace-batch options]
-  (let [stack-trace' (-> (map (partial expand-stack-trace-element current-dir-prefix)
+  (let [*cache (volatile! {})
+        stack-trace' (-> (map #(expand-stack-trace-element current-dir-prefix *cache %)
                               (into stack-trace-batch stack-trace))
                          (transform-stack-trace-elements options))
-        x            (-> exceptions count dec)]
+        x (-> exceptions count dec)]
     (assoc-in exceptions [x :stack-trace] stack-trace')))
 
 (def ^:private re-exception-start
@@ -709,21 +724,21 @@
 (defn- add-to-batch
   [stack-trace-batch ^String class-and-method ^String file-name ^String line-number]
   (try
-    (let [x           (.lastIndexOf class-and-method ".")
-          class-name  (subs class-and-method 0 x)
+    (let [x (.lastIndexOf class-and-method ".")
+          class-name (subs class-and-method 0 x)
           method-name (subs class-and-method (inc x))
-          element     (StackTraceElement. class-name
-                                          method-name
-                                          file-name
-                                          (if line-number
-                                            (Integer/parseInt line-number)
-                                            -1))]
+          element (StackTraceElement. class-name
+                                      method-name
+                                      file-name
+                                      (if line-number
+                                        (Integer/parseInt line-number)
+                                        -1))]
       (conj stack-trace-batch element))
     (catch Throwable t
       (throw (ex-info "Unable to create StackTraceElement."
                       {:class-and-method class-and-method
-                       :file-name        file-name
-                       :line-number      line-number}
+                       :file-name file-name
+                       :line-number line-number}
                       t)))))
 
 (defn parse-exception
@@ -747,10 +762,10 @@
   .printStackTrace output. This happens too often with JDBC exceptions, for example."
   {:added "0.1.21"}
   [exception-text options]
-  (loop [state             :start
-         lines             (str/split-lines exception-text)
-         exceptions        []
-         stack-trace       []
+  (loop [state :start
+         lines (str/split-lines exception-text)
+         exceptions []
+         stack-trace []
          stack-trace-batch []]
     (if (empty? lines)
       (assemble-final-stack exceptions stack-trace stack-trace-batch options)
@@ -761,7 +776,7 @@
           (let [[_ _ exception-class-name _ exception-message] (re-matches re-exception-start line)]
             (when-not exception-class-name
               (throw (ex-info "Unable to parse start of exception."
-                              {:line           line
+                              {:line line
                                :exception-text exception-text})))
 
             ;; The exception message may span a couple of lines, so check for that before absorbing
@@ -769,7 +784,7 @@
             (recur :exception-message
                    more-lines
                    (conj exceptions {:class-name exception-class-name
-                                     :message    exception-message})
+                                     :message exception-message})
                    stack-trace
                    stack-trace-batch))
 
