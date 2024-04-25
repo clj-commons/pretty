@@ -127,6 +127,7 @@
 
   (countdown 10)
   (infinite-loop)
+  (pst)
   (throw (make-ex-info))
   (print (make-ex-info))
   (test-failure)
