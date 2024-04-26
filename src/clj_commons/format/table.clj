@@ -107,8 +107,8 @@
   :title     | String               | The title for the column
   :title-pad | :left, :right, :both | How to pad the title column; default is :both to center the title
   :width     | number               | Width of the column
-  :decorator | function             | May return a font keyword for the cell
-  :pad       | :left, :right, :both | Defaults to :left except for last column
+  :decorator | function             | May return a font declaration for the cell
+  :pad       | :left, :right, :both | Defaults to :left except for last column, which pads on the right
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
@@ -124,7 +124,8 @@
 
   The decorator is a function; it will be
   passed the row index and the value for the column,
-  and returns a font keyword (or nil).
+  and returns a font declaration (or nil).  A font declaration can be a single keyword
+  (.e.g, :red.bold) or a vector of keywords (e.g. [:red :bold]).
 
   opts can be a seq of columns, or it can be a map of options:
 

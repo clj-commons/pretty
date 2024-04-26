@@ -54,9 +54,13 @@
 (s/def ::key ifn?)
 (s/def ::title string?)
 (s/def ::width (s/and int? pos?))
+(s/def ::font-declaration (s/or
+                             :keyword keyword?
+                             :vector (s/coll-of (s/nilable keyword?)
+                                                :kind vector?)))
 (s/def ::decorator (s/fspec
                      :args (s/cat
                              :index int?
                              :value any?)
-                     :ret (s/nilable keyword?)))
+                     :ret (s/nilable ::font-declarationse)))
 (s/def ::default-decorator ::decorator)
