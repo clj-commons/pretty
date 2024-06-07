@@ -1,12 +1,14 @@
 ## 3.0.0 - UNRELEASED
  
-*BREAKING CHANGES*:
+**BREAKING CHANGES**:
 
-Moved the io.aviso compatibility layer to new library
+Moved the io.aviso/pretty compatibility layer to new library
 [org.clj-commons/pretty-aviso-bridge](https://github.com/clj-commons/pretty-aviso-bridge).
 
 Other changes:
-- Added a cache to speed up analyzing the Java exception stack.
+- `clj-commons.format.exceptions`
+  - Added a cache to speed up transforming Java StackTraceElements
+  - Added new functions to make it easier to extract, filter, and format a stack trace outside of formatting an entire exception
 
 ## 2.6.0 - 25 Apr 2024
 

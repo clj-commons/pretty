@@ -191,7 +191,7 @@
       ; This pattern comes from somewhere inside nREPL, I believe - may be dated
       (re-matches #"form-init\d+\.clj" file-name))))
 
-(defn- expand-stack-trace-element
+(defn- transform-stack-trace-element
   [file-name-prefix *cache ^StackTraceElement element]
   (or (get @*cache element)
       (let [class-name (.getClassName element)
@@ -314,12 +314,12 @@
                  [:bold "-XX:-OmitStackTraceInFastThrow"] "."))
       (flush))))
 
-(defn expand-stack-trace
-  "Extracts the stack trace for an exception and returns a seq of expanded stack frame maps:
+(defn transform-stack-trace
+  "Transforms a seq of StackTraceElement objects into a seq of stack frame maps:
 
   Key           | Type          | Description
   ---           |---            |---
-  :file         | String        | Source file name
+  :file         | String        | Source file name, or nil if not known
   :line         | Integer       | Line number as integer, or nil
   :class        | String        | Fully qualified Java class name
   :package      | String        | Java package name, or nil for root package
@@ -329,12 +329,19 @@
   :id           | String        | An id that can be used to identify repeating stack frames; consists of the fully qualified method name (for Java frames) or fully qualified Clojure name (for Clojure frames) appended with the line number.
   :name         | String        | Fully qualified Clojure name (demangled from the Java class name), or the empty string for non-Clojure stack frames
   :names        | seq of String | Clojure name split at slashes (empty for non-Clojure stack frames)"
+  {:added "3.0.0"}
+  [elements]
+  (let [*cache (volatile! {})]
+    (map #(transform-stack-trace-element current-dir-prefix *cache %) elements)))
+
+(defn expand-stack-trace
+  "Extracts the stack trace for an exception and returns a seq of stack frame maps; a wrapper around
+  [[transform-stack-trace]]."
   [^Throwable exception]
-  (let [*cache (volatile! {})
-        elements (map #(expand-stack-trace-element current-dir-prefix *cache %) (.getStackTrace exception))]
+  (let [elements (.getStackTrace exception)]
     (when (empty? elements)
       @stack-trace-warning)
-    elements))
+    (transform-stack-trace elements)))
 
 (defn- clj-frame-font-key
   "Returns the font key to use for a Clojure stack frame.
@@ -350,7 +357,20 @@
               *app-frame-names*))
     :clojure-frame))
 
-(defn- format-stack-frame
+(defn format-stack-frame
+  "Transforms an expanded stack frame (see [[transform-stack-trace]])
+  into a formatted stack frame:
+
+  Key         | Type            | Description
+  ---         |---              |---
+  :name       | composed string | Formatted version of the stack frame :name (or :names)
+  :name-width | Integer         | Visual width of the name
+  :file       | String          | Location of source (or nil)
+  :line       | String          | Location of source (or nil)
+  :repeats    | Integer         | Number of times the frame repeats (or nil)
+
+  Formatting is based on whether the frame is omitted, and whether it is a Clojure or Java frame."
+  {:added "0.3.0"}
   [{:keys [file line names repeats] :as frame}]
   (cond
     (:omitted frame)
@@ -377,22 +397,32 @@
        :line (str line)
        :repeats repeats})))
 
-(defn- transform-stack-trace-elements
-  "Converts a seq of StackTraceElements into a seq of stack trace maps."
-  [elements options]
-  (let [frame-filter (:filter options *default-frame-filter*)
-        frame-limit (:frame-limit options)
-        elements' (->> elements
-                       remove-direct-link-frames
-                       (apply-frame-filter frame-filter)
-                       (reduce repeating-frame-reducer []))]
-    (if frame-limit
-      (take frame-limit elements')
-      elements')))
+(defn filter-stack-trace-maps
+  "Filters the stack trace maps (from [[transform-stack-trace]], removing unnecessary frames and
+  applying a filter and optional frame-limit (:filter and :frame-limit options).
+
+  The default frame filter is [[*default-frame-filter*]].
+
+  Returns the elements, filtered, and (in some cases) with an additional :omitted key
+  (true for frames that should be omitted). This includes discarding elements that
+  the filter indicates to :hide, and coalescing frames the filter indicates to :omit."
+  {:added "0.3.0"}
+  ([elements]
+   (filter-stack-trace-maps elements nil))
+  ([elements options]
+   (let [frame-filter (:filter options *default-frame-filter*)
+         frame-limit (:frame-limit options)
+         elements' (->> elements
+                        remove-direct-link-frames
+                        (apply-frame-filter frame-filter)
+                        (reduce repeating-frame-reducer []))]
+     (if frame-limit
+       (take frame-limit elements')
+       elements'))))
 
 (defn- extract-stack-trace
   [exception options]
-  (transform-stack-trace-elements (expand-stack-trace exception) options))
+  (filter-stack-trace-maps (expand-stack-trace exception) options))
 
 (defn- is-throwable?
   [v]
@@ -694,9 +724,9 @@
 (defn- assemble-final-stack
   [exceptions stack-trace stack-trace-batch options]
   (let [*cache (volatile! {})
-        stack-trace' (-> (map #(expand-stack-trace-element current-dir-prefix *cache %)
+        stack-trace' (-> (map #(transform-stack-trace-element current-dir-prefix *cache %)
                               (into stack-trace-batch stack-trace))
-                         (transform-stack-trace-elements options))
+                         (filter-stack-trace-maps options))
         x (-> exceptions count dec)]
     (assoc-in exceptions [x :stack-trace] stack-trace')))
 
