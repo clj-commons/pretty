@@ -7,6 +7,7 @@
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
     [criterium.core :as c]
+    playground
     [clojure.test :refer [report deftest is]])
   (:import
     (java.nio.file Files)
@@ -161,4 +162,6 @@
   (let [e (make-ex-info)]
     (c/bench (doseq [x (e/analyze-exception e nil)]
                (-> x :stack-trace doall))))
+
+  (playground/caller)
   )
