@@ -10,6 +10,8 @@ Other changes:
   - Added a cache to speed up transforming Java StackTraceElements
   - Added new functions to make it easier to extract, filter, and format a stack trace outside of formatting an entire exception
 
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/50?closed=1)
+
 ## 2.6.0 - 25 Apr 2024
 
 - Font declaration in `compose` can now be a vector of individual terms, rather than a single keyword; e.g. `[:bold :red]` 
