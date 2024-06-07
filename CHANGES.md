@@ -1,4 +1,4 @@
-## 3.0.0 - UNRELEASED
+## 3.0.0 - 7 Jun 2024
  
 **BREAKING CHANGES**:
 
