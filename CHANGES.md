@@ -1,6 +1,12 @@
-## 2.7.0 - UNRELEASED
+## 3.0.0 - UNRELEASED
+ 
+*BREAKING CHANGES*:
 
-Added a cache to speed up analyzing the Java exception stack.
+Moved the io.aviso compatibility layer to new library
+[org.clj-commons/pretty-aviso-bridge](https://github.com/clj-commons/pretty-aviso-bridge).
+
+Other changes:
+- Added a cache to speed up analyzing the Java exception stack.
 
 ## 2.6.0 - 25 Apr 2024
 
