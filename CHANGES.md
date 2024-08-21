@@ -1,8 +1,18 @@
+## 3.1.0 - UNRELEASED
+
+In a Clojure stack frame, repeated elements may be abbreviated; for example,
+what was output in 3.0.0 as
+`integration.diplomat.components.github-api-test/fn/fn/fn/fn/fn/fn/fn/fn/fn/fn/fn/fn/fn/fn`
+will be output in 3.1.0 as `integration.diplomat.components.github-api-test/fn{x14}`
+(this is an actual test case!)
+These crazily nested functions occur when using macro-intensive libraries such as
+[nubank/state-flow](https://github.com/nubank/state-flow) and [funcool/cats](https://github.com/funcool/cats).
+
 ## 3.0.0 - 7 Jun 2024
  
 **BREAKING CHANGES**:
 
-Moved the io.aviso/pretty compatibility layer to new library
+Moved the io.aviso/pretty compatibility layer (introduced in 2.5.0) to new library
 [org.clj-commons/pretty-aviso-bridge](https://github.com/clj-commons/pretty-aviso-bridge).
 
 Other changes:
@@ -30,7 +40,7 @@ Minor bug fixes.
 *BREAKING CHANGES*
 
 - The function `clojure.core/apply` is now omitted (in formatted stack traces)
-- Properties inside exceptions are now pretty-printed  to a default depth of 2; previously, the depth was unlimited
+- Properties inside exceptions are now pretty-printed to a default depth of 2; previously, the depth was unlimited
 
 Other changes:
 

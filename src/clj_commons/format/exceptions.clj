@@ -357,6 +357,45 @@
               *app-frame-names*))
     :clojure-frame))
 
+(defn- counted-terms
+  [terms]
+  (if-not (seq terms)
+    []
+    (loop [acc-term (first terms)
+           acc-count 1
+           ts (next terms)
+           result []]
+      (if (nil? ts)
+        (conj result [acc-term acc-count])
+        (let [t (first ts)
+              ts' (next ts)]
+          (if (= acc-term t)
+            (recur acc-term (inc acc-count) ts' result)
+            (recur t 1 ts' (conj result [acc-term acc-count]))))))))
+
+(defn- counted-frame-name
+  [[name count]]
+  (if (= count 1)
+    name
+    (str name "{x" count "}")))
+
+(defn- format-clojure-frame-base
+  [frame]
+  (let [names' (->> frame
+                    :names
+                    counted-terms
+                    (map counted-frame-name))
+        width (->> names'
+                   (map length)
+                   (reduce + 0)
+                   (+ (count names'))                       ;; each name has a trailing slash
+                   dec)]                                    ;; except the last
+    {:name-width width
+     :name [(get *fonts* (clj-frame-font-key frame))
+            (->> names' drop-last (str/join "/"))
+            "/"
+            [(:function-name *fonts*) (last names')]]}))
+
 (defn format-stack-frame
   "Transforms an expanded stack frame (see [[transform-stack-trace]])
   into a formatted stack frame:
@@ -387,15 +426,10 @@
        :repeats repeats})
 
     :else
-    (let [formatted-name [(get *fonts* (clj-frame-font-key frame))
-                          (->> names drop-last (str/join "/"))
-                          "/"
-                          [(:function-name *fonts*) (last names)]]]
-      {:name formatted-name
-       :name-width (-> frame :name length)
-       :file file
-       :line (str line)
-       :repeats repeats})))
+    (assoc (format-clojure-frame-base frame)
+      :file file
+      :line (str line)
+      :repeats repeats)))
 
 (defn filter-stack-trace-maps
   "Filters the stack trace maps (from [[transform-stack-trace]], removing unnecessary frames and

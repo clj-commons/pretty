@@ -35,6 +35,22 @@
   []
   (my-deprecated-fn))
 
+(defn deep
+  [x]
+  ((fn [x1]
+     ((fn [x2]
+        ((fn [x3]
+           ((fn inner [x4]
+              (/ x4 0)) x3))
+         x2))
+      x1))
+   x))
+
 (comment
   (caller)
+
+  (deep 10)
+
+  (clojure.repl/pst)
+
   )
