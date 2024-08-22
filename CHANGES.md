@@ -1,4 +1,4 @@
-## 3.1.0 - UNRELEASED
+## 3.1.0 - 22 Aug 2024
 
 In a Clojure stack frame, repeated elements may be abbreviated; for example,
 what was output in 3.0.0 as
@@ -7,6 +7,8 @@ will be output in 3.1.0 as `integration.diplomat.components.github-api-test/fn{x
 (this is an actual test case!)
 These crazily nested functions occur when using macro-intensive libraries such as
 [nubank/state-flow](https://github.com/nubank/state-flow) and [funcool/cats](https://github.com/funcool/cats).
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/51?closed=1)
 
 ## 3.0.0 - 7 Jun 2024
  
