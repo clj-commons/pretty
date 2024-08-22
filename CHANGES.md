@@ -1,4 +1,4 @@
-## 3.1.0 - 22 Aug 2024
+## 3.1.1 - 22 Aug 2024
 
 In a Clojure stack frame, repeated elements may be abbreviated; for example,
 what was output in 3.0.0 as
