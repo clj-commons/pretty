@@ -207,14 +207,14 @@
         (pcompose
           row-left
           (for [{:keys [width key decorator last? pad]} columns'
-                :let [value (get row key)
+                :let [value (key row)
                       decorator' (or decorator default-decorator)
                       font (when decorator'
                              (decorator' row-index value))]]
             (list [{:font  font
                     :pad   (or pad (if last? :right :left))
                     :width width}
-                   (get row key)]
+                   value]
                   (when-not last?
                     row-sep)))
           row-right
@@ -230,3 +230,4 @@
         (when-not last?
           (print footer-sep)))
       (println footer-right))))
+
