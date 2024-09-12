@@ -2,6 +2,7 @@
   "Format and output exceptions in a pretty (structured, formatted) way."
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
+            [clojure.string :as string]
             [clojure.string :as str]
             [clj-commons.ansi :refer [compose]]
             [clj-commons.pretty-impl :refer [padding]])
@@ -102,25 +103,23 @@
   ;; (seq m) is necessary because the source is via (bean), which returns an odd implementation of map
   (reduce (fn [result [k v]] (if (f v) (conj result k) result)) [] (seq m)))
 
+(def ^{:added "3.2.0"} default-frame-rules
+  "The set of rules that forms the default for [[*default-frame-rules*]], and the
+  basis for [[*default-frame-filter*]], as a vector of vectors.
 
-(def ^{:added "0.1.18"
-       :dynamic true}
-  *default-frame-rules*
-  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector of vectors.
+ Each rule is a vector of three values:
 
-  Each rule is a vector of three values:
+ * A function that extracts the value from the stack frame map (typically, this is a keyword such
+ as :package or :name). The value is converted to a string.
+ * A string or regexp used for matching.  Strings must match exactly.
+ * A resulting frame visibility (:hide, :omit, :terminate, or :show).
 
-  * A function that extracts the value from the stack frame map (typically, this is a keyword such
-  as :package or :name). The value is converted to a string.
-  * A string or regexp used for matching.  Strings must match exactly.
-  * A resulting frame visibility (:hide, :omit, :terminate, or :show).
+ The default rules:
 
-  The default rules:
-
-  * omit everything in `clojure.lang`, `java.lang.reflect`, and the function `clojure.core/apply`
-  * hide everything in `sun.reflect`
-  * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
-  "
+ * omit everything in `clojure.lang`, `java.lang.reflect`, and the function `clojure.core/apply`
+ * hide everything in `sun.reflect`
+ * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
+ "
   [[:package "clojure.lang" :omit]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
@@ -130,22 +129,29 @@
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
    [:name #"clojure\.main/main.*" :terminate]])
 
+(def ^{:added "0.1.18"
+       :dynamic true}
+  *default-frame-rules*
+  "The set of rules that forms the basis for [[*default-frame-filter*]], as a vector of vectors,
+  initialized from [[default-frame-rules]]."
+  default-frame-rules)
+
 (defn- apply-rule
   [frame [f match visibility :as rule]]
   (let [value (str (f frame))]
     (cond
       (string? match)
-      (if (= match value) visibility)
+      (when (= match value) visibility)
 
       (instance? Pattern match)
-      (if (re-matches match value) visibility)
+      (when (re-matches match value) visibility)
 
       :else
       (throw (ex-info "unexpected match type in rule"
                       {:rule rule})))))
 
 (defn *default-frame-filter*
-  "Default stack frame filter used when printing REPL exceptions, driven by [[*default-frame-rules*]]."
+  "Default stack frame filter used when printing REPL exceptions; default value is derived from [[*default-frame-rules*]]."
   {:added "0.1.16"
    :dynamic true}
   [frame]
@@ -738,7 +744,7 @@
 
   Properties of exceptions will be output using Clojure's pretty-printer, but using
   this namespace's versions of [[*print-length*]] and [[*print-level*]], which default to
-  10 and 2, respectively.
+  10 and 5, respectively.
 
   The `*fonts*` var contains a map from output element names (as :exception or :clojure-frame) to
   a font def used with [[compose]]; this allows easy customization of the output."
@@ -886,3 +892,12 @@
                    exceptions stack-trace stack-trace-batch)
             (recur :start lines
                    exceptions stack-trace stack-trace-batch)))))))
+
+(defn format-stack-trace-element
+  "Formats a stack trace element into a single string identifying the Java method or Clojure function being executed."
+  {:added "3.2.0"}
+  [^StackTraceElement e]
+  (let [{:keys [class method names]} (transform-stack-trace-element current-dir-prefix (volatile! {}) e)]
+    (if (empty? names)
+      (str class "." method)
+      (->> names counted-terms (map counted-frame-name) (string/join "/")))))

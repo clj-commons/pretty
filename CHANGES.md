@@ -1,3 +1,11 @@
+## 3.2.0 - UNRELEASED
+
+Added `clj-commons.format.exceptions/default-frame-rules` with the defaults for `*default-frame-rules*` 
+which makes it much easier to override the rules.
+
+Added function `clj-commons.format.exceptions/format-stack-trace-element` which can be used to convert a Java
+StackTraceElement into demangled, readable string, using the same logic used by `format-exception.`
+
 ## 3.1.1 - 22 Aug 2024
 
 In a Clojure stack frame, repeated elements may be abbreviated; for example,
