@@ -1,9 +1,10 @@
 (ns clj-commons.exception-test
   (:use clojure.test)
   (:require [clojure.string :as str]
+            [matcher-combinators.matchers :as m]
             [clj-commons.ansi :refer [*color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
-            [clj-commons.format.exceptions :refer [*fonts* parse-exception format-exception]]))
+            [clj-commons.format.exceptions :as f :refer [*fonts* parse-exception format-exception]]))
 
 (deftest write-exceptions
   (testing "exception properties printing"
@@ -609,3 +610,15 @@ failed with ABC123"
   (testing "Does not fail with a nil ex-info map key"
     (is (re-find #"nil.*nil"
                  (format-exception (ex-info "Error" {nil nil}))))))
+
+(deftest format-stack-trace-element
+  (let [frame-names (->> (Thread/currentThread)
+                        .getStackTrace
+                         seq
+                         (mapv f/format-stack-trace-element))]
+   (is (match?
+         ;; A few sample Java and Clojure frame names
+         (m/embeds #{"java.lang.Thread.getStackTrace"
+                     "clojure.core/apply"
+                     "clojure.test/run-tests"})
+         (set frame-names)))))
