@@ -2,7 +2,6 @@
   "Format and output exceptions in a pretty (structured, formatted) way."
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
-            [clojure.string :as string]
             [clojure.string :as str]
             [clj-commons.ansi :refer [compose]]
             [clj-commons.pretty-impl :refer [padding]])
@@ -900,4 +899,4 @@
   (let [{:keys [class method names]} (transform-stack-trace-element current-dir-prefix (volatile! {}) e)]
     (if (empty? names)
       (str class "." method)
-      (->> names counted-terms (map counted-frame-name) (string/join "/")))))
+      (->> names counted-terms (map counted-frame-name) (str/join "/")))))
