@@ -55,6 +55,8 @@
   (str csi sgr))
 
 (def ^:private font-terms
+  ;; Map a keyword to a tuple of characteristic and SGR parameter value.
+  ;; We track the current value for each characteristic.
   (reduce merge
           {:bold [:bold "1"]
            :plain [:bold "22"]
@@ -83,11 +85,15 @@
       current-value)))
 
 (defn- compose-font
-  ^String [active current]
+  "Uses values in current to build a font string that will reset all fonts characteristics then,
+  as necessary, add back needed font characteristics."
+  ^String [current]
   (when-color-enabled
-    (let [codes (keep #(delta active current %) [:foreground :background :bold :italic :inverse :underlined])]
-      (when (seq codes)
-        (str csi (str/join ";" codes) sgr)))))
+    (let [codes (keep #(get current %) [:foreground :background :bold :italic :inverse :underlined])]
+      (if (seq codes)
+        (str csi "0;" (str/join ";" codes) sgr)
+        ;; there were active characteristics, but current has none, so just reset font characteristics
+        reset-font))))
 
 (defn- split-font-def*
   [font-def]
@@ -138,7 +144,9 @@
     (throw (ex-info "invalid span declaration"
                     {:font-decl value}))))
 
-(defn- blank? [value]
+(defn- nil-or-empty-string?
+  "True if an empty string, or nil; false otherwise, such as for numbers, etc."
+  [value]
   (or (nil? value)
       (= "" value)))
 
@@ -152,7 +160,8 @@
          (mod x 2)
          0))))
 
-(defn- apply-padding [terms pad width actual-width]
+(defn- apply-padding
+  [terms pad width actual-width]
   (let [padding-needed (- width actual-width)
         left-padding (case pad
                        (:left nil) padding-needed
@@ -197,7 +206,7 @@
   [coll *width]
   (let [f (fn reducer [result input]
             (cond
-              (blank? input)
+              (nil-or-empty-string? input)
               result
 
               (vector? input)
@@ -225,7 +234,7 @@
 (defn- collect-markup
   [state input]
   (cond
-    (blank? input)
+    (nil-or-empty-string? input)
     state
 
     (vector? input)
@@ -236,12 +245,12 @@
         ;; Normal (no width tracking)
         (let [{:keys [current]} state]
           (-> (reduce collect-markup
-                      (-> state
-                          (update :current update-font-data-from-font-def font)
-                          (update :stack conj current))
+                      (update state :current update-font-data-from-font-def font)
                       inputs)
-              (assoc :current current)
-              (update :stack pop)))))
+              ;; At the end of the vector, return current (but not the active)
+              ;; to what it was previously.  We leave active alone until we're about
+              ;; to output.
+              (assoc :current current)))))
 
     ;; Lists, lazy-lists, etc: processed recursively
     (sequential? input)
@@ -251,27 +260,21 @@
     (let [{:keys [active current ^StringBuilder buffer]} state
           state' (if (= active current)
                    state
-                   (let [font-str (compose-font active current)]
+                   (let [font-str (compose-font current)]
                      (when font-str
                        (.append buffer font-str))
                      (cond-> (assoc state :active current)
                              ;; Signal that a reset is needed at the very end
-                             font-str (assoc :dirty? true))))]
+                             font-str
+                             (assoc :dirty? (not= font-str reset-font)))))]
       (.append buffer (str input))
       state')))
 
 (defn- compose*
   [inputs]
-  (let [initial-font {:foreground "39"
-                      :background "49"
-                      :bold "22"
-                      :italic "23"
-                      :inverse "27"
-                      :underlined "24"}
-        buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:stack []
-                                          :active initial-font
-                                          :current initial-font
+  (let [buffer (StringBuilder. 100)
+        {:keys [dirty?]} (collect-markup {:active {}
+                                          :current {}
                                           :buffer buffer}
                                          inputs)]
     (when dirty?
@@ -289,8 +292,8 @@
   `map` or `for` to be mixed into the composed string seamlessly.
 
   Nested vectors represent _spans_, a sequence of values with a specific visual representation.
-  The first element in a span vector declares the visual properties of the span: the color (including
-  other characteristics such as bold or underline), and the width and padding (described later).
+  The first element in a span vector declares the visual properties of the span: the font color
+  and other font characteristics, and the width and padding (described later).
   Spans may be nested.
 
   The declaration is usually a keyword, to define just the font.
@@ -322,7 +325,7 @@
   Font defs apply on top of the font def of the enclosing span, and the outer span's font def
   is restored at the end of the inner span, e.g. `[:red \" RED \" [:bold \"RED/BOLD\"] \" RED \"]`.
 
-  Alternately, a font def may be a vector of individual keyword, e.g., `[[:bold :red] ...]` rather than
+  Alternately, a font def may be a vector of individual keywords, e.g., `[[:bold :red] ...]` rather than
   `[:bold.red ...]`.  This works better when the exact font characteristics are determined
   dynamically.
 
@@ -370,9 +373,18 @@
   [& inputs]
   (compose* inputs))
 
-(defn pcompose
+(defn pout
   "Composes its inputs as with [[compose]] and then prints the results, with a newline."
-  {:added "2.2"}
+  {:added "3.2"}
+  [& inputs]
+  (println (compose* inputs)))
+
+(defn pcompose
+  "Composes its inputs as with [[compose]] and then prints the results, with a newline.
+
+  Deprecated: use [[pout]] instead."
+  {:added "2.2"
+   :deprecated "3.2.0"}
   [& inputs]
   (println (compose* inputs)))
 
@@ -382,3 +394,5 @@
   [& inputs]
   (binding [*out* *err*]
     (println (compose* inputs))))
+
+

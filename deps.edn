@@ -8,6 +8,7 @@
    :extra-deps {criterium/criterium {:mvn/version "0.4.6"}
                 org.clojure/core.async {:mvn/version "1.6.681"}
                 nubank/matcher-combinators {:mvn/version "3.9.1"}
+                io.github.tonsky/clj-reload {:mvn/version "0.7.1"}
                 io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                       :git/sha "dfb30dd"}}
    :jvm-opts ["-Dclj-commons.ansi.enabled=true"]
