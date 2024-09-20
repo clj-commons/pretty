@@ -1,4 +1,4 @@
-## 3.2.0 - UNRELEASED
+## 3.2.0 - 20 Sep 2024
 
 Added `clj-commons.ansi/pout` to replace the `pcompose` function; they are identical, but the `pout` name makes more
 sense, given that `perr` exists.
