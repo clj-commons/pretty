@@ -44,6 +44,7 @@
     ["Simple"]
     "Simple"
 
+
     ["String" \space :keyword \space 'symbol \space 123 \space 44.5]
     "String :keyword symbol 123 44.5"
 
@@ -75,7 +76,7 @@
      " are operating at "
      [:green "98.7%"]
      "."]
-    "Notice: the [CSI]33mshields[CSI]39m are operating at [CSI]32m98.7%[CSI]39m.[CSI]m"
+    "Notice: the [CSI]0;33mshields[CSI]m are operating at [CSI]0;32m98.7%[CSI]m."
 
     ;; nil is allowed (this is used when formatting is optional, such as the fonts in exceptions).
 
@@ -89,13 +90,13 @@
     ["NORMAL"
      [:red "-RED"]
      [:bright-red "-BR/RED"]]
-    "NORMAL[CSI]31m-RED[CSI]91m-BR/RED[CSI]m"
+    "NORMAL[CSI]0;31m-RED[CSI]0;91m-BR/RED[CSI]m"
 
     ["NORMAL-"
      [:inverse "-INVERSE" [:bold "-INV/BOLD"]]
      [:inverse.bold "-INV/BOLD"]
      "-NORMAL"]
-    "NORMAL-[CSI]7m-INVERSE[CSI]1m-INV/BOLD-INV/BOLD[CSI]22;27m-NORMAL[CSI]m"
+    "NORMAL-[CSI]0;7m-INVERSE[CSI]0;1;7m-INV/BOLD-INV/BOLD[CSI]m-NORMAL"
 
 
     ;; Basic tests for width:
@@ -117,8 +118,8 @@
        [{:width 10
          :font :red} "BBB"]
        "|")
-    "START |[CSI]32mAAA       [CSI]39m|[CSI]31m       BBB[CSI]39m|[CSI]m"
-    ;               0123456789                 0123456789
+    "START |[CSI]0;32mAAA       [CSI]m|[CSI]0;31m       BBB[CSI]m|"
+    ;                 0123456789                 0123456789
 
     '("START |"
        [{:width 10
@@ -128,8 +129,8 @@
        [{:width 10
          :font :red} "XYZ"]
        "|")
-    "START |[CSI]32mAB[CSI]34mC[CSI]32m       [CSI]39m|[CSI]31m       XYZ[CSI]39m|[CSI]m"
-    ;               01        2        3456789                 0123456789
+    "START |[CSI]0;32mAB[CSI]0;34mC[CSI]0;32m       [CSI]m|[CSI]0;31m       XYZ[CSI]m|"
+    ;                 01          2          3456789                 0123456789
 
     ;; Only pads, never truncates
 

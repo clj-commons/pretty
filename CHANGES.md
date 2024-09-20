@@ -1,10 +1,19 @@
 ## 3.2.0 - UNRELEASED
 
-Added `clj-commons.format.exceptions/default-frame-rules` with the defaults for `*default-frame-rules*` 
-which makes it much easier to override the rules.
+Added `clj-commons.ansi/pout` to replace the `pcompose` function; they are identical, but the `pout` name makes more
+sense, given that `perr` exists.
+
+Changed how `clj-commons.ansi/compose` creates ANSI SGR strings; this works around an issue in many terminal emulators
+where changing boldness from faint to normal, or faint to bold, is not implemented correctly. `compose` now resets fonts
+before each font change, which allows such transitions to render correctly.
+
+Added `clj-commons.format.exceptions/default-frame-rules` to supply defaults for `*default-frame-rules*` 
+which makes it much easier to override the default rules.
 
 Added function `clj-commons.format.exceptions/format-stack-trace-element` which can be used to convert a Java
-StackTraceElement into demangled, readable string, using the same logic used by `format-exception.`
+StackTraceElement into demangled, readable string, using the same logic as `format-exception.`
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/52?closed=1)
 
 ## 3.1.1 - 22 Aug 2024
 
