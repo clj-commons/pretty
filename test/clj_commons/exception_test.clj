@@ -1,10 +1,13 @@
 (ns clj-commons.exception-test
-  (:use clojure.test)
-  (:require [clojure.string :as str]
+  (:require [clj-commons.test-common :as tc]
+            [clojure.test :refer [deftest is use-fixtures testing]]
+            [clojure.string :as str]
             [matcher-combinators.matchers :as m]
             [clj-commons.ansi :refer [*color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
             [clj-commons.format.exceptions :as f :refer [*fonts* parse-exception format-exception]]))
+
+(use-fixtures :once tc/spec-fixture)
 
 (deftest write-exceptions
   (testing "exception properties printing"

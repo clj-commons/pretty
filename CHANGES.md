@@ -1,3 +1,23 @@
+## 3.3.0 -- UNRELEASED
+
+The new `clj-commons.pretty.annotations` namespace provides functions to help create pretty errors
+when parsing or interpretting text:
+
+```text
+SELECT DATE, AMT FROM PAYMENTS WHEN AMT > 10000
+             ▲▲▲               ▲▲▲▲
+             │                 │
+             │                 └╴ Unknown token
+             │
+             └╴ Invalid column name
+```
+
+Annotations are callouts that target a specific portion of a line; the `callouts` function can handle multiple
+annotations on a single line, with precise control over styling and layout.
+
+The new `clj-commons.pretty.spec` namespace provides type and function specs for the `clj-commons.ansi` and
+`clj-commons.pretty.annotations` namespaces.
+
 ## 3.2.0 - 20 Sep 2024
 
 Added `clj-commons.ansi/pout` to replace the `pcompose` function; they are identical, but the `pout` name makes more
@@ -44,7 +64,7 @@ Other changes:
 ## 2.6.0 - 25 Apr 2024
 
 - Font declaration in `compose` can now be a vector of individual terms, rather than a single keyword; e.g. `[:bold :red]` 
-  rather than `:bold.red`.
+  as an alternative to `:bold.red`. This can be useful when the font is computed, rather than a static literal.
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/49?closed=1)
 
