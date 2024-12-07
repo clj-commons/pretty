@@ -1,3 +1,38 @@
+## 3.3.0 -- UNRELEASED
+
+The new `clj-commons.pretty.annotations` namespace provides functions to help create pretty errors
+when parsing or interpretting text:
+
+```text
+SELECT DATE, AMT FROM PAYMENTS WHEN AMT > 10000
+             ▲▲▲               ▲▲▲▲
+             │                 │
+             │                 └╴ Unknown token
+             │
+             └╴ Invalid column name
+```
+
+Here, the errors (called "annotations") are presented as callouts targetting specific portions of the input line.
+
+The `callouts` function can handle multiple annotations on a single line, with precise control over styling and layout.
+
+The `annotate-lines` function builds on `callouts` to produce output of multiple lines from some source,
+interspersed with callouts:
+
+```text
+1: SELECT DATE, AMT
+          ▲▲▲              
+          │                              
+          └╴ Invalid column name
+2: FROM PAYMENTS WHEN AMT > 10000
+                 ▲▲▲▲                         
+                 │               
+                 └╴ Unknown token
+```                  
+
+The new `clj-commons.pretty.spec` namespace provides type and function specs for the `clj-commons.ansi` and
+`clj-commons.pretty.annotations` namespaces.
+
 ## 3.2.0 - 20 Sep 2024
 
 Added `clj-commons.ansi/pout` to replace the `pcompose` function; they are identical, but the `pout` name makes more
@@ -11,7 +46,7 @@ Added `clj-commons.format.exceptions/default-frame-rules` to supply defaults for
 which makes it much easier to override the default rules.
 
 Added function `clj-commons.format.exceptions/format-stack-trace-element` which can be used to convert a Java
-StackTraceElement into demangled, readable string, using the same logic as `format-exception.`
+StackTraceElement into a demangled, readable string, using the same logic as `format-exception.`
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/52?closed=1)
 
@@ -44,7 +79,7 @@ Other changes:
 ## 2.6.0 - 25 Apr 2024
 
 - Font declaration in `compose` can now be a vector of individual terms, rather than a single keyword; e.g. `[:bold :red]` 
-  rather than `:bold.red`.
+  as an alternative to `:bold.red`. This can be useful when the font is computed, rather than a static literal.
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/49?closed=1)
 

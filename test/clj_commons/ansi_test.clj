@@ -1,9 +1,12 @@
 (ns clj-commons.ansi-test
   (:require [clj-commons.ansi :as ansi]
+            [clj-commons.test-common :as tc]
             [clojure.string :as str]
-            [clojure.test :refer [deftest is are]]
+            [clojure.test :refer [deftest is are use-fixtures]]
             [clj-commons.ansi :refer [compose *color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]))
+
+(use-fixtures :once tc/spec-fixture)
 
 (deftest sanity-check
   (is (= true *color-enabled*)))

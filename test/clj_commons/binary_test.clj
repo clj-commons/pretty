@@ -2,9 +2,12 @@
   "Tests for the clj-commons.format.binary namespace."
   (:require [clj-commons.ansi :as ansi]
             [clj-commons.format.binary :as b]
+            [clj-commons.test-common :as tc]
             [clojure.string :as string]
-            [clojure.test :refer [deftest is are]])
+            [clojure.test :refer [deftest is are use-fixtures]])
   (:import (java.nio ByteBuffer)))
+
+(use-fixtures :once tc/spec-fixture)
 
 (defn- format-binary-plain
   [input]

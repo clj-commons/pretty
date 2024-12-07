@@ -2,6 +2,8 @@
   "Help with generating textual output that includes ANSI escape codes for formatting.
   The [[compose]] function is the best starting point.
 
+  Specs for types and functions are in the [[spec]] namespace.
+
   Reference: [ANSI Escape Codes @ Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
   (:require [clojure.string :as str]
             [clj-commons.pretty-impl :refer [csi padding]]))
