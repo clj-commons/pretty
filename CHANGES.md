@@ -16,6 +16,20 @@ Here, the errors (called "annotations") are presented as callouts targetting spe
 
 The `callouts` function can handle multiple annotations on a single line, with precise control over styling and layout.
 
+The `annotate-lines` function builds on `callouts` to produce output of multiple lines from some source,
+interspersed with callouts:
+
+```text
+1: SELECT DATE, AMT
+          ▲▲▲              
+          │                              
+          └╴ Invalid column name
+2: FROM PAYMENTS WHEN AMT > 10000
+                 ▲▲▲▲                         
+                 │               
+                 └╴ Unknown token
+```                  
+
 The new `clj-commons.pretty.spec` namespace provides type and function specs for the `clj-commons.ansi` and
 `clj-commons.pretty.annotations` namespaces.
 

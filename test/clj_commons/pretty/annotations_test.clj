@@ -2,7 +2,7 @@
   (:require [clojure.test :refer [deftest is use-fixtures]]
             [clj-commons.ansi :as ansi]
             [clj-commons.test-common :as tc]
-            [clj-commons.pretty.annotations :refer [callouts default-style]]
+            [clj-commons.pretty.annotations :refer [callouts default-style annotate-lines]]
             [matcher-combinators.matchers :as m]))
 
 (use-fixtures :once tc/spec-fixture)
@@ -115,3 +115,76 @@
                          {:offset  6
                           :length 2
                           :message "Second"}]))))
+
+(deftest annotate-lines-defaults-to-line-one
+  (is (match? (m/via compose-each
+                     (compose-all
+                       "1: barney"
+                       "2: fred"))
+              (annotate-lines [{:line "barney"}
+                               {:line "fred"}]))))
+
+(deftest sets-line-number-column-width-from-max
+  (is (match? (m/via compose-each
+                     (compose-all
+                       " 99: barney"
+                       "100: fred"
+                       "101: wilma"))
+              (annotate-lines {:start-line 99}
+                              [{:line "barney"}
+                               {:line "fred"}
+                               {:line "wilma"}]))))
+
+(deftest intersperses-with-indented-annotation-lines
+  (is (match? (m/via compose-each
+                     (compose-all
+                       [nil " 99: barney"]
+                       [nil "     " [:yellow "  ▲"]]
+                       [nil "     " [:yellow "  │"]]
+                       [nil "     " [:yellow "  └╴ r not allowed"]]
+                       "100: fred"
+                       [nil "     " [:yellow "   ▲"]]
+                       [nil "     " [:yellow "   │"]]
+                       [nil "     " [:yellow "   └╴ d not allowed"]]
+                       "101: wilma"))
+              (annotate-lines {:start-line 99}
+                              [{:line        "barney"
+                                :annotations [{:offset 2 :message "r not allowed"}]}
+                               {:line        "fred"
+                                :annotations [{:offset 3 :message "d not allowed"}]}
+                               {:line "wilma"}]))))
+
+(deftest can-override-style
+  (is (match? (m/via compose-each
+                     (compose-all
+                       [nil " 99: barney"]
+                       [nil "     " [:blue "  ▲"]]
+                       [nil "     " [:blue "  │"]]
+                       [nil "     " [:blue "  └╴ r not allowed"]]
+                       "100: fred"))
+              (annotate-lines {:start-line 99
+                               :style (assoc default-style :font :blue)}
+                              [{:line        "barney"
+                                :annotations [{:offset 2 :message "r not allowed"}]}
+                               {:line        "fred"}]))))
+
+(deftest can-override-line-number-width
+  (is (match? (m/via compose-each
+                     (compose-all
+                       [nil "   99: barney"]
+                       [nil "       " [:blue "  ▲"]]
+                       [nil "       " [:blue "  │"]]
+                       [nil "       " [:blue "  └╴ r not allowed"]]
+                       "  100: fred"))
+              (annotate-lines {:start-line 99
+                               :line-number-width 5
+                               :style (assoc default-style :font :blue)}
+                              [{:line        "barney"
+                                :annotations [{:offset 2 :message "r not allowed"}]}
+                               {:line        "fred"}]))))
+
+
+
+
+
+

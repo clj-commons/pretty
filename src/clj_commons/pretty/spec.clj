@@ -67,8 +67,8 @@
 (s/fdef ann/callouts
         :args (s/cat
                 :style (s/? ::ann/style)
-                :annotations (s/coll-of ::ann/annotation))
-        :req (s/coll-of ::ansi/composed-string))
+                :annotations ::ann/annotations)
+        :ret (s/coll-of ::ansi/composed-string))
 
 (s/def ::ann/style (s/keys :req-un [::ansi/font
                                     ::ann/spacing
@@ -81,6 +81,8 @@
 (s/def ::ann/bar ::single-character)
 (s/def ::ann/nib ::ansi/composed-string)
 
+(s/def ::ann/annotations (s/coll-of ::ann/annotation))
+
 (s/def ::ann/annotation (s/keys :req-un [::ann/message
                                          ::ann/offset]
                                 :opt-un [::ann/length
@@ -89,3 +91,23 @@
 (s/def ::ann/message ::ansi/composed-string)
 (s/def ::ann/offset ::nonneg-integer)
 (s/def ::ann/length ::positive-integer)
+
+(s/def ::ann/annotate-lines-opts (s/keys :opt-un [::ann/style
+                                                  ::ann/start-line
+                                                  ::ann/line-number-width]))
+
+(s/def ::ann/line-number-width ::positive-integer)
+(s/def ::ann/start-line ::positive-integer)
+
+(s/def ::ann/lines (s/coll-of ::ann/line-data))
+
+(s/def ::ann/line-data (s/keys :req-un [::ann/line]
+                               :opt-un [::ann/annotations]))
+
+(s/def ::ann/line ::ansi/composed-string)
+
+(s/fdef ann/annotate-lines
+        :args (s/cat
+                :opts (s/? (s/nilable ::ann/annotate-lines-opts))
+                :lines ::ann/lines)
+        :ret (s/coll-of ::ansi/composed-string))

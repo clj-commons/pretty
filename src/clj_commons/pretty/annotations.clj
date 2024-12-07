@@ -115,6 +115,8 @@
   :length   | Number of characters in the marker (min 1, defaults to 1)
   :font     | Override of the style's font; used for marker, bars, nib, and message
 
+  The leftmost column has offset 0; some frameworks may report this as column 1
+  and an adjustment is necessary before invoking callouts.
 
   At least one annotation is required; they will be sorted into an appropriate order.
   Annotation's ranges should not overlap.
@@ -150,3 +152,70 @@
          (if (seq annotations')
            (recur annotations' false result')
            (remove nil? result')))))))
+
+(defn annotate-lines
+  "Intersperses numbered lines with callouts to form a new sequence
+  of composable strings where input lines are numbered, and
+  callout lines are indented beneath the input lines.
+
+  Example:
+
+  ```
+  1: SELECT DATE, AMT
+            ▲▲▲
+            │
+            └╴ Invalid column name
+  2: FROM PAYMENTS WHEN AMT > 10000
+                   ▲▲▲▲
+                   │
+                   └╴ Unknown token
+  ```
+  Each line is a map:
+
+  Key          | Value
+  ---          |---
+  :line        | Composed string for a single line of input (usually, just a string)
+  :annotations | Optional, a seq of annotation maps (used to create the callouts)
+
+  Option keys are all optional:
+
+  Key                | Value
+  ---                |---
+  :style             | style map (for callouts), defaults to [*default-style*]
+  :start-line        | Defaults to 1
+  :line-number-width | Width for the line numbers column
+
+  The :line-number-width option is usually computed from the maximum line number
+  that will be output.
+
+  Returns a seq of composed strings."
+  ([lines]
+   (annotate-lines nil lines))
+  ([opts lines]
+   (let [{:keys [style start-line]
+          :or   {style      *default-style*
+                 start-line 1}} opts
+         max-line-number (+ start-line (count lines) -1)
+         ;; inc by one to account for the ':'
+         line-number-width (inc (or (:line-number-width opts)
+                                    (-> max-line-number str count)))
+         callout-indent (nchars (inc line-number-width) " ")]
+     (loop [[line-data & more-lines] lines
+            line-number start-line
+            result []]
+       (if-not line-data
+         result
+         (let [{:keys [line annotations]} line-data
+               callout-lines (when (seq annotations)
+                               (callouts style annotations))
+               result' (cond-> (conj result
+                                     (list
+                                       [{:width line-number-width}
+                                        line-number ":"]
+                                       " "
+                                       line))
+                               callout-lines (into
+                                               (map list (repeat callout-indent)
+                                                    callout-lines)))]
+           (recur more-lines (inc line-number) result')))))))
+
