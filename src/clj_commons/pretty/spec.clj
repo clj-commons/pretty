@@ -71,12 +71,12 @@
         :req (s/coll-of ::ansi/composed-string))
 
 (s/def ::ann/style (s/keys :req-un [::ansi/font
-                                    ::ann/compact?
+                                    ::ann/spacing
                                     ::ann/marker
                                     ::ann/bar
                                     ::ann/nib]))
 
-(s/def ::ann/compact? boolean?)
+(s/def ::ann/spacing #{:tall :compact :minimal})
 (s/def ::ann/marker ::single-character)
 (s/def ::ann/bar ::single-character)
 (s/def ::ann/nib ::ansi/composed-string)

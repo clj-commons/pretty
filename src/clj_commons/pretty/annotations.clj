@@ -19,15 +19,19 @@
   Key       | Default | Description
   ---       |---      |---
   :font     | :yellow | Font characteristics for annotations
-  :compact? | false   | If true, then omit the lines that are just vertical bars
+  :spacing  | :tall   | One of :tall, :compact, or :minimal
   :marker   | \"▲\"   | The marker character used to identify the offset/length of an annotation
   :bar      | \"│\"   | Character used as the vertical bar
   :nib      | \"└╴ \" | String used just before the annotation's message
 
+  When :spacing is :minimal, only the lines with markers or error messages appear
+  (the lines with just vertical bars are omitted).  :compact spacing is the same, but
+  one line of bars appears between the markers and the first annotation message.
+
   Note: rendering of Unicode characters in HTML often uses incorrect fonts or adds unwanted
   character spacing; the annotations look proper in console output."
   {:font :yellow
-   :compact? false
+   :spacing :tall
    :marker "▲"
    :bar "│"
    :nib "└╴ "})
@@ -124,18 +128,27 @@
   ([annotations]
    (callouts default-style annotations))
   ([style annotations]
-   (let [expanded (->> annotations
-                       (sort-by :offset)
-                       ;; TODO: Check for overlaps
-                       vec)
-         {:keys [compact?]} style
+   ;; TODO: Check for overlaps
+   (let [expanded (sort-by :offset annotations)
+         {:keys [spacing]} style
          marker-line (markers style expanded)]
-     (loop [annotations annotations
+     (loop [annotations expanded
+            first? true
             result [marker-line]]
-       (let [result' (-> result
-                         (cond-> (not compact?) (conj (bars style annotations)))
-                         (conj (bars+message style annotations)))
+       (let [include-bars? (or (= spacing :tall)
+                               (and first? (= spacing :compact)))
+             result' (conj result
+                           (when include-bars?
+                             (bars style annotations))
+                           (bars+message style annotations))
              annotations' (butlast annotations)]
          (if (seq annotations')
-           (recur annotations' result')
-           result'))))))
+           (recur annotations' false result')
+           (remove nil? result')))))))
+
+(comment
+  (run! clj-commons.ansi/pout (callouts (assoc default-style :spacing :minimal)
+                                [{:offset 6 :message "Two"}
+                                 {:offset 3 :message "One"}]))
+  ;;
+  )
