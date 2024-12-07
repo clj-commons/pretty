@@ -12,8 +12,9 @@ SELECT DATE, AMT FROM PAYMENTS WHEN AMT > 10000
              └╴ Invalid column name
 ```
 
-Annotations are callouts that target a specific portion of a line; the `callouts` function can handle multiple
-annotations on a single line, with precise control over styling and layout.
+Here, the errors (called "annotations") are presented as callouts targetting specific portions of the input line.
+
+The `callouts` function can handle multiple annotations on a single line, with precise control over styling and layout.
 
 The new `clj-commons.pretty.spec` namespace provides type and function specs for the `clj-commons.ansi` and
 `clj-commons.pretty.annotations` namespaces.
@@ -31,7 +32,7 @@ Added `clj-commons.format.exceptions/default-frame-rules` to supply defaults for
 which makes it much easier to override the default rules.
 
 Added function `clj-commons.format.exceptions/format-stack-trace-element` which can be used to convert a Java
-StackTraceElement into demangled, readable string, using the same logic as `format-exception.`
+StackTraceElement into a demangled, readable string, using the same logic as `format-exception.`
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/52?closed=1)
 

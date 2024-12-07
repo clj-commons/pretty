@@ -1,5 +1,5 @@
 (ns clj-commons.pretty.annotations
-  "Tools to annotate a line of source code, in the form of line and arrows connected to a message.
+  "Tools to annotate a line of source code, in the form of callouts (lines and arrows) connected to a message.
 
       SELECT DATE, AMT FROM PAYMENTS WHEN AMT > 10000
                    ▲▲▲               ▲▲▲▲
@@ -14,14 +14,14 @@
   {:added "3.3.0"})
 
 (def default-style
-  "The default style used when generating annotations.
+  "The default style used when generating callouts.
 
   Key       | Default | Description
   ---       |---      |---
-  :font     | :yellow | Font characteristics for annotations
+  :font     | :yellow | Default font characteristics if not overrided by annotation
   :spacing  | :tall   | One of :tall, :compact, or :minimal
   :marker   | \"▲\"   | The marker character used to identify the offset/length of an annotation
-  :bar      | \"│\"   | Character used as the vertical bar
+  :bar      | \"│\"   | Character used as the vertical bar in the callout
   :nib      | \"└╴ \" | String used just before the annotation's message
 
   When :spacing is :minimal, only the lines with markers or error messages appear
@@ -35,6 +35,11 @@
    :marker "▲"
    :bar "│"
    :nib "└╴ "})
+
+(def ^:dynamic *default-style*
+  "The default style used when no style is provided; some applications may bind or
+   override this."
+  default-style)
 
 (defn- nchars
   [n ch]
@@ -124,9 +129,9 @@
       (ansi/perr source-line)
       (run! ansi/perr (annotations/annotate annotations))
 
-  "
+  Uses the style defined by [[*default-style*]] if no style is provided."
   ([annotations]
-   (callouts default-style annotations))
+   (callouts  *default-style* annotations))
   ([style annotations]
    ;; TODO: Check for overlaps
    (let [expanded (sort-by :offset annotations)
@@ -145,10 +150,3 @@
          (if (seq annotations')
            (recur annotations' false result')
            (remove nil? result')))))))
-
-(comment
-  (run! clj-commons.ansi/pout (callouts (assoc default-style :spacing :minimal)
-                                [{:offset 6 :message "Two"}
-                                 {:offset 3 :message "One"}]))
-  ;;
-  )

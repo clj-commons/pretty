@@ -67,7 +67,7 @@
 (s/fdef ann/callouts
         :args (s/cat
                 :style (s/? ::ann/style)
-                :annotations (s/+ ::ann/annotation))
+                :annotations (s/coll-of ::ann/annotation))
         :req (s/coll-of ::ansi/composed-string))
 
 (s/def ::ann/style (s/keys :req-un [::ansi/font
