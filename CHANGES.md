@@ -1,4 +1,4 @@
-## 3.3.0 -- UNRELEASED
+## 3.3.0 -- 7 Dec 2024
 
 The new `clj-commons.pretty.annotations` namespace provides functions to help create pretty errors
 when parsing or interpretting text:
@@ -32,6 +32,8 @@ interspersed with callouts:
 
 The new `clj-commons.pretty.spec` namespace provides type and function specs for the `clj-commons.ansi` and
 `clj-commons.pretty.annotations` namespaces.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/54?closed=1)
 
 ## 3.2.0 - 20 Sep 2024
 
