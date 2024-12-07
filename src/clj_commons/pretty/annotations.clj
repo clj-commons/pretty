@@ -199,7 +199,7 @@
          ;; inc by one to account for the ':'
          line-number-width (inc (or (:line-number-width opts)
                                     (-> max-line-number str count)))
-         callout-indent (nchars (inc line-number-width) " ")]
+         callout-indent (repeat (nchars (inc line-number-width) " "))]
      (loop [[line-data & more-lines] lines
             line-number start-line
             result []]
@@ -215,7 +215,6 @@
                                        " "
                                        line))
                                callout-lines (into
-                                               (map list (repeat callout-indent)
-                                                    callout-lines)))]
+                                               (map list callout-indent callout-lines)))]
            (recur more-lines (inc line-number) result')))))))
 
