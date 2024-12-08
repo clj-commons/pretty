@@ -21,9 +21,9 @@ interspersed with callouts:
 
 ```text
 1: SELECT DATE, AMT
-          ▲▲▲              
-          │                              
-          └╴ Invalid column name
+                ▲▲▲              
+                │                              
+                └╴ Invalid column name
 2: FROM PAYMENTS WHEN AMT > 10000
                  ▲▲▲▲                         
                  │               
