@@ -1,4 +1,4 @@
-## 3.3.0 -- 7 Dec 2024
+## 3.3.0 - 7 Dec 2024
 
 The new `clj-commons.pretty.annotations` namespace provides functions to help create pretty errors
 when parsing or interpretting text:
