@@ -196,11 +196,11 @@
     ;; If at or over desired width, don't need to pad
     (if (<= width actual-width)
       {:width actual-width
-       :span inputs'})
-    ;; Add the padding in the desired position(s); this ensures that the logic that generates
-    ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
-    {:width width
-     :span (apply-padding inputs' pad width actual-width)}))
+       :span inputs'}
+      ;; Add the padding in the desired position(s); this ensures that the logic that generates
+      ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
+      {:width width
+       :span (apply-padding inputs' pad width actual-width)})))
 
 
 (defn- normalize-markup
