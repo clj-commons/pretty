@@ -1,4 +1,4 @@
-; Copyright 2024 Nubank NA
+; Copyright 2024-2025 Nubank NA
 ;
 ; The use and distribution terms for this software are covered by the
 ; Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0)
@@ -19,7 +19,7 @@
   Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
   (:require [clojure.string :as string]
-            [clj-commons.ansi :refer [pcompose]]))
+            [clj-commons.ansi :refer [pout]]))
 
 (defn- make-bar
   [width s]
@@ -175,7 +175,7 @@
                                :last? (= last-column-index (:index col))
                                :bar (make-bar (:width col) hbar)))))]
     (when header?
-      (pcompose
+      (pout
         header-left
         (for [{:keys [last? bar]} columns']
           (list bar
@@ -183,7 +183,7 @@
                   header-sep)))
         header-right))
 
-    (pcompose
+    (pout
       row-left
       (for [{:keys [width title title-pad last?]} columns']
         (list [{:width width
@@ -193,7 +193,7 @@
                 row-sep)))
       row-right)
 
-    (pcompose
+    (pout
       divider-left
       (for [{:keys [bar last?]} columns']
         (list bar
@@ -204,7 +204,7 @@
     (when (seq rows)
       (loop [[row & more-rows] rows
              row-index 0]
-        (pcompose
+        (pout
           row-left
           (for [{:keys [width key decorator last? pad]} columns'
                 :let [value (key row)

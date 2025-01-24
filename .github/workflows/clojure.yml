@@ -43,3 +43,6 @@ jobs:
 
       - name: Run tests (Clojure 1.10)
         run: clojure -X:1.10:test
+
+      - name: Lint
+        run: clojure -M:lint

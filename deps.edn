@@ -30,9 +30,15 @@
   :disable-colors
   {:jvm-opts ["-Dclj-commons.ansi.enabled=false"]}
 
+  ;; clj -M:lint
+
+  :lint
+  {:deps {clj-kondo/clj-kondo {:mvn/version "2025.01.16"}}
+   :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
+
   :nrepl
   {:extra-deps {nrepl/nrepl {:mvn/version "1.3.0"}}
-   :main-opts ["-m" "nrepl.cmdline" ]}
+   :main-opts ["-m" "nrepl.cmdline"]}
 
   :repl
   {:main-opts ["-m" "clj-commons.pretty.repl"]}}

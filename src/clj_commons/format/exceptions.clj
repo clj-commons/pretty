@@ -68,7 +68,7 @@
 ;;; could change at any time.
 
 (def ^:private clojure->java
-  (->> (Compiler/CHAR_MAP)
+  (->> Compiler/CHAR_MAP
        set/map-invert
        (sort-by #(-> % first length))
        reverse))
@@ -534,8 +534,8 @@
 
 ;; Shadow Clojure 1.11's version, while keeping operational in 1.10.
 (defn- -update-keys
-  [m f]
   "Builds a map where f has been applied to each key in m."
+  [m f]
   (reduce-kv (fn [m k v]
                (assoc m (f k) v))
              {}
@@ -693,7 +693,7 @@
   (compose
     (render-exception exception-stack options)))
 
-(defn ^String format-exception
+(defn format-exception
   "Formats an exception, returning a single large string.
 
   By default, includes the stack trace, with no frame limit.
@@ -747,9 +747,9 @@
 
   The `*fonts*` var contains a map from output element names (as :exception or :clojure-frame) to
   a font def used with [[compose]]; this allows easy customization of the output."
-  ([exception]
+  (^String [exception]
    (format-exception exception nil))
-  ([exception options]
+  (^String [exception options]
    (format-exception* (analyze-exception exception options) options)))
 
 (defn print-exception
