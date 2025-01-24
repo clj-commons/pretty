@@ -1,3 +1,10 @@
+## 3.3.1 - 23 Jan 2025
+
+Minor bug fixes.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/55?closed=1)
+
+
 ## 3.3.0 - 7 Dec 2024
 
 The new `clj-commons.pretty.annotations` namespace provides functions to help create pretty errors
