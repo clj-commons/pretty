@@ -28,6 +28,8 @@
   (data-length [this] "The total number of bytes available.")
   ^byte (byte-at [this index] "The byte value at a specific offset."))
 
+;; This is problematic for clj-kondo, but valid.
+#_:clj-kondo/ignore
 (extend-type (Class/forName "[B")
   BinaryData
   (data-length [ary] (alength (bytes ary)))

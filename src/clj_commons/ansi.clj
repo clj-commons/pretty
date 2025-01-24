@@ -80,12 +80,6 @@
                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
-(defn- delta
-  [active current k]
-  (let [current-value (get current k)]
-    (when (not= (get active k) current-value)
-      current-value)))
-
 (defn- compose-font
   "Uses values in current to build a font string that will reset all fonts characteristics then,
   as necessary, add back needed font characteristics."
