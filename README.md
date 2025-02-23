@@ -16,6 +16,20 @@ That's what `org.clj-commons/pretty` is for.  It adds support for pretty output 
 
 ![Example](docs/images/formatted-exception.png)
 
+
+Or, compare an example from
+[Pedestal](http://github.com/pedestal/pedestal)'s test suite:
+
+![No Pretty](docs/images/pedestal-without-pretty.png)
+
+Or, same thing, but with Pretty enabled:
+
+![With Pretty](docs/images/pedestal-with-pretty.png)
+
+The point is, you can scan down to see things in chronological order; the important parts are highlighted, the names are the same (or closer) to your source code, unnecessary details are omitted, and it's much easier to pick out the most important parts, such as file names and line numbers.
+
+## Beyond Exceptions
+
 Pretty can print out a sequence of bytes; it includes color-coding inspired by
 [hexyl](https://github.com/sharkdp/hexyl):
 
