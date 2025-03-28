@@ -19,8 +19,8 @@
    :app-frame :bold.yellow
    :function-name :bold.yellow
    :clojure-frame :yellow
-   :java-frame :white
-   :omitted-frame :faint.white})
+   :java-frame :bright-black
+   :omitted-frame :faint.bright-black})
 
 (def ^:dynamic *app-frame-names*
   "Set of strings or regular expressions defining the application's namespaces, which allows
@@ -115,7 +115,7 @@
 
  The default rules:
 
- * omit everything in `clojure.lang`, `java.lang.reflect`, and the function `clojure.core/apply`
+ * omit everything in `clojure.lang`, `java.lang.ref/lect`, and the function `clojure.core/apply`
  * hide everything in `sun.reflect`
  * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
  "

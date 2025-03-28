@@ -1,9 +1,14 @@
+## 3.3.2 - 28 Mar 2025
+
+- Changed some default exception colors to look better against a light background
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/56?closed=1)
+
 ## 3.3.1 - 23 Jan 2025
 
 Minor bug fixes.
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/55?closed=1)
-
 
 ## 3.3.0 - 7 Dec 2024
 
