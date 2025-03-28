@@ -8,7 +8,7 @@
    :extra-deps {criterium/criterium {:mvn/version "0.4.6"}
                 org.clojure/core.async {:mvn/version "1.7.701"}
                 nubank/matcher-combinators {:mvn/version "3.9.1"}
-                io.github.tonsky/clj-reload {:mvn/version "0.7.1"}
+                io.github.tonsky/clj-reload {:mvn/version "0.9.4"}
                 io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                       :git/sha "dfb30dd"}}
    :jvm-opts ["-Dclj-commons.ansi.enabled=true"]
@@ -17,7 +17,7 @@
   ;; clj -T:build <command>
   :build
   {:deps {io.github.hlship/build-tools
-          {:git/tag "0.10.2" :git/sha "3c446e4"}}
+          {:git/tag "0.11.0" :git/sha "8c67d11"}}
    :ns-default build}
 
   :1.11
@@ -36,7 +36,7 @@
   ;; clj -M:lint
 
   :lint
-  {:deps {clj-kondo/clj-kondo {:mvn/version "2025.01.16"}}
+  {:deps {clj-kondo/clj-kondo {:mvn/version "2025.02.20"}}
    :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
 
   :nrepl

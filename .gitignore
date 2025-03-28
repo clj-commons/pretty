@@ -18,3 +18,4 @@ manual/output-site
 .lsp/.cache
 .portal/vs-code.edn
 .cpcache
+/.clj-kondo/imports/

@@ -19,8 +19,8 @@
    :app-frame :bold.yellow
    :function-name :bold.yellow
    :clojure-frame :yellow
-   :java-frame :white
-   :omitted-frame :faint.white})
+   :java-frame :bright-black
+   :omitted-frame :faint.bright-black})
 
 (def ^:dynamic *app-frame-names*
   "Set of strings or regular expressions defining the application's namespaces, which allows
