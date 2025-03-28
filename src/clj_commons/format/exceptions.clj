@@ -115,7 +115,7 @@
 
  The default rules:
 
- * omit everything in `clojure.lang`, `java.lang.ref/lect`, and the function `clojure.core/apply`
+ * omit everything in `clojure.lang`, `java.lang.reflect`, and the function `clojure.core/apply`
  * hide everything in `sun.reflect`
  * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
  "
