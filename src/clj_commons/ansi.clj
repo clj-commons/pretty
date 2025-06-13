@@ -70,7 +70,11 @@
            :inverse [:inverse "7"]
            :normal [:inverse "27"]
 
+           :crossed [:crossed "9"]
+           :uncrossed [:crossed "29"]
+
            :underlined [:underlined "4"]
+           :double-underlined [:underlined "21"]
            :not-underlined [:underlined "24"]}
           (map-indexed
             (fn [index color-name]
@@ -85,7 +89,7 @@
   as necessary, add back needed font characteristics."
   ^String [current]
   (when-color-enabled
-    (let [codes (keep #(get current %) [:foreground :background :bold :italic :inverse :underlined])]
+    (let [codes (keep #(get current %) [:foreground :background :bold :italic :inverse :underlined :crossed])]
       (if (seq codes)
         (str csi "0;" (str/join ";" codes) sgr)
         ;; there were active characteristics, but current has none, so just reset font characteristics
@@ -305,7 +309,8 @@
   boldness         | `bold`, `faint`, or `plain`
   italics          | `italic` or `roman`
   inverse          | `inverse` or `normal`
-  underline        | `underlined` or `not-underlined`
+  underline        | `underlined`, `double-underlined`, or `not-underlined`
+  crossed out      | `crossed-out` or `uncrossed-out`
 
   e.g.
 
@@ -315,6 +320,8 @@
     [:italic.bold.red \"meltdown!\"]])
   => ...
   ```
+
+  NOTE: crossed-out is supported on Mac by iTerm2, but not by Terminal.
 
   The order of the terms does not matter. Behavior for conflicting terms (e.g., `:blue.green.black`)
   is not defined.

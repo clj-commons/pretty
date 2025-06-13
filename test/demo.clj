@@ -2,7 +2,7 @@
   (:require
     [clj-commons.pretty.repl :as repl]
     [clj-commons.format.exceptions :as e]
-    [clj-commons.ansi :refer [compose pcompose]]
+    [clj-commons.ansi :refer [compose pcompose pout]]
     [clj-commons.format.binary :as b]
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
@@ -164,4 +164,8 @@
                (-> x :stack-trace doall))))
 
   (playground/caller)
+
+  (pout [:double-underlined "double"] " " [:underlined "single"])
+
+  (pout [:crossed "crossed"  [:uncrossed " no longer "] "and back"])
   )
