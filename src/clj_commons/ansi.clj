@@ -60,27 +60,27 @@
   ;; Map a keyword to a tuple of characteristic and SGR parameter value.
   ;; We track the current value for each characteristic.
   (reduce merge
-          {:bold [:bold "1"]
-           :plain [:bold "22"]
-           :faint [:bold "2"]
+          {:bold              [:bold "1"]
+           :plain             [:bold nil]
+           :faint             [:bold "2"]
 
-           :italic [:italic "3"]
-           :roman [:italic "23"]
+           :italic            [:italic "3"]
+           :roman             [:italic nil]
 
-           :inverse [:inverse "7"]
-           :normal [:inverse "27"]
+           :inverse           [:inverse "7"]
+           :normal            [:inverse nil]
 
-           :crossed [:crossed "9"]
-           :uncrossed [:crossed "29"]
+           :crossed           [:crossed "9"]
+           :uncrossed         [:crossed nil]
 
-           :underlined [:underlined "4"]
+           :underlined        [:underlined "4"]
            :double-underlined [:underlined "21"]
-           :not-underlined [:underlined "24"]}
+           :not-underlined    [:underlined nil]}
           (map-indexed
             (fn [index color-name]
-              {(keyword color-name) [:foreground (str (+ 30 index))]
-               (keyword (str "bright-" color-name)) [:foreground (str (+ 90 index))]
-               (keyword (str color-name "-bg")) [:background (str (+ 40 index))]
+              {(keyword color-name)                       [:foreground (str (+ 30 index))]
+               (keyword (str "bright-" color-name))       [:foreground (str (+ 90 index))]
+               (keyword (str color-name "-bg"))           [:background (str (+ 40 index))]
                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
 
@@ -89,7 +89,9 @@
   as necessary, add back needed font characteristics."
   ^String [current]
   (when-color-enabled
-    (let [codes (keep #(get current %) [:foreground :background :bold :italic :inverse :underlined :crossed])]
+    (let [codes (->> [:foreground :background :bold :italic :inverse :underlined :crossed]
+                     (map #(get current %))
+                     (remove nil?))]
       (if (seq codes)
         (str csi "0;" (str/join ";" codes) sgr)
         ;; there were active characteristics, but current has none, so just reset font characteristics
@@ -118,8 +120,8 @@
                 font-data
                 (let [[font-k font-value] (or (get font-terms term)
                                               (throw (ex-info (str "unexpected font term: " term)
-                                                              {:font-term term
-                                                               :font-def font-def
+                                                              {:font-term       term
+                                                               :font-def        font-def
                                                                :available-terms (->> font-terms keys sort vec)})))]
                   (assoc! font-data font-k font-value))))]
       (persistent! (reduce f (transient font-data) ks)))
@@ -195,11 +197,11 @@
     ;; If at or over desired width, don't need to pad
     (if (<= width actual-width)
       {:width actual-width
-       :span inputs'}
+       :span  inputs'}
       ;; Add the padding in the desired position(s); this ensures that the logic that generates
       ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
       {:width width
-       :span (apply-padding inputs' pad' width actual-width)})))
+       :span  (apply-padding inputs' pad' width actual-width)})))
 
 
 (defn- normalize-markup
@@ -274,9 +276,9 @@
 (defn- compose*
   [inputs]
   (let [buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:active {}
+        {:keys [dirty?]} (collect-markup {:active  {}
                                           :current {}
-                                          :buffer buffer}
+                                          :buffer  buffer}
                                          inputs)]
     (when dirty?
       (.append buffer reset-font))
@@ -389,7 +391,7 @@
   "Composes its inputs as with [[compose]] and then prints the results, with a newline.
 
   Deprecated: use [[pout]] instead."
-  {:added "2.2"
+  {:added      "2.2"
    :deprecated "3.2.0"}
   [& inputs]
   (println (compose* inputs)))
