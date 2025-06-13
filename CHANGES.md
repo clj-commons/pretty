@@ -1,7 +1,7 @@
 ## 3.4.0 -- UNRELEASED
 
 - `clj-commons.ansi`:
-    - In composed strings, you may now supply :align with values :left, :right, or :center instead of pad (:right, :left, :both); support for :pad may be removed in the future
+    - In spans, you may now supply :align with values :left, :right, or :center instead of :pad (:right, :left, :both); support for :pad may be removed in the future
     - Fonts may now include `double-underlined`
     - Fonts may now be crossed or not-crossed (though this is not universally supported) 
     - Added extended foreground and background colors
