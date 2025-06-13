@@ -47,9 +47,15 @@
           :opt-un [::title
                    ::width
                    ::decorator
-                   ::pad]))
+                   ::pad
+                   ::align
+                   ::title-pad
+                   ::title-align]))
 
-(s/def ::pad #{:left :right})
+(s/def ::align #{:right :left :center})
+(s/def ::pad #{:left :right :both})
+(s/def ::title-pad ::pad)
+(s/def ::title-align ::align)
 
 (s/def ::key ifn?)
 (s/def ::title string?)

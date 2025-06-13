@@ -1,3 +1,11 @@
+## 3.4.0 -- UNRELEASED
+
+- In composed strings, you may now supply :align with values :left, :right, or :center instead of pad (:right, :left, :both); support for :pad may be removed in the future
+- In `clj-commons.format.table`
+    - New `miniminal-style` for table output that uses only spaces to separate columns
+    - New :title-align and :align keys for columns to be used instead of :title-pad and :pad (support for which may be removed in the future)
+    - Table styles now include a :divider? key which, if true, enables the divider between the title line and the first row of data (previously, the divider was not optional)
+
 ## 3.3.2 - 28 Mar 2025
 
 - Changed some default exception colors to look better against a light background

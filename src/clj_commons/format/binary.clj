@@ -1,23 +1,23 @@
 (ns clj-commons.format.binary
   "Utilities for formatting binary data (byte arrays) or binary deltas."
-  (:require [clj-commons.ansi :refer [compose]]
+  (:require [clj-commons.ansi :refer [pout]]
             [clj-commons.pretty-impl :refer [padding]])
   (:import (java.nio ByteBuffer)))
 
 (def ^:dynamic *fonts*
   "Mapping from byte category to a font (color)."
-  {:offset :bright-black
-   :null :bright-black
-   :printable :cyan
+  {:offset     :bright-black
+   :null       :bright-black
+   :printable  :cyan
    :whitespace :green
-   :other :faint.green
-   :non-ascii :yellow})
+   :other      :faint.green
+   :non-ascii  :yellow})
 
 (def ^:private placeholders
-  {:null "•"
+  {:null       "•"
    :whitespace "_"
-   :other "•"
-   :non-ascii "×"})
+   :other      "•"
+   :non-ascii  "×"})
 
 (defprotocol BinaryData
   "Allows various data sources to be treated as a byte-array data type that
@@ -114,21 +114,20 @@
   [write-ascii? offset-format offset data line-count per-line]
   (let [line-bytes (for [i (range line-count)]
                      (Byte/toUnsignedLong (byte-at data (+ offset i))))]
-    (println
-      (compose
-        [(:offset *fonts*)
-         (format offset-format offset)]
-        (for [b line-bytes]
-          (list " "
-                [(font-for-byte b)
-                 (format "%02X" b)]))
-        (when write-ascii?
-          (list
-            (padding (* 3 (- per-line line-count)))
-            " |"
-            (map to-ascii line-bytes)
-            (padding (- per-line line-count))
-            "|"))))))
+    (pout
+      [(:offset *fonts*)
+       (format offset-format offset)]
+      (for [b line-bytes]
+        (list " "
+              [(font-for-byte b)
+               (format "%02X" b)]))
+      (when write-ascii?
+        (list
+          (padding (* 3 (- per-line line-count)))
+          " |"
+          (map to-ascii line-bytes)
+          (padding (- per-line line-count))
+          "|")))))
 
 (defn print-binary
   "Formats a BinaryData into a hex-dump string, consisting of multiple lines; each line formatted as:
@@ -157,7 +156,7 @@
   ([data]
    (print-binary data nil))
   ([data options]
-   (let [{show-ascii? :ascii
+   (let [{show-ascii?     :ascii
           per-line-option :line-bytes} options
          per-line (or per-line-option
                       (if show-ascii? bytes-per-ascii-line bytes-per-line))
@@ -205,15 +204,14 @@
 
 (defn- print-delta-line
   [offset-format offset expected-length expected actual-length actual]
-  (println
-    (compose
-      [(:offset *fonts*)
-       (format offset-format offset)]
-      [{:pad :right
-        :width (* 3 bytes-per-diff-line)}
-       (compose-deltas :bright-green-bg offset expected-length expected actual-length actual)]
-      " |"
-      (compose-deltas :bright-red-bg offset actual-length actual expected-length expected))))
+  (pout
+    [(:offset *fonts*)
+     (format offset-format offset)]
+    [{:align :left
+      :width (* 3 bytes-per-diff-line)}
+     (compose-deltas :bright-green-bg offset expected-length expected actual-length actual)]
+    " |"
+    (compose-deltas :bright-red-bg offset actual-length actual expected-length expected)))
 
 (defn print-binary-delta
   "Formats a hex dump of the expected data (on the left) and actual data (on the right). Bytes
@@ -226,8 +224,8 @@
   Display 16 bytes (from each data set) per line."
   [expected actual]
   (let [expected-length (data-length expected)
-        actual-length   (data-length actual)
-        target-length   (max actual-length expected-length)
+        actual-length (data-length actual)
+        target-length (max actual-length expected-length)
         offset-format (make-offset-format (max actual-length target-length))]
     (loop [offset 0]
       (when (pos? (- target-length offset))

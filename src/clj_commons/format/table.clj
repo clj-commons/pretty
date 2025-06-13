@@ -18,7 +18,8 @@
 
   Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
-  (:require [clojure.string :as string]
+  (:require [clj-commons.pretty-impl :as impl]
+            [clojure.string :as string]
             [clj-commons.ansi :refer [pout]]))
 
 (defn- make-bar
@@ -61,11 +62,13 @@
 
 (def default-style
   "Default style, with thick borders (using character graphics) and a header and footer."
-  {:hbar          "━"
+  {:header-font   :bold
+   :hbar          "━"
    :header?       true
    :header-left   "┏━"
    :header-sep    "━┳━"
    :header-right  "━┓"
+   :divider?      true
    :divider-left  "┣━"
    :divider-sep   "━╋━"
    :divider-right "━┫"
@@ -79,13 +82,30 @@
 
 (def skinny-style
   "Removes most of the borders and uses simple characters for column separators."
-  {:hbar          "-"
+  {:header-font   :bold
+   :hbar          "-"
    :header?       false
+   :divider?      true
    :divider-left  nil
    :divider-sep   "-+-"
    :divider-right nil
    :row-left      nil
    :row-sep       " | "
+   :row-right     nil
+   :footer?       false})
+
+(def ^{:added "3.4.0"}
+  minimal-style
+  "A minimal style that uses only white-space as a column separator."
+  {:header-font   :underlined
+   :hbar          " "
+   :header?       false
+   :divider?      false
+   :divider-left  nil
+   :divider-sep   " "
+   :divider-right nil
+   :row-left      nil
+   :row-sep       " "
    :row-right     nil
    :footer?       false})
 
@@ -101,14 +121,16 @@
 
   Alternately, a column can be a map:
 
-  Key        | Type                 | Description
-  ---        |---                   |---
-  :key       | keyword/function     | Passed the row data and returns the value for the column (required)
-  :title     | String               | The title for the column
-  :title-pad | :left, :right, :both | How to pad the title column; default is :both to center the title
-  :width     | number               | Width of the column
-  :decorator | function             | May return a font declaration for the cell
-  :pad       | :left, :right, :both | Defaults to :left except for last column, which pads on the right
+  Key          | Type                   | Description
+  ---          |---                     |---
+  :key         | keyword/function       | Passed the row data and returns the value for the column (required)
+  :title       | String                 | The title for the column
+  :title-align | :right, :left, :center | How to pad the title column; default is :center
+  :title-pad   | :left, :right, :both   | How to pad the title column; default is :both to center the title
+  :width       | number                 | Width of the column
+  :decorator   | function               | May return a font declaration for the cell
+  :align       | :right, :left, :center | Defaults to :right except for last column, which aligns :left
+  :pad         | :left, :right, :both   | Defaults to :left except for last column, which pads on the right
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
@@ -121,6 +143,9 @@
 
   :width will be determined as the maximum width of the title or of any
   value in the data.
+
+  :title-align and :align should be used intead of :title-pad and :pad, as support for the
+  later keys may be removed in a future release.
 
   The decorator is a function; it will be
   passed the row index and the value for the column,
@@ -155,6 +180,8 @@
                 header-left
                 header-sep
                 header-right
+                header-font
+                divider?
                 divider-left
                 divider-sep
                 divider-right
@@ -174,6 +201,7 @@
                              (assoc col
                                :last? (= last-column-index (:index col))
                                :bar (make-bar (:width col) hbar)))))]
+    ;; header is the decoration above the title bar
     (when header?
       (pout
         header-left
@@ -183,36 +211,43 @@
                   header-sep)))
         header-right))
 
+    ;; The title bar itself
     (pout
       row-left
-      (for [{:keys [width title title-pad last?]} columns']
+      (for [{:keys [width title title-pad title-align last?]} columns']
         (list [{:width width
-                :pad   (or title-pad :both)
-                :font  :bold} title]
+                :pad   (or (impl/align->pad title-align)
+                           title-pad
+                           :both)
+                :font  header-font} title]
               (when-not last?
                 row-sep)))
       row-right)
 
-    (pout
-      divider-left
-      (for [{:keys [bar last?]} columns']
-        (list bar
-              (when-not last?
-                divider-sep)))
-      divider-right)
+    ;; divider seperates the title bar from the rows
+    (when divider?
+      (pout
+        divider-left
+        (for [{:keys [bar last?]} columns']
+          (list bar
+                (when-not last?
+                  divider-sep)))
+        divider-right))
 
     (when (seq rows)
       (loop [[row & more-rows] rows
              row-index 0]
         (pout
           row-left
-          (for [{:keys [width key decorator last? pad]} columns'
+          (for [{:keys [width key decorator last? align pad]} columns'
                 :let [value (key row)
                       decorator' (or decorator default-decorator)
                       font (when decorator'
                              (decorator' row-index value))]]
             (list [{:font  font
-                    :pad   (or pad (if last? :right :left))
+                    :pad   (or (impl/align->pad align)
+                               pad
+                               (if last? :right :left))
                     :width width}
                    value]
                   (when-not last?
@@ -223,6 +258,7 @@
         (when more-rows
           (recur more-rows (inc row-index)))))
 
+    ;; footer is decoration after the last row
     (when footer?
       (print footer-left)
       (doseq [{:keys [bar last?]} columns']

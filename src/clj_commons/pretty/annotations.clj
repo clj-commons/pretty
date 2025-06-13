@@ -14,7 +14,7 @@
   {:added "3.3.0"})
 
 (def default-style
-  "The default style used when generating callouts.
+  "The default style used when generating callouts.d
 
   Key       | Default | Description
   ---       |---      |---

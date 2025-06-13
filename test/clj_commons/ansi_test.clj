@@ -23,7 +23,7 @@
          ;     xxxxXxxxxXxxxxXxxxxXxxxxXxxxxX [30]
          (compose "xyz <"
                   [{:width 30
-                    :pad :right}
+                    :align :left}
                    (list "("
                          [{:width 10}
                           "left"]
@@ -205,14 +205,14 @@
   (is (= "|    XX    |"
          ; ....  ....
          (compose "|" [{:width 10
-                        :pad :both}
+                        :align :center}
                        "XX"] "|"))))
 
 (deftest pad-both-odd-padding
   (is (= "|     X    |"
          ; .....  ....
          (compose "|" [{:width 10
-                        :pad :both}
+                        :align :center}
                        "X"] "|"))))
 
 (deftest use-of-vector-font-defs

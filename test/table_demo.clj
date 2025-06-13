@@ -7,7 +7,7 @@
           {:first "Fred" :last "Flintstone"}])
 (def columns [:first
               {:key   :middle
-               :width 15
+               :width 15                                    ; much too wide, for testing purposes
                :align :right}
               {:key       :last
                :title     "Family Name"
@@ -16,6 +16,7 @@
                               :bold))}])
 (comment
   (print-table columns row)
+  (print-table {:style t/minimal-style :columns columns} row)
   (print-table {:style         t/skinny-style
                 :row-annotator (fn [i row]
                                  (when (= i 2)
@@ -29,7 +30,7 @@
   (print-table
     [:method
      :path
-     {:key :route-name :title "Name" :title-pad :right}]
+     {:key :route-name :title "Name" :title-align :left}]
     [{:method     :get
       :path       "/"
       :route-name :root-page}
