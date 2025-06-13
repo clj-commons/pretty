@@ -97,7 +97,7 @@
 (def ^{:added "3.4.0"}
   minimal-style
   "A minimal style that uses only white-space as a column separator."
-  {:header-font   :underlined
+  {:header-font   :double-underlined
    :hbar          " "
    :header?       false
    :divider?      false
