@@ -4,12 +4,18 @@
             [clojure.string :as str]
             [clojure.test :refer [deftest is are use-fixtures]]
             [clj-commons.ansi :refer [compose *color-enabled*]]
-            [clj-commons.pretty-impl :refer [csi]]))
+            [clj-commons.pretty-impl :refer [csi]]
+            [matcher-combinators.matchers :as m]))
 
 (use-fixtures :once tc/spec-fixture)
 
 (deftest sanity-check
   (is (= true *color-enabled*)))
+
+(defn- safe-compose*
+  [& input]
+  (-> (apply compose input)
+      (str/replace csi "[CSI]")))
 
 (defn- safe-compose
   [input]
@@ -30,6 +36,15 @@
                          ")")
                    "right"]
                   ">"))))
+
+(deftest extended-colors
+  (is (= (str/join ["[CSI]0;48;5;196;3mred italic"
+                    "[CSI]0;44;3mblue italic"
+                    "[CSI]0;38;5;255;48;5;196;3mwhite on red italic"
+                    "[CSI]m"])
+         (safe-compose* [:color-500-bg.italic "red italic"
+                         [:blue-bg "blue italic"]
+                         [:grey-23 "white on red italic"]]))))
 
 (deftest invalid-font-decl
   (when-let [e (is (thrown? Exception
@@ -106,7 +121,7 @@
 
     '("START |"
        [{:width 10
-         :pad :right} "AAA"]
+         :pad   :right} "AAA"]
        "|"
        [{:width 10} "BBB"]
        "|")
@@ -115,22 +130,22 @@
 
     '("START |"
        [{:width 10
-         :pad :right
-         :font :green} "A" "A" "A"]
+         :pad   :right
+         :font  :green} "A" "A" "A"]
        "|"
        [{:width 10
-         :font :red} "BBB"]
+         :font  :red} "BBB"]
        "|")
     "START |[CSI]0;32mAAA       [CSI]m|[CSI]0;31m       BBB[CSI]m|"
     ;                 0123456789                 0123456789
 
     '("START |"
        [{:width 10
-         :pad :right
-         :font :green} "A" [nil "B"] [:blue "C"]]
+         :pad   :right
+         :font  :green} "A" [nil "B"] [:blue "C"]]
        "|"
        [{:width 10
-         :font :red} "XYZ"]
+         :font  :red} "XYZ"]
        "|")
     "START |[CSI]0;32mAB[CSI]0;34mC[CSI]0;32m       [CSI]m|[CSI]0;31m       XYZ[CSI]m|"
     ;                 01          2          3456789                 0123456789
@@ -149,59 +164,19 @@
 (deftest unrecognized-font-modifier
   (when-let [e (is (thrown? Throwable (compose [:what.is.this? "Fail!"])))]
     (is (= "unexpected font term: :what" (ex-message e)))
-    (is (= {:font-term :what
-            :font-def :what.is.this?
-            :available-terms [:black
-                              :black-bg
-                              :blue
-                              :blue-bg
-                              :bold
-                              :bright-black
-                              :bright-black-bg
-                              :bright-blue
-                              :bright-blue-bg
-                              :bright-cyan
-                              :bright-cyan-bg
-                              :bright-green
-                              :bright-green-bg
-                              :bright-magenta
-                              :bright-magenta-bg
-                              :bright-red
-                              :bright-red-bg
-                              :bright-white
-                              :bright-white-bg
-                              :bright-yellow
-                              :bright-yellow-bg
-                              :crossed
-                              :cyan
-                              :cyan-bg
-                              :double-underlined
-                              :faint
-                              :green
-                              :green-bg
-                              :inverse
-                              :italic
-                              :magenta
-                              :magenta-bg
-                              :normal
-                              :not-crossed
-                              :not-underlined
-                              :plain
-                              :red
-                              :red-bg
-                              :roman
-                              :underlined
-                              :white
-                              :white-bg
-                              :yellow
-                              :yellow-bg]}
-           (ex-data e)))))
+    (is (match?
+          {:font-term       :what
+           :font-def        :what.is.this?
+           ;; There's a lot of terms, check for a few common ones
+           :available-terms (m/via set (m/embeds #{:green :green-bg :bright-green :bright-green-bg
+                                                   :bold :faint :inverse :italic}))}
+          (ex-data e)))))
 
 (deftest unrecognized-vector-font-modifier
   (when-let [e (is (thrown? Throwable (compose [[:what :is :this?] "Fail!"])))]
     (is (= "unexpected font term: :what" (ex-message e)))
     (is (match? {:font-term :what
-                 :font-def [:what :is :this?]}
+                 :font-def  [:what :is :this?]}
                 (ex-data e)))))
 
 (deftest pad-both-even-padding

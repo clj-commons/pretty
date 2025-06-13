@@ -168,4 +168,6 @@
   (pout [:double-underlined "double"] " " [:underlined "single"])
 
   (pout [:crossed "crossed"  [:not-crossed " no longer "] "and back"])
+
+  (pout [:color-500-bg "dark red"] " " [:color-505-bg "purple"  [:grey-23 " grey text"]] )
   )

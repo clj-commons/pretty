@@ -59,7 +59,8 @@
 (def ^:private font-terms
   ;; Map a keyword to a tuple of characteristic and SGR parameter value.
   ;; We track the current value for each characteristic.
-  (reduce merge
+  (reduce (fn [m more-maps]
+            (reduce merge m more-maps))
           {:bold              [:bold "1"]
            :plain             [:bold nil]
            :faint             [:bold "2"]
@@ -71,18 +72,34 @@
            :normal            [:inverse nil]
 
            :crossed           [:crossed "9"]
-           :not-crossed        [:crossed nil]
+           :not-crossed       [:crossed nil]
 
            :underlined        [:underlined "4"]
            :double-underlined [:underlined "21"]
            :not-underlined    [:underlined nil]}
-          (map-indexed
-            (fn [index color-name]
-              {(keyword color-name)                       [:foreground (str (+ 30 index))]
-               (keyword (str "bright-" color-name))       [:foreground (str (+ 90 index))]
-               (keyword (str color-name "-bg"))           [:background (str (+ 40 index))]
-               (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
-            ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
+          [(map-indexed
+             (fn [index color-name]
+               {(keyword color-name)                       [:foreground (str (+ 30 index))]
+                (keyword (str "bright-" color-name))       [:foreground (str (+ 90 index))]
+                (keyword (str color-name "-bg"))           [:background (str (+ 40 index))]
+                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
+             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])
+           ;; Extended colors, i.e., color-500 is red 5, green 0, blue 0
+           (for [red (range 0 6)
+                 green (range 0 6)
+                 blue (range 0 6)
+                 :let [k (str red green blue)
+                       color-index (+ 16
+                                      (* 36 red)
+                                      (* 6 green)
+                                      blue)]]
+             {(keyword (str "color-" k))       [:foreground (str "38;5;" color-index)]
+              (keyword (str "color-" k "-bg")) [:background (str "48;5;" color-index)]})
+           ;; Extended grey scale; grey-0 is black, grey-23 is white
+           (for [grey (range 0 24)
+                 :let [color-index (+ 232 grey)]]
+             {(keyword (str "grey-" grey))       [:foreground (str "38;5;" color-index)]
+              (keyword (str "grey-" grey "-bg")) [:background (str "48;5;" color-index)]})]))
 
 (defn- compose-font
   "Uses values in current to build a font string that will reset all fonts characteristics then,
@@ -343,6 +360,15 @@
   ensure that later output is also plain.
 
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
+
+  Extended foreground and background colors are defined in terms of red/green/blue where each component
+  can be 0 (darkest) to 5 (lightest).  `color-500` is a bright red foreground, `color-005-bg` is a dark
+  blue background.
+
+  In addition, there are 24 grey values, `grey-0` is black foreground, through `grey-23` is nearly white.
+
+  For both named and extended colors, the exact colors displayed in the terminal
+  will vary with the specific operating system, terminal implementation, and the terminal configuration.
 
   When [[*color-enabled*]] is false, then any font defs are validated, but otherwise ignored (no ANSI codes
   will be included in the composed string).
