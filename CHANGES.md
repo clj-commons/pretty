@@ -3,7 +3,7 @@
 - `clj-commons.ansi`:
     - In composed strings, you may now supply :align with values :left, :right, or :center instead of pad (:right, :left, :both); support for :pad may be removed in the future
     - Fonts may now include `double-underlined`
-    - Fonts may now be crossed-out or uncrossed-out (though this is not widely supported) 
+    - Fonts may now be crossed or not-crossed (though this is not universally supported) 
 - `clj-commons.format.table`
     - New `miniminal-style` for table output that uses only spaces to separate columns
     - New :title-align and :align keys for columns to be used instead of :title-pad and :pad (support for which may be removed in the future)

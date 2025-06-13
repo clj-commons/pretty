@@ -172,8 +172,10 @@
                               :bright-white-bg
                               :bright-yellow
                               :bright-yellow-bg
+                              :crossed
                               :cyan
                               :cyan-bg
+                              :double-underlined
                               :faint
                               :green
                               :green-bg
@@ -182,6 +184,7 @@
                               :magenta
                               :magenta-bg
                               :normal
+                              :not-crossed
                               :not-underlined
                               :plain
                               :red

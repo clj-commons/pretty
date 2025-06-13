@@ -71,7 +71,7 @@
            :normal            [:inverse nil]
 
            :crossed           [:crossed "9"]
-           :uncrossed         [:crossed nil]
+           :not-crossed        [:crossed nil]
 
            :underlined        [:underlined "4"]
            :double-underlined [:underlined "21"]
@@ -312,7 +312,7 @@
   italics          | `italic` or `roman`
   inverse          | `inverse` or `normal`
   underline        | `underlined`, `double-underlined`, or `not-underlined`
-  crossed out      | `crossed-out` or `uncrossed-out`
+  crossed out      | `crossed` or `not-crossed`
 
   e.g.
 
@@ -323,7 +323,8 @@
   => ...
   ```
 
-  NOTE: crossed-out is supported on Mac by iTerm2, but not by Terminal.
+  NOTE: crossed is supported on Mac by iTerm2, but not by Terminal. Support under Linux, Windows
+  or elsewhere is not known.
 
   The order of the terms does not matter. Behavior for conflicting terms (e.g., `:blue.green.black`)
   is not defined.

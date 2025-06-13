@@ -167,5 +167,5 @@
 
   (pout [:double-underlined "double"] " " [:underlined "single"])
 
-  (pout [:crossed "crossed"  [:uncrossed " no longer "] "and back"])
+  (pout [:crossed "crossed"  [:not-crossed " no longer "] "and back"])
   )
