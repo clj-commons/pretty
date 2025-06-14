@@ -6,7 +6,7 @@
 
   Reference: [ANSI Escape Codes @ Wikipedia](https://en.wikipedia.org/wiki/ANSI_escape_code#SGR)."
   (:require [clojure.string :as str]
-            [clj-commons.pretty-impl :refer [csi padding]]))
+            [clj-commons.pretty-impl :as impl :refer [csi padding]]))
 
 (defn- is-ns-loaded?
   [sym]
@@ -59,33 +59,56 @@
 (def ^:private font-terms
   ;; Map a keyword to a tuple of characteristic and SGR parameter value.
   ;; We track the current value for each characteristic.
-  (reduce merge
-          {:bold [:bold "1"]
-           :plain [:bold "22"]
-           :faint [:bold "2"]
+  (reduce (fn [m more-maps]
+            (reduce merge m more-maps))
+          {:bold              [:bold "1"]
+           :plain             [:bold nil]
+           :faint             [:bold "2"]
 
-           :italic [:italic "3"]
-           :roman [:italic "23"]
+           :italic            [:italic "3"]
+           :roman             [:italic nil]
 
-           :inverse [:inverse "7"]
-           :normal [:inverse "27"]
+           :inverse           [:inverse "7"]
+           :normal            [:inverse nil]
 
-           :underlined [:underlined "4"]
-           :not-underlined [:underlined "24"]}
-          (map-indexed
-            (fn [index color-name]
-              {(keyword color-name) [:foreground (str (+ 30 index))]
-               (keyword (str "bright-" color-name)) [:foreground (str (+ 90 index))]
-               (keyword (str color-name "-bg")) [:background (str (+ 40 index))]
-               (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
-            ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])))
+           :crossed           [:crossed "9"]
+           :not-crossed       [:crossed nil]
+
+           :underlined        [:underlined "4"]
+           :double-underlined [:underlined "21"]
+           :not-underlined    [:underlined nil]}
+          [(map-indexed
+             (fn [index color-name]
+               {(keyword color-name)                       [:foreground (str (+ 30 index))]
+                (keyword (str "bright-" color-name))       [:foreground (str (+ 90 index))]
+                (keyword (str color-name "-bg"))           [:background (str (+ 40 index))]
+                (keyword (str "bright-" color-name "-bg")) [:background (str (+ 100 index))]})
+             ["black" "red" "green" "yellow" "blue" "magenta" "cyan" "white"])
+           ;; Extended colors, i.e., color-500 is red 5, green 0, blue 0
+           (for [red (range 0 6)
+                 green (range 0 6)
+                 blue (range 0 6)
+                 :let [k (str red green blue)
+                       color-index (+ 16
+                                      (* 36 red)
+                                      (* 6 green)
+                                      blue)]]
+             {(keyword (str "color-" k))       [:foreground (str "38;5;" color-index)]
+              (keyword (str "color-" k "-bg")) [:background (str "48;5;" color-index)]})
+           ;; Extended grey scale; grey-0 is black, grey-23 is white
+           (for [grey (range 0 24)
+                 :let [color-index (+ 232 grey)]]
+             {(keyword (str "grey-" grey))       [:foreground (str "38;5;" color-index)]
+              (keyword (str "grey-" grey "-bg")) [:background (str "48;5;" color-index)]})]))
 
 (defn- compose-font
   "Uses values in current to build a font string that will reset all fonts characteristics then,
   as necessary, add back needed font characteristics."
   ^String [current]
   (when-color-enabled
-    (let [codes (keep #(get current %) [:foreground :background :bold :italic :inverse :underlined])]
+    (let [codes (->> [:foreground :background :bold :italic :inverse :underlined :crossed]
+                     (map #(get current %))
+                     (remove nil?))]
       (if (seq codes)
         (str csi "0;" (str/join ";" codes) sgr)
         ;; there were active characteristics, but current has none, so just reset font characteristics
@@ -114,8 +137,8 @@
                 font-data
                 (let [[font-k font-value] (or (get font-terms term)
                                               (throw (ex-info (str "unexpected font term: " term)
-                                                              {:font-term term
-                                                               :font-def font-def
+                                                              {:font-term       term
+                                                               :font-def        font-def
                                                                :available-terms (->> font-terms keys sort vec)})))]
                   (assoc! font-data font-k font-value))))]
       (persistent! (reduce f (transient font-data) ks)))
@@ -180,21 +203,22 @@
   "Given a span broken into decl and inputs, returns a map of :width (actual width, which may exceed
    requested width) and :span (a replacement span vector with added spaces)."
   [span-decl remaining-inputs]
-  (let [{:keys [width pad]} span-decl
+  (let [{:keys [width pad align]} span-decl
         ;; Transform this span and everything below it into easily managed span vectors, starting
         ;; with a version of this span decl.
-        span-decl' (dissoc span-decl :width :pad)
+        span-decl' (dissoc span-decl :width :pad :align)
+        pad' (or (impl/align->pad align) pad)
         *width (volatile! 0)
         inputs' (into [span-decl'] (normalize-markup remaining-inputs *width))
         actual-width @*width]
     ;; If at or over desired width, don't need to pad
     (if (<= width actual-width)
       {:width actual-width
-       :span inputs'}
+       :span  inputs'}
       ;; Add the padding in the desired position(s); this ensures that the logic that generates
       ;; ANSI escape codes occurs correctly, with the added spaces getting the font for this span.
       {:width width
-       :span (apply-padding inputs' pad width actual-width)})))
+       :span  (apply-padding inputs' pad' width actual-width)})))
 
 
 (defn- normalize-markup
@@ -269,9 +293,9 @@
 (defn- compose*
   [inputs]
   (let [buffer (StringBuilder. 100)
-        {:keys [dirty?]} (collect-markup {:active {}
+        {:keys [dirty?]} (collect-markup {:active  {}
                                           :current {}
-                                          :buffer buffer}
+                                          :buffer  buffer}
                                          inputs)]
     (when dirty?
       (.append buffer reset-font))
@@ -304,7 +328,8 @@
   boldness         | `bold`, `faint`, or `plain`
   italics          | `italic` or `roman`
   inverse          | `inverse` or `normal`
-  underline        | `underlined` or `not-underlined`
+  underline        | `underlined`, `double-underlined`, or `not-underlined`
+  crossed out      | `crossed` or `not-crossed`
 
   e.g.
 
@@ -314,6 +339,9 @@
     [:italic.bold.red \"meltdown!\"]])
   => ...
   ```
+
+  NOTE: crossed is supported on Mac by iTerm2, but not by Terminal. Support under Linux, Windows
+  or elsewhere is not known.
 
   The order of the terms does not matter. Behavior for conflicting terms (e.g., `:blue.green.black`)
   is not defined.
@@ -333,6 +361,15 @@
 
   The core colors are `black`, `red`, `green`, `yellow`, `blue`, `magenta`, `cyan`, and `white`.
 
+  Extended foreground and background colors are defined in terms of red/green/blue where each component
+  can be 0 (darkest) to 5 (lightest).  `color-500` is a bright red foreground, `color-005-bg` is a dark
+  blue background.
+
+  In addition, there are 24 grey values, `grey-0` is black foreground, through `grey-23` is nearly white.
+
+  For both named and extended colors, the exact colors displayed in the terminal
+  will vary with the specific operating system, terminal implementation, and the terminal configuration.
+
   When [[*color-enabled*]] is false, then any font defs are validated, but otherwise ignored (no ANSI codes
   will be included in the composed string).
 
@@ -342,18 +379,20 @@
   ---    |---                            |---
   :font  | keyword or vector of keywords | The font declaration
   :width | number                        | The desired width of the span
+  :align | :right, :left, :center        | How to align text within the span, default is :right
   :pad   | :left, :right, :both          | Where to pad the span if :width specified, default is :left
 
   The map form of the font declaration is typically only used when a span width is specified.
   The span will be padded with spaces to ensure that it is the specified width.  `compose` tracks the number
   of characters inside the span, excluding any ANSI code sequences injected by `compose`.
 
-  Padding adds spaces; thus aligning the text on the left means padding on the right, and vice-versa.
-
-  Setting the padding to :both will add spaces to both the left and the right; the content will be centered.
+  Setting :align to :center will add spaces to both the left and the right.
   If the necessary amount of padding is odd, the extra space will appear on the left.
 
-  `compose` doesn't consider the characters when calculating widths;
+  The :pad key is still supported, but the :align key is preferred. Support for :pad may be removed
+  in the future.
+
+  `compose` doesn't consider the actual characters when calculating widths;
   if the strings contain tabs, newlines, or ANSI code sequences not generated by `compose`,
   the calculation of the span width will be incorrect.
 
@@ -379,7 +418,7 @@
   "Composes its inputs as with [[compose]] and then prints the results, with a newline.
 
   Deprecated: use [[pout]] instead."
-  {:added "2.2"
+  {:added      "2.2"
    :deprecated "3.2.0"}
   [& inputs]
   (println (compose* inputs)))
