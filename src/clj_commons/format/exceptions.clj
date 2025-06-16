@@ -3,7 +3,7 @@
   (:require [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
-            [clj-commons.ansi :refer [compose]]
+            [clj-commons.ansi :refer [compose perr]]
             [clj-commons.pretty-impl :refer [padding]])
   (:refer-clojure :exclude [*print-level* *print-length*])
   (:import (java.lang StringBuilder StackTraceElement)
@@ -115,18 +115,22 @@
 
  The default rules:
 
- * omit everything in `clojure.lang`, `java.lang.reflect`, and the function `clojure.core/apply`
+ * omit everything in `clojure.lang`, `java.lang.reflect`
+ * omit `clojure.core/with-bindings*` and `clojure.core/apply`
  * hide everything in `sun.reflect`
+ * omit a number of functions in `clojure.test`
  * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
  "
   [[:package "clojure.lang" :omit]
+   [:name "clojure.core/with-bindings*" :omit]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
    [:name "clojure.core/apply" :omit]
    [:name #"nrepl\.middleware\.interruptible-eval/.*" :terminate]
    [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
-   [:name #"clojure\.main/main.*" :terminate]])
+   [:name #"clojure\.main/main.*" :terminate]
+   [:name #"\Qclojure.test/\E(test-ns|test-all-vars|default-fixture).*" :omit]])
 
 (def ^{:added "0.1.18"
        :dynamic true}
@@ -312,12 +316,11 @@
 
 (def ^:private stack-trace-warning
   (delay
-    (binding [*out* *err*]
-      (println (compose
-                 [:bright-yellow "WARNING: "]
-                 "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with "
-                 [:bold "-XX:-OmitStackTraceInFastThrow"] "."))
-      (flush))))
+    (perr
+      [:bright-yellow "WARNING: "]
+      "Stack trace of root exception is empty; this is likely due to a JVM optimization that can be disabled with "
+      [:bold "-XX:-OmitStackTraceInFastThrow"] ".")
+    (flush)))
 
 (defn transform-stack-trace
   "Transforms a seq of StackTraceElement objects into a seq of stack frame maps:
