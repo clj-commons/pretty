@@ -1,4 +1,4 @@
-## 3.4.0 -- UNRELEASED
+## 3.4.0 -- 16 Jun 2025
 
 - `clj-commons.ansi`:
     - In spans, you may now supply :align with values :left, :right, or :center instead of :pad (:right, :left, :both); support for :pad may be removed in the future
@@ -15,6 +15,7 @@
       - omit `clojure.core/apply` and `clojure.core/with-bindings*`
       - omit several functions in `clojure.test`
       
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/57?closed=1)
 
 ## 3.3.2 - 28 Mar 2025
 
