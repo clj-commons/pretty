@@ -10,6 +10,11 @@
     - New `miniminal-style` for table output that uses only spaces to separate columns
     - New :title-align and :align keys for columns to be used instead of :title-pad and :pad (support for which may be removed in the future)
     - Table styles now include a :divider? key which, if true, enables the divider between the title line and the first row of data (previously, the divider was not optional)
+- `clj-commons.format.exceptions`
+    - `default-frame-rules` was changed to add default rules (to further limit clutter in exceptions reports)
+      - omit `clojure.core/apply` and `clojure.core/with-bindings*`
+      - omit several functions in `clojure.test`
+      
 
 ## 3.3.2 - 28 Mar 2025
 

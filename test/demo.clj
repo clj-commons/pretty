@@ -2,7 +2,7 @@
   (:require
     [clj-commons.pretty.repl :as repl]
     [clj-commons.format.exceptions :as e]
-    [clj-commons.ansi :refer [compose pcompose pout]]
+    [clj-commons.ansi :refer [compose pout]]
     [clj-commons.format.binary :as b]
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
@@ -36,7 +36,7 @@
   "Creates a sample exception used to test the exception formatting logic."
   []
   (try
-    (update-row)
+    (apply update-row [])
     (catch Throwable e
       ;; Return it, not rethrow it.
       (RuntimeException. "Request handling exception" e))))
@@ -71,7 +71,7 @@
   (println "Clojure version: " *clojure-version*)
   (println "Installing pretty exceptions ...")
   (repl/install-pretty-exceptions)
-  (pcompose [:bold.green "ok"])
+  (pout [:bold.green "ok"])
   (pst (make-exception))
   (println "\nTesting reporting of repeats:")
   (try (countdown 20)
