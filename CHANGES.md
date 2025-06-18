@@ -1,9 +1,11 @@
+## 3.4.1 -- UNRELEASED
+
 ## 3.4.0 -- 16 Jun 2025
 
 - `clj-commons.ansi`:
     - In spans, you may now supply :align with values :left, :right, or :center instead of :pad (:right, :left, :both); support for :pad may be removed in the future
     - Fonts may now include `double-underlined`
-    - Fonts may now be crossed or not-crossed (though this is not universally supported) 
+    - Fonts may now be `crossed` or `not-crossed` (though this is not universally supported) 
     - Added extended foreground and background colors
     - Added extended foreground and background grey-scale
 - `clj-commons.format.table`

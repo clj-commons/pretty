@@ -56,7 +56,7 @@
                  (->> data
                       (map key)
                       (map str)
-                      (map #(.length %))
+                      (map #(-> % key str .length))
                       (reduce max title-width)))]
     (assoc column :width width')))
 
