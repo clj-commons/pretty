@@ -59,7 +59,7 @@
               result' (conj result
                             (nchars spaces-needed \space)
                             [font (nchars length marker)])]
-          (recur (+ offset length)
+          (recur (long (+ offset length))
                  (next annotations)
                  result'))))))
 
@@ -76,7 +76,7 @@
               result' (conj result
                             (nchars spaces-needed \space)
                             [font bar])]
-          (recur (+ offset 1)
+          (recur (long (+ offset 1))
                  (next annotations)
                  result'))))))
 
@@ -99,7 +99,7 @@
                              message)])]
         (if last?
           result'
-          (recur (+ offset 1)
+          (recur (long (+ offset 1))
                  more-annotations
                  result'))))))
 
