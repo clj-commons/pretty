@@ -54,31 +54,29 @@
         width' (if width
                  (max width title-width)
                  (->> data
-                      (map key)
-                      (map str)
                       (map #(-> % key str .length))
                       (reduce max title-width)))]
     (assoc column :width width')))
 
 (def default-style
-  "Default style, with thick borders (using character graphics) and a header and footer."
+  "Default style, with thin borders (using character graphics) and a header and footer."
   {:header-font   :bold
-   :hbar          "━"
+   :hbar          "─"
    :header?       true
-   :header-left   "┏━"
-   :header-sep    "━┳━"
-   :header-right  "━┓"
+   :header-left   "┌─"
+   :header-sep    "─┬─"
+   :header-right  "─┐"
    :divider?      true
-   :divider-left  "┣━"
-   :divider-sep   "━╋━"
-   :divider-right "━┫"
-   :row-left      "┃ "
-   :row-sep       " ┃ "
-   :row-right     " ┃"
+   :divider-left  "├─"
+   :divider-sep   "─┼─"
+   :divider-right "─┤"
+   :row-left      "│ "
+   :row-sep       " │ "
+   :row-right     " │"
    :footer?       true
-   :footer-left   "┗━"
-   :footer-sep    "━┻━"
-   :footer-right  "━┛"})
+   :footer-left   "└─"
+   :footer-sep    "─┴─"
+   :footer-right  "─┘"})
 
 (def skinny-style
   "Removes most of the borders and uses simple characters for column separators."
@@ -97,7 +95,7 @@
 (def ^{:added "3.4.0"}
   minimal-style
   "A minimal style that uses only white-space as a column separator."
-  {:header-font   :double-underlined
+  {:header-font   :bold.double-underlined
    :hbar          " "
    :header?       false
    :divider?      false

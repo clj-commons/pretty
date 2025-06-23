@@ -56,13 +56,13 @@ Pretty can output pretty tabular data:
      {:method     :get
       :path       "/status"
       :route-name :status}])
-┏━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
-┃ Method ┃   Path  ┃    Name    ┃
-┣━━━━━━━━╋━━━━━━━━━╋━━━━━━━━━━━━┫
-┃   :get ┃       / ┃ :root-page ┃
-┃  :post ┃  /reset ┃ :reset     ┃
-┃   :get ┃ /status ┃ :status    ┃
-┗━━━━━━━━┻━━━━━━━━━┻━━━━━━━━━━━━┛
+┌────────┬─────────┬────────────┐
+│ Method │   Path  │ Name       │
+├────────┼─────────┼────────────┤
+│   :get │       / │ :root-page │
+│  :post │  /reset │ :reset     │
+│   :get │ /status │ :status    │
+└────────┴─────────┴────────────┘
 => nil
 ```
 
