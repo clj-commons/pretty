@@ -1,5 +1,8 @@
 ## 3.4.1 -- UNRELEASED
 
+- Removed some reflection warnings
+- Changed the default style for tables to use thinner lines
+
 ## 3.4.0 -- 16 Jun 2025
 
 - `clj-commons.ansi`:
