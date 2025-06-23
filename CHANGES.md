@@ -1,7 +1,9 @@
-## 3.4.1 -- UNRELEASED
+## 3.4.1 -- 23 Jun 2025
 
 - Removed some reflection warnings
 - Changed the default style for tables to use thinner lines
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/58?closed=1)
 
 ## 3.4.0 -- 16 Jun 2025
 
