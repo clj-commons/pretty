@@ -6,10 +6,10 @@
             [nrepl.middleware.caught :as caught]))
 
 (defn wrap-pretty
-  [handler]
   "Ensures that exceptions are printed using pretty, including uncaught REPL exceptions.
 
   This sets the message key :nrepl.middleware.caught/caught, if not previously set."
+  [handler]
   (repl/install-pretty-exceptions)
   (fn with-pretty
     [msg]
