@@ -9,10 +9,11 @@
                 nrepl/nrepl                          {:mvn/version "1.3.1"}
                 org.clojure/core.async               {:mvn/version "1.8.741"}
                 nubank/matcher-combinators           {:mvn/version "3.9.1"}
-                io.github.tonsky/clj-reload          {:mvn/version "0.9.7"}
+                io.github.tonsky/clj-reload          {:mvn/version "0.9.8"}
                 io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                       :git/sha "dfb30dd"}}
    :jvm-opts    ["-Dclj-commons.ansi.enabled=true"]
+   :exec-args   {:fn cognitect.test-runner.api/test}        ; for :debug
    :exec-fn     cognitect.test-runner.api/test}
 
   ;; clj -T:build <command>
@@ -20,6 +21,10 @@
   {:deps       {io.github.hlship/build-tools
                 {:git/tag "0.11.0" :git/sha "8c67d11"}}
    :ns-default build}
+
+  :debug
+  {:exec-fn   clj-commons.pretty.repl/main
+   :exec-args {:fn missing/bad-wolf}}
 
   :1.11
   {:override-deps {org.clojure/clojure {:mvn/version "1.12.1"}}}
