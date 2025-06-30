@@ -1,3 +1,8 @@
+## 3.5.0 -- UNRELEASED
+
+- Default style for `print-table` can be overridden via a dynamic var
+
+
 ## 3.4.1 -- 23 Jun 2025
 
 - Removed some reflection warnings
