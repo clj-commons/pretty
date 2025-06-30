@@ -22,4 +22,4 @@
                             {:doc      (-> #'wrap-pretty meta :doc)
                              :handles  {}
                              :requires #{}
-                             :expects  #{"eval" #'caught/wrap-caught}})
+                             :expects  #{#'caught/wrap-caught}})
