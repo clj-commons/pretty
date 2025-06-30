@@ -1,3 +1,9 @@
+## 3.5.0 -- UNRELEASED
+
+- Default style for `print-table` can be overridden via a dynamic var
+- Use a vertical bar (│) not a pipe character (|) as column separator in binary output
+- New `clj-commons.pretty.nrepl` namespace to set up pretty inside nREPL
+
 ## 3.4.1 -- 23 Jun 2025
 
 - Removed some reflection warnings

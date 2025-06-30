@@ -124,10 +124,10 @@
       (when write-ascii?
         (list
           (padding (* 3 (- per-line line-count)))
-          " |"
+          " │"
           (map to-ascii line-bytes)
           (padding (- per-line line-count))
-          "|")))))
+          "│")))))
 
 (defn print-binary
   "Formats a BinaryData into a hex-dump string, consisting of multiple lines; each line formatted as:
@@ -147,10 +147,10 @@
 
   In ASCII mode, the output is 16 bytes per line, but each line includes the ASCII printable characters:
 
-      0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C |Choose immutabil|
-      0010: 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65 |ity, and see whe|
-      0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F |re that takes yo|
-      0030: 75 2E                                           |u.              |
+      0000: 43 68 6F 6F 73 65 20 69 6D 6D 75 74 61 62 69 6C │Choose immutabil│
+      0010: 69 74 79 2C 20 61 6E 64 20 73 65 65 20 77 68 65 │ity, and see whe│
+      0020: 72 65 20 74 68 61 74 20 74 61 6B 65 73 20 79 6F │re that takes yo│
+      0030: 75 2E                                           │u.              │
 
   When ANSI is enabled, the individual bytes and characters are color-coded as per the [[*fonts*]]."
   ([data]
@@ -210,7 +210,7 @@
     [{:align :left
       :width (* 3 bytes-per-diff-line)}
      (compose-deltas :bright-green-bg offset expected-length expected actual-length actual)]
-    " |"
+    " │"
     (compose-deltas :bright-red-bg offset actual-length actual expected-length expected)))
 
 (defn print-binary-delta

@@ -1,5 +1,5 @@
 (ns table-demo
-  (:require [clj-commons.format.table :refer [print-table] :as t]))
+  (:require [clj-commons.format.table :refer [print-table] :as table]))
 
 (def row [{:first "Arthur" :middle "C" :last "Clark"}
           {:first "Alan" :last "Turing"}
@@ -16,8 +16,8 @@
                               :bold))}])
 (comment
   (print-table columns row)
-  (print-table {:style t/minimal-style :columns columns} row)
-  (print-table {:style         t/skinny-style
+  (print-table {:style table/minimal-style :columns columns} row)
+  (print-table {:style         table/skinny-style
                 :row-annotator (fn [i row]
                                  (when (= i 2)
                                    [:italic " (prescient)"]))
@@ -27,10 +27,7 @@
                     :blue))
                 :columns       columns} row)
 
-  (print-table
-    [:method
-     :path
-     {:key :route-name :title "Name" :title-align :left}]
+  (def routes
     [{:method     :get
       :path       "/"
       :route-name :root-page}
@@ -41,4 +38,20 @@
       :path       "/status"
       :route-name :status}])
 
+  (print-table
+    [:method
+     :path
+     {:key :route-name :title "Name" :title-align :left}]
+    routes)
+
+  (print-table
+    {:columns [:method
+               :path
+               {:key :route-name :title "Name" :title-align :left}]
+     :style   table/skinny-style}
+    routes)
+
+
+
+  ;
    )

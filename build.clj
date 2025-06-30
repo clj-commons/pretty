@@ -1,8 +1,10 @@
 ;; clj -T:build <var>
 
 (ns build
-  (:require [clojure.tools.build.api :as build]
+  (:require [clojure.set :as set]
+            [clojure.tools.build.api :as build]
             [net.lewisship.build :as b]
+            [clojure.set :as set]
             [clojure.string :as str]))
 
 (def lib 'org.clj-commons/pretty)
@@ -18,6 +20,12 @@
 (defn jar
   [_params]
   (b/create-jar jar-params))
+
+(defn install
+  [_params]
+  (build/install (-> (jar nil)
+                     (assoc :lib lib)
+                     (set/rename-keys {:jar-path :jar-file}))))
 
 (defn deploy
   [_params]

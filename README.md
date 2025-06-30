@@ -28,6 +28,19 @@ Or, same thing, but with Pretty enabled:
 
 The point is, you can scan down to see things in chronological order; the important parts are highlighted, the names are the same (or closer) to your source code, unnecessary details are omitted, and it's much easier to pick out the most important parts, such as file names and line numbers.
 
+## Pretty and nREPL
+
+[nREPL](https://nrepl.org) is the framework that allows an IDE such as [Emacs](https://cider.mx/) 
+or [Cursive](https://cursive-ide.com/), or even a CLI such as
+[Leiningen](https://leiningen.org/), to interoperate with a running REPL in a subprocess.
+
+Pretty includes an nREPL middleware function, `clj-commons.pretty.nrepl/wrap-pretty`, that will install pretty exception reporting into the REPL.  
+
+The nREPL documentation describes how to enable such middleware
+inside [project.clj or deps.edn](https://nrepl.org/nrepl/usage/server.html#starting-a-server) or
+in [.nrepl/nrepl.edn](https://nrepl.org/nrepl/usage/server.html#server-configuration) (for instance, when developing
+with [Cursive](https://cursive-ide.com/userguide/repl.html#configuring-middleware-for-nrepl-repls))
+
 ## Beyond Exceptions
 
 Pretty can print out a sequence of bytes; it includes color-coding inspired by
@@ -43,19 +56,22 @@ to indicate where the two sequences differ.
 Pretty can output pretty tabular data:
 
 ```
+(def routes
+  [{:method     :get
+    :path       "/"
+    :route-name :root-page}
+   {:method     :post
+    :path       "/reset"
+    :route-name :reset}
+   {:method     :get
+    :path       "/status"
+    :route-name :status}])
+=> #'table-demo/routes
 (print-table
-    [:method
-     :path
-     {:key :route-name :title "Name"}]
-    [{:method     :get
-      :path       "/"
-      :route-name :root-page}
-     {:method     :post
-      :path       "/reset"
-      :route-name :reset}
-     {:method     :get
-      :path       "/status"
-      :route-name :status}])
+  [:method
+   :path
+   {:key :route-name :title "Name" :title-align :left}]
+  routes)
 ┌────────┬─────────┬────────────┐
 │ Method │   Path  │ Name       │
 ├────────┼─────────┼────────────┤
@@ -66,7 +82,22 @@ Pretty can output pretty tabular data:
 => nil
 ```
 
-The `print-table` function has many options to easily adjust the output to your needs, including fonts, text alignment, and the table border.
+The `print-table` function has many options to easily adjust the output to your needs, including fonts, text alignment, and line annotations. It also supplies several different table styles:
+
+```
+(print-table
+    {:columns [:method
+               :path
+               {:key :route-name :title "Name" :title-align :left}]
+     :style   table/skinny-style}
+    routes)
+Method |   Path  | Name      
+-------+---------+-----------
+  :get |       / | :root-page
+ :post |  /reset | :reset    
+  :get | /status | :status   
+=> nil
+```
 
 
 ## Compatibility

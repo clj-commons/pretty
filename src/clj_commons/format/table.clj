@@ -107,6 +107,12 @@
    :row-right     nil
    :footer?       false})
 
+(def ^{:added   "3.5.0"
+       :dynamic true}
+  *default-style*
+  "Default style used for table output.  Defaults to [[default-style]]."
+  default-style)
+
 (defn print-table
   "Similar to clojure.pprint/print-table, but with fancier graphics and more control
   over column titles.
@@ -172,7 +178,7 @@
                 {:columns opts}
                 opts)
         {:keys [columns style default-decorator row-annotator]
-         :or   {style default-style}} opts'
+         :or   {style *default-style*}} opts'
         {:keys [header?
                 footer?
                 header-left
