@@ -31,10 +31,10 @@ The point is, you can scan down to see things in chronological order; the import
 ## Pretty and nREPL
 
 [nREPL](https://nrepl.org) is the framework that allows an IDE such as [Emacs](https://cider.mx/) 
-or [Cursive](https://cursive-ide.com/) to interoperate with a running
-REPL in a subprocess.
+or [Cursive](https://cursive-ide.com/), or even a CLI such as
+[Leiningen](https://leiningen.org/), to interoperate with a running REPL in a subprocess.
 
-Pretty includes an nREPL middleware function, `clj-commons.pretty.nrepl/wrap-pretty` that will install pretty exception reporting into the REPL.  
+Pretty includes an nREPL middleware function, `clj-commons.pretty.nrepl/wrap-pretty`, that will install pretty exception reporting into the REPL.  
 
 The nREPL documentation describes how to enable such middleware
 inside [project.clj or deps.edn](https://nrepl.org/nrepl/usage/server.html#starting-a-server) or
