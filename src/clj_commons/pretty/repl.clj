@@ -85,3 +85,15 @@
   [& args]
   (install-pretty-exceptions)
   (apply main/main args))
+
+(defn main
+  "Entrypoint compatible with tools.build.  The :fn argument is a symbol that's resolved to
+  a function to invoke, and is passed the argument map."
+  {:added "3.5.0"}
+  [arg-map]
+  (install-pretty-exceptions)
+  (let [{delegate-fn :fn} arg-map
+        f (or (requiring-resolve delegate-fn)
+              (throw (ex-info (str "Could not resolve function to invoke: " delegate-fn)
+                              arg-map)))]
+    (f (dissoc arg-map :fn))))
