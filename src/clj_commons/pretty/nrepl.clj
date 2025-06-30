@@ -2,11 +2,18 @@
   "Middleware to setup pretty exception reporting in nREPL."
   {:added "3.5.0"}
   (:require [clj-commons.pretty.repl :as repl]
-            [nrepl.middleware.caught :as nc]))
+            [nrepl.middleware :as middleware]
+            [nrepl.middleware.caught :as caught]))
 
-(defn install
-  "Returns handler, unchanged, after enabling pretty exceptions."
+(defn wrap-pretty
   [handler]
   (repl/install-pretty-exceptions)
-  (set! nc/*caught-fn* repl/pretty-pst)
-  handler)
+  (fn with-pretty
+    [msg]
+    (handler (assoc msg ::caught/caught `repl/pretty-repl-caught))))
+
+(middleware/set-descriptor! #'wrap-pretty
+                            {:doc      (-> #'wrap-pretty meta :doc)
+                             :handles  {}
+                             :requires #{}
+                             :expects  #{"eval" #'caught/wrap-caught}})
