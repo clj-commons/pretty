@@ -44,7 +44,7 @@ For example, create a file `~/.lein/profiles.d/debug.clj`:
 
 ```clojure
 {:dependencies
- [[org.clj-commons/pretty "3.4.1"]]
+ [[org.clj-commons/pretty "3.5.0"]]
  :injections
  [(require '[clj-commons.pretty.repl :as repl])
   (repl/install-pretty-exceptions)]}
@@ -60,18 +60,18 @@ TIP: I also set up other tools I depend on, such as
 ```clojure
 {:aliases
  { :debug
-  {:extra-deps {org.clj-commons/pretty {:mvn/version "3.4.1"}}
+  {:extra-deps {org.clj-commons/pretty {:mvn/version "3.5.0"}}
    :main-opts ["--main" "clj-commons.pretty-repl"]}}}
 ```
-Executing `clj -M:debug` will run the function `clj-commons.pretty-repl/-main` which will set up
+Executing `clj -M:debug` will execute the function `clj-commons.pretty-repl/-main` which will set up
 pretty exceptions before passing any remaining command line argments to `clojure.main/main`.
 
-Alternately,
+Alternately, for use with the -X option:
 
 ```clojure
 {:aliases
  {:debug
-  {:extra-deps {org.clj-commons/pretty {:mvn/version "3.4.1"}}
+  {:extra-deps {org.clj-commons/pretty {:mvn/version "3.5.0"}}
    :exec-fn clj-commons.pretty.repl/main}
   
   :test
@@ -84,9 +84,11 @@ Alternately,
 
 This allows testing with pretty as `clj -X:test:debug`.
 
-`clj -X:test` is normal execution, and the `clj` tools will directly invoke the `cognitect.test-runner.api/test` function.
+`clj -X:test` is normal execution, and the `clj` tool will directly invoke the `cognitect.test-runner.api/test` function.
 `clj -X:test:debug` will overwrite the :exec-fn to invoke the `clj-commons.pretty.repl/main` function, which will
 set up pretty exceptions before delegating to the function specified with the :fn option.
+
+The value for :fn must be a fully qualified function name.
 
 Both of these approaches are doable but clumsy, so a solution involving nREPL directly will likely be better.
 
