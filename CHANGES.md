@@ -9,6 +9,7 @@
   - Can override the style's :marker in a specific annotation
   - Markers must be strings or function (previously chars were allowed)
   - Support for three-character markers added (the middle character is repeated to pad) 
+  - Can omit line numbers with `annotate-lines` 
 
 ## 3.4.1 -- 23 Jun 2025
 

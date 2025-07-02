@@ -7,7 +7,6 @@
 
 (s/def ::positive-integer (s/and integer? pos?))
 
-
 (s/def ::single-character (s/and string?
                                  #(= 1 (count %))))
 
@@ -99,7 +98,7 @@
                                                   ::ann/start-line
                                                   ::ann/line-number-width]))
 
-(s/def ::ann/line-number-width ::positive-integer)
+(s/def ::ann/line-number-width ::nonneg-integer)
 (s/def ::ann/start-line ::positive-integer)
 
 (s/def ::ann/lines (s/coll-of ::ann/line-data))

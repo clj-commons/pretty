@@ -148,6 +148,17 @@
                                {:line "fred"}
                                {:line "wilma"}]))))
 
+(deftest can-omit-line-numbers
+  (is (match? (m/via compose-each
+                     (compose-all
+                       "barney"
+                       "fred"
+                       "wilma"))
+              (annotate-lines {:line-number-width 0}
+                              [{:line "barney"}
+                               {:line "fred"}
+                               {:line "wilma"}]))))
+
 (deftest intersperses-with-indented-annotation-lines
   (is (match? (m/via compose-each
                      (compose-all

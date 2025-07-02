@@ -229,7 +229,7 @@
   ---                |---
   :style             | style map (for callouts), defaults to [*default-style*]
   :start-line        | Defaults to 1
-  :line-number-width | Width for the line numbers column
+  :line-number-width | Width for the line numbers column, or 0 for no line numbers
 
   The :line-number-width option is usually computed from the maximum line number
   that will be output.
@@ -241,14 +241,16 @@
   ([lines]
    (annotate-lines nil lines))
   ([opts lines]
-   (let [{:keys [style start-line]
+   (let [{:keys [style start-line line-number-width]
           :or   {style      *default-style*
                  start-line 1}} opts
-         max-line-number (+ start-line (count lines) -1)
+         line-numbering? (not= line-number-width 0)
          ;; inc by one to account for the ':'
-         line-number-width (inc (or (:line-number-width opts)
-                                    (-> max-line-number str count)))
-         callout-indent (repeat (nchars (inc line-number-width) " "))]
+         line-number-width' ( when line-numbering?
+                              (inc (or line-number-width
+                                       (-> (+ start-line (count lines) -1) str count))))
+         callout-indent (when line-numbering?
+                          (repeat (nchars (inc line-number-width') " ")))]
      (loop [[line-data & more-lines] lines
             line-number start-line
             result []]
@@ -259,9 +261,11 @@
                                (callouts style annotations))
                result' (cond-> (conj result
                                      (list
-                                       [{:width line-number-width}
-                                        line-number ":"]
-                                       " "
+                                       (when line-numbering?
+                                         (list
+                                           [{:width line-number-width'}
+                                            line-number ":"]
+                                           " "))
                                        line))
                                callout-lines (into
                                                (map list callout-indent callout-lines)))]
