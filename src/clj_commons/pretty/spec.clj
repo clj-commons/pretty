@@ -7,11 +7,8 @@
 
 (s/def ::positive-integer (s/and integer? pos?))
 
-
-(s/def ::single-character (s/or
-                            :char char?
-                            :string (s/and string?
-                                           #(= 1 (count %)))))
+(s/def ::single-character (s/and string?
+                                 #(= 1 (count %))))
 
 ;; clj-commons.ansi:
 
@@ -77,7 +74,11 @@
                                     ::ann/nib]))
 
 (s/def ::ann/spacing #{:tall :compact :minimal})
-(s/def ::ann/marker ::single-character)
+(s/def ::ann/marker (s/or
+                      :basic ::single-character
+                      :fn fn?
+                      :tri (s/and string? #(= 3 (count %)))))
+
 (s/def ::ann/bar ::single-character)
 (s/def ::ann/nib ::ansi/composed-string)
 
@@ -86,7 +87,8 @@
 (s/def ::ann/annotation (s/keys :req-un [::ann/message
                                          ::ann/offset]
                                 :opt-un [::ann/length
-                                         ::ansi/font]))
+                                         ::ansi/font
+                                         ::ann/marker]))
 
 (s/def ::ann/message ::ansi/composed-string)
 (s/def ::ann/offset ::nonneg-integer)
@@ -96,7 +98,7 @@
                                                   ::ann/start-line
                                                   ::ann/line-number-width]))
 
-(s/def ::ann/line-number-width ::positive-integer)
+(s/def ::ann/line-number-width ::nonneg-integer)
 (s/def ::ann/start-line ::positive-integer)
 
 (s/def ::ann/lines (s/coll-of ::ann/line-data))

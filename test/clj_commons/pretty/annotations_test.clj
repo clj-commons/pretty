@@ -2,8 +2,9 @@
   (:require [clojure.test :refer [deftest is use-fixtures]]
             [clj-commons.ansi :as ansi]
             [clj-commons.test-common :as tc]
-            [clj-commons.pretty.annotations :refer [callouts default-style annotate-lines]]
-            [matcher-combinators.matchers :as m]))
+            [clj-commons.pretty.annotations :as a :refer [callouts default-style annotate-lines]]
+            [matcher-combinators.matchers :as m])
+  (:import (clojure.lang ExceptionInfo)))
 
 (use-fixtures :once tc/spec-fixture)
 
@@ -22,11 +23,25 @@
                        [:yellow "   ▲  ▲"]
                        [:yellow "   │  │"]
                        [:yellow "   │  └╴ Second"]
-                       [:yellow "   │"]
                        [:yellow "   └╴ First"]))
               (callouts [{:offset  3
                           :message "First"}
                          {:offset  6
+                          :message "Second"}]))))
+
+(deftest with-marker-function
+  ;; Ultimately, comparing the strings with ANSI characters (the result of compose).
+  (is (match? (m/via compose-each
+                     (compose-all
+                       [:yellow "   ▲  ┯━━━"]
+                       [:yellow "   │  │"]
+                       [:yellow "   │  └╴ Second"]
+                       [:yellow "   └╴ First"]))
+              (callouts [{:offset  3
+                          :message "First"}
+                         {:offset  6
+                          :length  4
+                          :marker  a/underline-marker
                           :message "Second"}]))))
 
 (deftest sorts-by-offset
@@ -35,7 +50,6 @@
                        [:yellow "   ▲  ▲"]
                        [:yellow "   │  │"]
                        [:yellow "   │  └╴ First"]
-                       [:yellow "   │"]
                        [:yellow "   └╴ Second"]))
               (callouts [{:offset  6
                           :message "First"}
@@ -48,7 +62,6 @@
                        [:yellow "   ▲▲ ▲▲▲▲"]
                        [:yellow "   │  │"]
                        [:yellow "   │  └╴ First"]
-                       [:yellow "   │"]
                        [:yellow "   └╴ Second"]))
               (callouts [{:offset  6
                           :length  4
@@ -63,7 +76,6 @@
                        [:yellow "   ▲▲ " [:red "▲▲▲▲"]]
                        [:yellow "   │  " [:red "│"]]
                        [:yellow "   │  " [:red "└╴ First"]]
-                       [:yellow "   │"]
                        [:yellow "   └╴ Second"]))
               (callouts [{:offset  6
                           :length  4
@@ -85,14 +97,15 @@
                          {:offset  6
                           :message "Second"}]))))
 
-(deftest spacing-compact
+(deftest spacing-tall
   (is (match? (m/via compose-each
                      (compose-all
                        [:yellow "   ▲  ▲"]
                        [:yellow "   │  │"]
                        [:yellow "   │  └╴ Second"]
+                       [:yellow "   │"]
                        [:yellow "   └╴ First"]))
-              (callouts (assoc default-style :spacing :compact)
+              (callouts (assoc default-style :spacing :tall)
                         [{:offset  3
                           :message "First"}
                          {:offset  6
@@ -131,6 +144,17 @@
                        "100: fred"
                        "101: wilma"))
               (annotate-lines {:start-line 99}
+                              [{:line "barney"}
+                               {:line "fred"}
+                               {:line "wilma"}]))))
+
+(deftest can-omit-line-numbers
+  (is (match? (m/via compose-each
+                     (compose-all
+                       "barney"
+                       "fred"
+                       "wilma"))
+              (annotate-lines {:line-number-width 0}
                               [{:line "barney"}
                                {:line "fred"}
                                {:line "wilma"}]))))
@@ -182,6 +206,24 @@
                               [{:line        "barney"
                                 :annotations [{:offset 2 :message "r not allowed"}]}
                                {:line        "fred"}]))))
+
+(def ^:private extend-marker #'a/extend-marker)
+
+(deftest tri-character-marker
+  (is (match? ["["
+               "[]"
+               "[-]"
+               "[--]"]
+              (for [i (range 1 5)]
+                (extend-marker "[-]" i)))))
+
+(deftest wrong-marker-length
+  (is (thrown-with-msg? ExceptionInfo #"\QMarker string must be 1 or 3 characters\E"
+                        (extend-marker "ab" 5))))
+
+(deftest wrong-marker-type
+  (is (thrown-with-msg? ExceptionInfo #"Marker should be a function or a string"
+                        (extend-marker 0 5))))
 
 
 

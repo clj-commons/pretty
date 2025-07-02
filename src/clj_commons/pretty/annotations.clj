@@ -14,13 +14,13 @@
   {:added "3.3.0"})
 
 (def default-style
-  "The default style used when generating callouts.d
+  "The default style used when generating callouts.
 
   Key       | Default | Description
   ---       |---      |---
   :font     | :yellow | Default font characteristics if not overrided by annotation
-  :spacing  | :tall   | One of :tall, :compact, or :minimal
-  :marker   | \"▲\"   | The marker character used to identify the offset/length of an annotation
+  :spacing  | :compact| One of :tall, :compact, or :minimal
+  :marker   | \"▲\"   | The marker used to identify the offset/length of an annotation
   :bar      | \"│\"   | Character used as the vertical bar in the callout
   :nib      | \"└╴ \" | String used just before the annotation's message
 
@@ -28,10 +28,20 @@
   (the lines with just vertical bars are omitted).  :compact spacing is the same, but
   one line of bars appears between the markers and the first annotation message.
 
+  The :marker is used to build a string that matches the :length of the callout.
+
+  :marker can be a single string, which is repeated.
+
+  :marker can be a three-character string.  The middle character is repeated
+  to pad the marker to the necessary length.
+
+  :marker can also be a function; the function is passed the length
+  and returns a string (or composed string) that must be that number of characters wide.
+
   Note: rendering of Unicode characters in HTML often uses incorrect fonts or adds unwanted
   character spacing; the annotations look proper in console output."
   {:font :yellow
-   :spacing :tall
+   :spacing :compact
    :marker "▲"
    :bar "│"
    :nib "└╴ "})
@@ -45,20 +55,55 @@
   [n ch]
   (apply str (repeat n ch)))
 
+(defn- split-marker
+  [marker length]
+  (let [[l m r] marker
+        b (StringBuilder. (int length))]
+    (.append b ^char l)
+    (dotimes [_ (- length 2)]
+      (.append b ^char m))
+
+    (when (> length 1)
+      (.append b ^char r))
+
+    (.toString b)))
+
+(defn- extend-marker
+  [marker length]
+  (cond
+    (fn? marker)
+    (marker length)
+
+    (not (string? marker))
+    (throw (ex-info "Marker should be a function or a string"
+                    {:marker marker}))
+
+    (= 1 (count marker))
+    (nchars length marker)
+
+    (= 3 (count marker))
+    (split-marker marker length)
+
+    :else
+    (throw (ex-info "Marker string must be 1 or 3 characters"
+                    {:marker marker}))))
+
 (defn- markers
   [style annotations]
-  (let [{:keys [font marker]} style]
+  (let [{:keys          [font]
+         default-marker :marker} style]
     (loop [output-offset 0
            annotations annotations
            result [font]]
       (if-not annotations
         result
-        (let [{:keys [offset length font]
-               :or {length 1}} (first annotations)
+        (let [{:keys [offset length font marker]
+               :or   {length 1
+                      marker default-marker}} (first annotations)
               spaces-needed (- offset output-offset)
               result' (conj result
                             (nchars spaces-needed \space)
-                            [font (nchars length marker)])]
+                            [font (extend-marker marker length)])]
           (recur (long (+ offset length))
                  (next annotations)
                  result'))))))
@@ -114,6 +159,7 @@
   :offset   | Integer position (from 0) to mark on the line
   :length   | Number of characters in the marker (min 1, defaults to 1)
   :font     | Override of the style's font; used for marker, bars, nib, and message
+  :marker   | Override of the style's marker
 
   The leftmost column has offset 0; some frameworks may report this as column 1
   and an adjustment is necessary before invoking callouts.
@@ -183,23 +229,28 @@
   ---                |---
   :style             | style map (for callouts), defaults to [*default-style*]
   :start-line        | Defaults to 1
-  :line-number-width | Width for the line numbers column
+  :line-number-width | Width for the line numbers column, or 0 for no line numbers
 
   The :line-number-width option is usually computed from the maximum line number
   that will be output.
 
-  Returns a seq of composed strings."
+  Returns a seq of composed strings, each representing a single line of output.
+  For example, `(run! ansi/perr (annotation-lines ...))`.
+
+  "
   ([lines]
    (annotate-lines nil lines))
   ([opts lines]
-   (let [{:keys [style start-line]
+   (let [{:keys [style start-line line-number-width]
           :or   {style      *default-style*
                  start-line 1}} opts
-         max-line-number (+ start-line (count lines) -1)
+         line-numbering? (not= line-number-width 0)
          ;; inc by one to account for the ':'
-         line-number-width (inc (or (:line-number-width opts)
-                                    (-> max-line-number str count)))
-         callout-indent (repeat (nchars (inc line-number-width) " "))]
+         line-number-width' ( when line-numbering?
+                              (inc (or line-number-width
+                                       (-> (+ start-line (count lines) -1) str count))))
+         callout-indent (when line-numbering?
+                          (repeat (nchars (inc line-number-width') " ")))]
      (loop [[line-data & more-lines] lines
             line-number start-line
             result []]
@@ -210,11 +261,19 @@
                                (callouts style annotations))
                result' (cond-> (conj result
                                      (list
-                                       [{:width line-number-width}
-                                        line-number ":"]
-                                       " "
+                                       (when line-numbering?
+                                         (list
+                                           [{:width line-number-width'}
+                                            line-number ":"]
+                                           " "))
                                        line))
                                callout-lines (into
                                                (map list callout-indent callout-lines)))]
            (recur more-lines (inc line-number) result')))))))
+
+(defn underline-marker
+  "Marker function that renders as a heavy underline."
+  {:added "3.5.0"}
+  [^long length]
+  (str "┯" (nchars (dec length) "━")))
 
