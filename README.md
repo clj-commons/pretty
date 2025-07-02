@@ -131,21 +131,15 @@ Pretty can output pretty tabular data:
    {:method     :get
     :path       "/status"
     :route-name :status}])
-=> #'table-demo/routes
 (print-table
   [:method
    :path
    {:key :route-name :title "Name" :title-align :left}]
   routes)
-┌────────┬─────────┬────────────┐
-│ Method │   Path  │ Name       │
-├────────┼─────────┼────────────┤
-│   :get │       / │ :root-page │
-│  :post │  /reset │ :reset     │
-│   :get │ /status │ :status    │
-└────────┴─────────┴────────────┘
-=> nil
+
 ```
+
+![Table Output](docs/images/default-table.png)
 
 The `print-table` function has many options to easily adjust the output to your needs, including fonts, text alignment, and line annotations. It also supplies several different table styles:
 
@@ -164,6 +158,10 @@ Method |   Path  | Name
 => nil
 ```
 
+Pretty can also format text with annotations, useful when reporting errors while
+parsing arbitrary text:
+
+![Annotations](docs/images/annotations.png)
 
 ## Compatibility
 

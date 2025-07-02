@@ -3,7 +3,12 @@
 - Default style for `print-table` can be overridden via a dynamic var
 - Use a vertical bar (│) not a pipe character (|) as column separator in binary output
 - New `clj-commons.pretty.nrepl` namespace to set up pretty inside nREPL
-- Function `clj-commons.pretty.repl/main` meant for use with `clj -X` to wrap another function
+- New function `clj-commons.pretty.repl/main` meant for use with `clj -X` to wrap another function
+- `clj-commons.pretty.annotations`:
+  - The :spacing for the default style is now :compact 
+  - Can override the style's :marker in a specific annotation
+  - Markers must be strings or function (previously chars were allowed)
+  - Support for three-character markers added (the middle character is repeated to pad) 
 
 ## 3.4.1 -- 23 Jun 2025
 

@@ -4,6 +4,8 @@
     [clj-commons.format.exceptions :as e]
     [clj-commons.ansi :refer [compose pout]]
     [clj-commons.format.binary :as b]
+    [clj-commons.pretty.annotations :as a]
+    [clj-commons.format.table :refer [print-table]]
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
     [criterium.core :as c]
@@ -66,6 +68,39 @@
   []
   (report {:type :error :expected nil :actual (make-ex-info)}))
 
+(defn fake-jdbc-error
+  []
+  (run! pout
+        (a/annotate-lines
+          [{:line        "SELECT DATE, AMT"
+            :annotations [{:offset  13
+                           :length  3
+                           :message "Invalid column name"}]}
+           {:line        "FROM PAYMENT WHEN AMT > 10000"
+            :annotations [{:offset  13
+                           :length  4
+                           :font :red
+                           :message "Unknown token"}
+                          {:offset  18
+                           :length  3
+                           :marker clj-commons.pretty.annotations/underline-marker
+                           :message "Unknown symbol"}]}])))
+
+(comment
+  (fake-jdbc-error)
+  )
+
+(def routes
+  [{:method     :get
+    :path       "/"
+    :route-name :root-page}
+   {:method     :post
+    :path       "/reset"
+    :route-name :reset}
+   {:method     :get
+    :path       "/status"
+    :route-name :status}])
+
 (defn -main [& args]
   (prn `-main :args args)
   (println "Clojure version: " *clojure-version*)
@@ -85,6 +120,18 @@
   (println "\nBinary delta:\n")
   (b/print-binary-delta "Welcome, Friend"
                         "We1come, Fiend")
+  (println)
+
+  (fake-jdbc-error)
+
+  (println)
+
+  (print-table
+    [:method
+     :path
+     {:key :route-name :title "Name" :title-align :left}]
+    routes)
+
   (println))
 
 (deftest fail-wrong-exception
