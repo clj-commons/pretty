@@ -119,17 +119,18 @@
  * omit `clojure.core/with-bindings*` and `clojure.core/apply`
  * hide everything in `sun.reflect`
  * omit a number of functions in `clojure.test`
- * terminate at `speclj.*`, `clojure.main/main*`, `clojure.main/repl/read-eval-print`, or `nrepl.middleware.interruptible-eval`
+ * terminate at `speclj.*`, `clojure.main/.*`, or `nrepl.middleware.interruptible-eval`
  "
-  [[:package "clojure.lang" :omit]
-   [:name "clojure.core/with-bindings*" :omit]
+  [[:name "clojure.core/apply" :hide]
+   [:id #"\Qclojure.lang.AFn.applyTo\E(Helper)?.*" :hide]
+   [:package "clojure.lang" :omit]
+   [:name "clojure.core/with-bindings*" :hide]
    [:package #"sun\.reflect.*" :hide]
    [:package "java.lang.reflect" :omit]
    [:name #"speclj\..*" :terminate]
-   [:name "clojure.core/apply" :omit]
-   [:name #"nrepl\.middleware\.interruptible-eval/.*" :terminate]
-   [:name #"clojure\.main/repl/read-eval-print.*" :terminate]
-   [:name #"clojure\.main/main.*" :terminate]
+   [:name #"\Qnrepl.middleware.interruptible-eval/\E.*" :terminate]
+   [:name #"\Qclojure.main/\E.*" :terminate]
+   [:name "clojure.test/run-tests" :terminate]
    [:name #"\Qclojure.test/\E(test-ns|test-all-vars|default-fixture).*" :omit]])
 
 (def ^{:added "0.1.18"

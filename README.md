@@ -131,6 +131,7 @@ Pretty can output pretty tabular data:
    {:method     :get
     :path       "/status"
     :route-name :status}])
+    
 (print-table
   [:method
    :path

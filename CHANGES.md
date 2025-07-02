@@ -9,7 +9,12 @@
   - Can override the style's :marker in a specific annotation
   - Markers must be strings or function (previously chars were allowed)
   - Support for three-character markers added (the middle character is repeated to pad) 
-  - Can omit line numbers with `annotate-lines` 
+  - Can omit line numbers with `annotate-lines`
+- `clj-commons.format.exceceptions/default-frame-rules`:
+  - `clojure.core/with-bindings*` and `clojure.core/apply` are now hidden, not omitted
+  - terminate at any `clojure.main` function
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/59?closed=1)
 
 ## 3.4.1 -- 23 Jun 2025
 
