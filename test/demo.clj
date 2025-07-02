@@ -105,9 +105,12 @@
   (prn `-main :args args)
   (println "Clojure version: " *clojure-version*)
   (println "Installing pretty exceptions ...")
-  (repl/install-pretty-exceptions)
   (pout [:bold.green "ok"])
-  (pst (make-exception))
+
+  (do
+    (repl/install-pretty-exceptions)
+    (pst (make-exception)))
+
   (println "\nTesting reporting of repeats:")
   (try (countdown 20)
        (catch Throwable t (e/print-exception t)))
