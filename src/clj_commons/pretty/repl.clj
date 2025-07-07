@@ -70,7 +70,7 @@
 
   (defmethod print-method Throwable
     [t ^Writer writer]
-    (.write writer ^String System/lineSeparator)
+    (.write writer ^String (System/lineSeparator))
     (.write writer (e/format-exception t)))
 
   ;; This is necessary due to direct linking (from clojure.test to clojure.stacktrace).
