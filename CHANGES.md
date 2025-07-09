@@ -1,4 +1,4 @@
-## 3.5.0 -- UNRELEASED
+## 3.5.0 -- 9 Jul 2025
 
 - Default style for `print-table` can be overridden via a dynamic var
 - Use a vertical bar (│) not a pipe character (|) as column separator in binary output
