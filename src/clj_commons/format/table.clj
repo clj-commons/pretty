@@ -18,9 +18,8 @@
 
   Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
-  (:require [clj-commons.ansi :as ansi]
-            [clojure.string :as string]
-            [clj-commons.ansi :refer [pout]]))
+  (:require [clj-commons.ansi :as ansi :refer [pout]]
+            [clojure.string :as string]))
 
 (defn- make-bar
   [width s]
