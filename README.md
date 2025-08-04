@@ -28,9 +28,14 @@ Or, same thing, but with Pretty enabled:
 
 The point is, you can scan down to see things in chronological order; the important parts are highlighted, the names are the same (or closer) to your source code, unnecessary details are omitted, and it's much easier to pick out other essential parts easily, such as file names and line numbers.
 
+Pretty can even identify the parts of your stack traces that repeat (so common with Clojure code), and
+omit the repetition:
+
+![Repeats](docs/images/exception-repeat.png)
+
 ### Enabling Pretty
 
-Pretty exceptions are enabled by invoking the fucntion `clj-commons.pretty.repl/install-pretty-exceptions`.  This
+Pretty exceptions are enabled by invoking the function `clj-commons.pretty.repl/install-pretty-exceptions`.  This
 redefines a number of Vars to replace the default implementations with prettier ones.  This is something you could
 set up in your `user.clj` namespace.
 
