@@ -1,3 +1,7 @@
+## 3.6.1 -- 4 Aug 2025
+
+Fix a bug where omitted stack frames were printed.
+
 ## 3.6.0 -- 4 Aug 2025
 
 *Breaking Changes*
