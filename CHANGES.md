@@ -15,6 +15,8 @@
   * New column option :formatter will format a column value to a string or composed string
   * New :row-deprecator option decorates all columns of a row
   * Column widths may be calculated even from a composed string
+* `clj-commons.format.exceptions`
+  * Previously, individual stack frames that repeated were identified; Pretty can now identify _sequences_ of repeating stack frames
 
 ## 3.5.0 -- 9 Jul 2025
 
