@@ -370,7 +370,8 @@
 
 (defn- format-clojure-frame-base
   [frame]
-  (let [names' (->> frame
+  (let [{:keys [line]} frame
+        names' (->> frame
                     :names
                     counted-terms
                     (map counted-frame-name))
@@ -378,12 +379,14 @@
                    (map length)
                    (reduce + 0)
                    (+ (count names'))                       ;; each name has a trailing slash
-                   dec)]                                    ;; except the last
-    {:name-width width
-     :name [(get *fonts* (clj-frame-font-key frame))
-            (->> names' drop-last (str/join "/"))
-            "/"
-            [(:function-name *fonts*) (last names')]]}))
+                   dec)]
+    (assoc frame
+      :name-width width
+      :line (str line)
+      :name [(get *fonts* (clj-frame-font-key frame))
+             (->> names' drop-last (str/join "/"))
+             "/"
+             [(:function-name *fonts*) (last names')]])))
 
 (defn format-stack-frame
   "Transforms an expanded stack frame (see [[transform-stack-trace]])
@@ -395,30 +398,28 @@
   :name-width | Integer         | Visual width of the name
   :file       | String          | Location of source (or nil)
   :line       | String          | Location of source (or nil)
-  :repeats    | Integer         | Number of times the frame repeats (or nil)
 
   Formatting is based on whether the frame is omitted, and whether it is a Clojure or Java frame."
   {:added "0.3.0"}
   [{:keys [file line names repeats] :as frame}]
   (cond
     (:omitted frame)
-    {:name [(:omitted-frame *fonts*) "..."]
-     :name-width 3}
+    (assoc frame
+      :name [(:omitted-frame *fonts*) "..."]
+      :name-width 3
+      :file nil
+      :line nil)
 
     ;; When :names is empty, it's a Java (not Clojure) frame
     (empty? names)
     (let [full-name (str (:class frame) "." (:method frame))]
-      {:name [(:java-frame *fonts*) full-name]
-       :name-width (length full-name)
-       :file file
-       :line (str line)
-       :repeats repeats})
+      (assoc frame
+        :name [(:java-frame *fonts*) full-name]
+        :name-width (length full-name)
+        :line (str line)))
 
     :else
-    (assoc (format-clojure-frame-base frame)
-      :file file
-      :line (str line)
-      :repeats repeats)))
+    (format-clojure-frame-base frame)))
 
 (defn filter-stack-trace-maps
   "Filters the stack trace maps (from [[transform-stack-trace]], removing unnecessary frames and
@@ -558,7 +559,7 @@
 
                   :else
                   " │"))))]
-    (doseq [[repeat-count frames] (repetitions :id stack-trace)
+    (doseq [[repeat-count frames] (repetitions :id rows)
             [frame-index frame] (map-indexed vector frames)]
       (vswap! *lines
              conj! (format-single-frame frame repeat-count frame-index (count frames))))
