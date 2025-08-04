@@ -1,50 +1,60 @@
+## 3.6.0 -- UNRELEASED
+
+*Breaking Changes*
+
+* `clj-commons.ansi`:
+  * Support for :pad in `compose` has been removed, use :align
+  * The `pcompose` function has been removed, use `pout` instead
+* `clj-commons.format.table`
+  * Likewise, support for :pad and :title-pad in `print-table` has been removed, use :align and :title-align
+
 ## 3.5.0 -- 9 Jul 2025
 
-- Default style for `print-table` can be overridden via a dynamic var
-- Use a vertical bar (│) not a pipe character (|) as column separator in binary output
-- New `clj-commons.pretty.nrepl` namespace to set up pretty inside nREPL
-- New function `clj-commons.pretty.repl/main` meant for use with `clj -X` to wrap another function
-- `clj-commons.pretty.annotations`:
-  - The :spacing for the default style is now :compact 
-  - Can override the style's :marker in a specific annotation
-  - Markers must be strings or function (previously chars were allowed)
-  - Support for three-character markers added (the middle character is repeated to pad) 
-  - Can omit line numbers with `annotate-lines`
-- `clj-commons.format.exceceptions/default-frame-rules`:
-  - `clojure.core/with-bindings*` and `clojure.core/apply` are now hidden, not omitted
-  - terminate at any `clojure.main` function
+* Default style for `print-table` can be overridden via a dynamic var
+* Use a vertical bar (│) not a pipe character (|) as column separator in binary output
+* New `clj-commons.pretty.nrepl` namespace to set up pretty inside nREPL
+* New function `clj-commons.pretty.repl/main` meant for use with `clj -X` to wrap another function
+* `clj-commons.pretty.annotations`:
+  * The :spacing for the default style is now :compact 
+  * Can override the style's :marker in a specific annotation
+  * Markers must be strings or function (previously chars were allowed)
+  * Support for three-character markers added (the middle character is repeated to pad) 
+  * Can omit line numbers with `annotate-lines`
+* `clj-commons.format.exceceptions/default-frame-rules`:
+  * `clojure.core/with-bindings*` and `clojure.core/apply` are now hidden, not omitted
+  * terminate at any `clojure.main` function
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/59?closed=1)
 
 ## 3.4.1 -- 23 Jun 2025
 
-- Removed some reflection warnings
-- Changed the default style for tables to use thinner lines
+* Removed some reflection warnings
+* Changed the default style for tables to use thinner lines
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/58?closed=1)
 
 ## 3.4.0 -- 16 Jun 2025
 
-- `clj-commons.ansi`:
-    - In spans, you may now supply :align with values :left, :right, or :center instead of :pad (:right, :left, :both); support for :pad may be removed in the future
-    - Fonts may now include `double-underlined`
-    - Fonts may now be `crossed` or `not-crossed` (though this is not universally supported) 
-    - Added extended foreground and background colors
-    - Added extended foreground and background grey-scale
-- `clj-commons.format.table`
-    - New `miniminal-style` for table output that uses only spaces to separate columns
-    - New :title-align and :align keys for columns to be used instead of :title-pad and :pad (support for which may be removed in the future)
-    - Table styles now include a :divider? key which, if true, enables the divider between the title line and the first row of data (previously, the divider was not optional)
-- `clj-commons.format.exceptions`
-    - `default-frame-rules` was changed to add default rules (to further limit clutter in exceptions reports)
-      - omit `clojure.core/apply` and `clojure.core/with-bindings*`
-      - omit several functions in `clojure.test`
+* `clj-commons.ansi`:
+    * In spans, you may now supply :align with values :left, :right, or :center instead of :pad (:right, :left, :both); support for :pad may be removed in the future
+    * Fonts may now include `double-underlined`
+    * Fonts may now be `crossed` or `not-crossed` (though this is not universally supported) 
+    * Added extended foreground and background colors
+    * Added extended foreground and background grey-scale
+* `clj-commons.format.table`
+    * New `miniminal-style` for table output that uses only spaces to separate columns
+    * New :title-align and :align keys for columns to be used instead of :title-pad and :pad (support for which may be removed in the future)
+    * Table styles now include a :divider? key which, if true, enables the divider between the title line and the first row of data (previously, the divider was not optional)
+* `clj-commons.format.exceptions`
+    * `default-frame-rules` was changed to add default rules (to further limit clutter in exceptions reports)
+      * omit `clojure.core/apply` and `clojure.core/with-bindings*`
+      * omit several functions in `clojure.test`
       
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/57?closed=1)
 
 ## 3.3.2 - 28 Mar 2025
 
-- Changed some default exception colors to look better against a light background
+* Changed some default exception colors to look better against a light background
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/56?closed=1)
 
@@ -128,15 +138,15 @@ Moved the io.aviso/pretty compatibility layer (introduced in 2.5.0) to new libra
 [org.clj-commons/pretty-aviso-bridge](https://github.com/clj-commons/pretty-aviso-bridge).
 
 Other changes:
-- `clj-commons.format.exceptions`
-  - Added a cache to speed up transforming Java StackTraceElements
-  - Added new functions to make it easier to extract, filter, and format a stack trace outside of formatting an entire exception
+* `clj-commons.format.exceptions`
+  * Added a cache to speed up transforming Java StackTraceElements
+  * Added new functions to make it easier to extract, filter, and format a stack trace outside of formatting an entire exception
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/50?closed=1)
 
 ## 2.6.0 - 25 Apr 2024
 
-- Font declaration in `compose` can now be a vector of individual terms, rather than a single keyword; e.g. `[:bold :red]` 
+* Font declaration in `compose` can now be a vector of individual terms, rather than a single keyword; e.g. `[:bold :red]` 
   as an alternative to `:bold.red`. This can be useful when the font is computed, rather than a static literal.
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/49?closed=1)
@@ -151,8 +161,8 @@ Minor bug fixes.
 
 *BREAKING CHANGES*
 
-- The function `clojure.core/apply` is now omitted (in formatted stack traces)
-- Properties inside exceptions are now pretty-printed to a default depth of 2; previously, the depth was unlimited
+* The function `clojure.core/apply` is now omitted (in formatted stack traces)
+* Properties inside exceptions are now pretty-printed to a default depth of 2; previously, the depth was unlimited
 
 Other changes:
 
@@ -164,7 +174,7 @@ A limited number of vars and functions defined by the io.aviso/pretty artifact h
 
 *BREAKING CHANGES*
 
-- `clj-commons.format.table/print-table` now centers title columns by default,
+* `clj-commons.format.table/print-table` now centers title columns by default,
   and adds a :title-pad key to the column map to control this explicitly.
 
 Other changes:
@@ -236,25 +246,25 @@ This release moves the library to clj-commons, and changes the root namespace fr
 `io.aviso` to `clj-commons`. It strips down the library to its essentials, removing
 the `columns`, `component`, and `logging` namespaces entirely.
 
-- Stripped out a lot of redundant documentation
-- Reworked the `ansi` namespace to primarily expose the `compose` function and not dozens of constants and functions
-- `ansi` determines whether to enable or disable ANSI codes at execution time
-- `ansi` now honors the `NO_COLOR` environment variable
-- Stripped out code for accessing the clipboard from the `repl` namespace
-- Some refactoring inside `exceptions` namespace, including changes to the `*fonts*` var
-- Removed the `logging` namespace and dependency on `org.clojure/tools.logging`
-- Removed the `component` namespace, but the example is still present in the documentation
-- Ensure compatible with Clojure 1.10 and above (now tested in GitHub action)
-- The "use -XX:-OmitStackTraceInFastThrow" warning is now formatted, and is output only once
-- `write-exception` was renamed to `print-exception`
-- `write-binary` and `write-binary-delta` renamed to `print-binary` and `print-binary-delta`
-- `compose` can now pad a span of text with spaces (on the left or right) to a desired width
--  Binary output now includes color coding
+* Stripped out a lot of redundant documentation
+* Reworked the `ansi` namespace to primarily expose the `compose` function and not dozens of constants and functions
+* `ansi` determines whether to enable or disable ANSI codes at execution time
+* `ansi` now honors the `NO_COLOR` environment variable
+* Stripped out code for accessing the clipboard from the `repl` namespace
+* Some refactoring inside `exceptions` namespace, including changes to the `*fonts*` var
+* Removed the `logging` namespace and dependency on `org.clojure/tools.logging`
+* Removed the `component` namespace, but the example is still present in the documentation
+* Ensure compatible with Clojure 1.10 and above (now tested in GitHub action)
+* The "use -XX:-OmitStackTraceInFastThrow" warning is now formatted, and is output only once
+* `write-exception` was renamed to `print-exception`
+* `write-binary` and `write-binary-delta` renamed to `print-binary` and `print-binary-delta`
+* `compose` can now pad a span of text with spaces (on the left or right) to a desired width
+*  Binary output now includes color coding
 
 ## 1.4.4 -- 20 Jun 2023
 
-- Fixed: Incorrectly named font terms with `compose`
-- Fixed: Incorrect ANSI codes for bright and bright background colors
+* Fixed: Incorrectly named font terms with `compose`
+* Fixed: Incorrect ANSI codes for bright and bright background colors
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/36?closed=1)
 

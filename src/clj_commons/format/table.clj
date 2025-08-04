@@ -18,8 +18,7 @@
 
   Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
-  (:require [clj-commons.pretty-impl :as impl]
-            [clojure.string :as string]
+  (:require [clojure.string :as string]
             [clj-commons.ansi :refer [pout]]))
 
 (defn- make-bar
@@ -130,11 +129,9 @@
   :key         | keyword/function       | Passed the row data and returns the value for the column (required)
   :title       | String                 | The title for the column
   :title-align | :right, :left, :center | How to pad the title column; default is :center
-  :title-pad   | :left, :right, :both   | How to pad the title column; default is :both to center the title
   :width       | number                 | Width of the column
   :decorator   | function               | May return a font declaration for the cell
   :align       | :right, :left, :center | Defaults to :right except for last column, which aligns :left
-  :pad         | :left, :right, :both   | Defaults to :left except for last column, which pads on the right
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
@@ -147,9 +144,6 @@
 
   :width will be determined as the maximum width of the title or of any
   value in the data.
-
-  :title-align and :align should be used intead of :title-pad and :pad, as support for the
-  later keys may be removed in a future release.
 
   The decorator is a function; it will be
   passed the row index and the value for the column,
@@ -218,11 +212,9 @@
     ;; The title bar itself
     (pout
       row-left
-      (for [{:keys [width title title-pad title-align last?]} columns']
+      (for [{:keys [width title title-align last?]} columns']
         (list [{:width width
-                :pad   (or (impl/align->pad title-align)
-                           title-pad
-                           :both)
+                :align (or title-align :center)
                 :font  header-font} title]
               (when-not last?
                 row-sep)))
@@ -243,15 +235,14 @@
              row-index 0]
         (pout
           row-left
-          (for [{:keys [width key decorator last? align pad]} columns'
+          (for [{:keys [width key decorator last? align]} columns'
                 :let [value (key row)
                       decorator' (or decorator default-decorator)
                       font (when decorator'
                              (decorator' row-index value))]]
             (list [{:font  font
-                    :pad   (or (impl/align->pad align)
-                               pad
-                               (if last? :right :left))
+                    :align (or align
+                               (if last? :left :right))
                     :width width}
                    value]
                   (when-not last?
