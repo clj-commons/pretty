@@ -1,4 +1,4 @@
-## 3.6.0 -- UNRELEASED
+## 3.6.0 -- 4 Aug 2025
 
 *Breaking Changes*
 
