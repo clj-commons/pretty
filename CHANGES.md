@@ -3,10 +3,18 @@
 *Breaking Changes*
 
 * `clj-commons.ansi`:
-  * Support for :pad in `compose` has been removed, use :align
-  * The `pcompose` function has been removed, use `pout` instead
+  * Support for :pad in `compose` has been removed; use :align
+  * The `pcompose` function has been removed; use `pout` instead
 * `clj-commons.format.table`
-  * Likewise, support for :pad and :title-pad in `print-table` has been removed, use :align and :title-align
+  * Likewise, support for :pad and :title-pad in `print-table` has been removed; use :align and :title-align
+
+*Other Changes*
+
+* `clj-commons.format.table\print-table`
+  * The :default-decorator option is now deprecated
+  * New column option :formatter will format a column value to a string or composed string
+  * New :row-deprecator option decorates all columns of a row
+  * Column widths may be calculated even from a composed string
 
 ## 3.5.0 -- 9 Jul 2025
 

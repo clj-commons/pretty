@@ -396,11 +396,12 @@
       [{:font :red
         :width 20} message]
 
-  This will output the value of `message` in red text, padded with spaces on the left to be 20 characters.
+  This will compose to a string that when output produces
+  the value of `message` in red text, padded with spaces on the left to be 20 characters.
 
   `compose` does not truncate a span to a width, it only pads if the span in too short."
   {:added "1.4.0"}
-  [& inputs]
+  ^String [& inputs]
   (compose* inputs))
 
 (defn pout
