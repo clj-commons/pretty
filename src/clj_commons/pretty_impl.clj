@@ -58,18 +58,3 @@
               total-matches (* sub-count (count sub-ids))]
           (recur (+ i total-matches)
                  (conj! result subs')))))))
-
-(comment
-
-  (repetitions identity [:d :a :b :c :a :b :c :f :g :f :g :z])
-  ; => [[1 [:d]] [2 [:a :b :c]] [2 [:f :g]] [1 [:z]]]
-
-  (let [a {:id 'a}
-        b {:id 'b}
-        c {:id 'c}]
-    (repetitions :id [a b a b c a b c a b c c b a]))
-  ; => [[2 [{:id a} {:id b}]] [2 [{:id c} {:id a} {:id b}]] [2 [{:id c}]] [1 [{:id b}]] [1 [{:id a}]]]
-
-  (repetitions identity [])
-  ; => []
-  )
