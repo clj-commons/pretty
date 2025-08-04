@@ -17,6 +17,8 @@
   * Column widths may be calculated even from a composed string
 * `clj-commons.format.exceptions`
   * Previously, individual stack frames that repeated were identified; Pretty can now identify _sequences_ of repeating stack frames
+  
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/60?closed=1)
 
 ## 3.5.0 -- 9 Jul 2025
 
