@@ -64,6 +64,20 @@
     (throw (RuntimeException. "Boom!"))
     (countdown (dec n))))
 
+(defn nested-interloper
+  [f arg]
+  (f arg))
+
+(defn interloper
+  [f arg]
+  (nested-interloper f arg))
+
+(defn countdown-alt
+  [n]
+  (if (zero? n)
+    (throw (RuntimeException. "Big Boom"))
+    (interloper countdown-alt (dec n))))
+
 (defn test-failure
   []
   (report {:type :error :expected nil :actual (make-ex-info)}))
@@ -114,6 +128,13 @@
   (println "\nTesting reporting of repeats:")
   (try (countdown 20)
        (catch Throwable t (e/print-exception t)))
+
+  (println)
+
+  (try (countdown-alt 20)
+       (catch Throwable t (e/print-exception t)))
+
+
   (println "\nBinary output:\n")
   (-> (io/file "test/tiny-clojure.gif")
       .toPath

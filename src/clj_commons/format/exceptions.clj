@@ -4,7 +4,7 @@
             [clojure.set :as set]
             [clojure.string :as str]
             [clj-commons.ansi :refer [compose perr]]
-            [clj-commons.pretty-impl :refer [padding]])
+            [clj-commons.pretty-impl :refer [padding repetitions]])
   (:refer-clojure :exclude [*print-level* *print-length*])
   (:import (java.lang StringBuilder StackTraceElement)
            (clojure.lang Compiler ExceptionInfo Named)
@@ -295,26 +295,6 @@
                  this-frame
                  rest))))))
 
-(defn- is-repeat?
-  [left-frame right-frame]
-  (= (:id left-frame)
-     (:id right-frame)))
-
-(defn- repeating-frame-reducer
-  [output-frames frame]
-  (let [output-count (count output-frames)
-        last-output-index (dec output-count)]
-    (cond
-      (zero? output-count)
-      (conj output-frames frame)
-
-      (is-repeat? (output-frames last-output-index) frame)
-      (update-in output-frames [last-output-index :repeats]
-                 (fnil inc 1))
-
-      :else
-      (conj output-frames frame))))
-
 (def ^:private stack-trace-warning
   (delay
     (perr
@@ -457,8 +437,7 @@
          frame-limit (:frame-limit options)
          elements' (->> elements
                         remove-direct-link-frames
-                        (apply-frame-filter frame-filter)
-                        (reduce repeating-frame-reducer []))]
+                        (apply-frame-filter frame-filter))]
      (if frame-limit
        (take frame-limit elements')
        elements'))))
@@ -557,7 +536,8 @@
         ;; Allow for the colon in frames w/ a line number (this assumes there's at least one)
         max-file-width (inc (max-from rows #(-> % :file length)))
         max-line-width (max-from rows #(-> % :line length))
-        f (fn [{:keys [name file line repeats]}]
+        *lines (volatile! (transient []))
+        format-single-frame (fn [{:keys [name file line]} repeat-count frame-index frame-count]
             (list
               [{:width max-name-width} name]
               " "
@@ -566,10 +546,23 @@
               (when line ":")
               " "
               [{:width max-line-width} line]
-              (when repeats
-                [(:source *fonts*)
-                 (format " (repeats %,d times)" repeats)])))]
-    (interpose "\n" (map f rows))))
+              (when (> repeat-count 1)
+                (cond
+                  (= frame-index 0)
+                  (format " %s (repeats %,d times)"
+                          (if (= 1 frame-count) "─" "┐")
+                          repeat-count)
+
+                   (= frame-index (dec frame-count))
+                  " ┘"
+
+                  :else
+                  " │"))))]
+    (doseq [[repeat-count frames] (repetitions :id stack-trace)
+            [frame-index frame] (map-indexed vector frames)]
+      (vswap! *lines
+             conj! (format-single-frame frame repeat-count frame-index (count frames))))
+    (interpose "\n" (-> *lines deref persistent!))))
 
 (defmulti exception-dispatch
           "The pretty print dispatch function used when formatting exception output (specifically, when
