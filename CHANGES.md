@@ -10,13 +10,14 @@
 
 *Other Changes*
 
-* `clj-commons.format.table\print-table`
+* `clj-commons.format.table/print-table`
   * The :default-decorator option is now deprecated
   * New column option :formatter will format a column value to a string or composed string
   * New :row-deprecator option decorates all columns of a row
   * Column widths may be calculated even from a composed string
 * `clj-commons.format.exceptions`
-  * Previously, individual stack frames that repeated were identified; Pretty can now identify _sequences_ of repeating stack frames
+  * Previously, individual stack frames that repeated were identified; Pretty can now identify _sequences_ of repeating
+    stack frames
   
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/60?closed=1)
 
