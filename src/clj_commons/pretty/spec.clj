@@ -34,11 +34,11 @@
                      :list (s/coll-of keyword? :kind vector?)))
 
 (s/def ::ansi/span-font-full (s/keys
-                               :opt-un [::ansi/font ::ansi/width ::ansi/pad]))
+                               :opt-un [::ansi/font ::ansi/width ::ansi/align]))
+
+(s/def ::ansi/align #{:left :right :center})
 
 (s/def ::ansi/width ::positive-integer)
-
-(s/def ::ansi/pad #{:left :right :both})
 
 (s/def ::ansi/composed-strings (s/and sequential?
                                       (s/* ::ansi/composed-string)))

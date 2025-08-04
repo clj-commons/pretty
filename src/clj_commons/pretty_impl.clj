@@ -13,7 +13,3 @@
   "The control sequence initiator: `ESC [`"
   "\u001b[")
 
-(def align->pad
-  {:left :right
-   :right :left
-   :center :both})

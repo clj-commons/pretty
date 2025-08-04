@@ -42,7 +42,7 @@
   ;; clj -M:lint
 
   :lint
-  {:deps      {clj-kondo/clj-kondo {:mvn/version "2025.06.05"}}
+  {:deps      {clj-kondo/clj-kondo {:mvn/version "2025.07.28"}}
    :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
 
   :nrepl

@@ -18,9 +18,8 @@
 
   Specs are in [[clj-commons.format.table.specs]]."
   {:added "2.3"}
-  (:require [clj-commons.pretty-impl :as impl]
-            [clojure.string :as string]
-            [clj-commons.ansi :refer [pout]]))
+  (:require [clj-commons.ansi :as ansi :refer [pout]]
+            [clojure.string :as string]))
 
 (defn- make-bar
   [width s]
@@ -31,7 +30,9 @@
 
 (defn- default-title
   [key]
-  (-> key name (string/replace "-" " ") string/capitalize))
+  (if (keyword? key)
+    (-> key name (string/replace "-" " ") string/capitalize)
+    ""))
 
 (defn- expand-column
   [column]
@@ -47,14 +48,31 @@
     :else
     column))
 
+(defn- column-width
+  [value key formatter]
+  (let [formatted (-> value key formatter)]
+    (cond
+      (nil? formatted)
+      0
+
+      (string? formatted)
+      (.length ^String formatted)
+
+      ;; A composed string
+
+      :else
+      (binding [ansi/*color-enabled* false]
+        (.length (ansi/compose formatted))))))
+
 (defn- set-width
   [column data]
-  (let [{:keys [key ^String title width]} column
+  (let [{:keys [key ^String title width formatter]
+         :or   {formatter identity}} column
         title-width (.length title)
         width' (if width
                  (max width title-width)
                  (->> data
-                      (map #(-> % key str .length))
+                      (map #(column-width % key formatter))
                       (reduce max title-width)))]
     (assoc column :width width')))
 
@@ -130,11 +148,10 @@
   :key         | keyword/function       | Passed the row data and returns the value for the column (required)
   :title       | String                 | The title for the column
   :title-align | :right, :left, :center | How to pad the title column; default is :center
-  :title-pad   | :left, :right, :both   | How to pad the title column; default is :both to center the title
   :width       | number                 | Width of the column
+  :formatter   | function               | Passed the column value and returns formatted content as a string or composed string
   :decorator   | function               | May return a font declaration for the cell
   :align       | :right, :left, :center | Defaults to :right except for last column, which aligns :left
-  :pad         | :left, :right, :both   | Defaults to :left except for last column, which pads on the right
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
@@ -146,10 +163,7 @@
   converted to spaces.
 
   :width will be determined as the maximum width of the title or of any
-  value in the data.
-
-  :title-align and :align should be used intead of :title-pad and :pad, as support for the
-  later keys may be removed in a future release.
+  formatted value in the data.
 
   The decorator is a function; it will be
   passed the row index and the value for the column,
@@ -162,12 +176,17 @@
   ---                |---             |---
   :columns           | seq of columns | Describes the columns to print
   :style             | map            | Overrides the default styling of the table
-  :default-decorator | function       | Used when a column doesn't define it own decorator
+  :default-decorator | function       | Used when a column doesn't define its own decorator (deprecated)
   :row-annotator     | function       | Can add text immediately after the end of the row
+  :row-decorator     | function       | Decorates all columns
 
   :default-decorator is only used for columns that do not define their own
   decorator.  This can be used, for example, to alternate the background color
   of cells.
+
+  The :row-decorator is passed the row index (from 0) and the row value and returns
+  a font declaration for all columns of the row.  The font declaration for the row
+  wraps around the column-specific font, which wraps around the value.
 
   The :row-annotator is passed the row index and the row data,
   and returns a composed string that is appended immediately after
@@ -177,7 +196,7 @@
   (let [opts' (if (sequential? opts)
                 {:columns opts}
                 opts)
-        {:keys [columns style default-decorator row-annotator]
+        {:keys [columns style default-decorator row-annotator row-decorator]
          :or   {style *default-style*}} opts'
         {:keys [header?
                 footer?
@@ -218,11 +237,9 @@
     ;; The title bar itself
     (pout
       row-left
-      (for [{:keys [width title title-pad title-align last?]} columns']
+      (for [{:keys [width title title-align last?]} columns']
         (list [{:width width
-                :pad   (or (impl/align->pad title-align)
-                           title-pad
-                           :both)
+                :align (or title-align :center)
                 :font  header-font} title]
               (when-not last?
                 row-sep)))
@@ -241,24 +258,31 @@
     (when (seq rows)
       (loop [[row & more-rows] rows
              row-index 0]
-        (pout
-          row-left
-          (for [{:keys [width key decorator last? align pad]} columns'
-                :let [value (key row)
-                      decorator' (or decorator default-decorator)
-                      font (when decorator'
-                             (decorator' row-index value))]]
-            (list [{:font  font
-                    :pad   (or (impl/align->pad align)
-                               pad
-                               (if last? :right :left))
-                    :width width}
-                   value]
-                  (when-not last?
-                    row-sep)))
-          row-right
-          (when row-annotator
-            (row-annotator row-index row)))
+        (let [row-font (when row-decorator
+                         (row-decorator row-index row))]
+          (pout
+            row-left
+            (for [{:keys [width key decorator formatter last? align]
+                   :or   {formatter identity}} columns'
+                  :let [value (-> row key formatter)
+                        decorator' (or decorator default-decorator)
+                        font (when decorator'
+                               (decorator' row-index value))]]
+              ;; The font, if any, from the row decorator is around the value
+              ;; (and around the columns' font from its decorator) but not
+              ;; the row seperator.
+              (list [row-font
+                     [{:font  font
+                       :align (or align
+                                  (if last? :left :right))
+                       :width width}
+                      value]]
+                    (when-not last?
+                      row-sep)))
+            ;; After the last column:
+            row-right
+            (when row-annotator
+              (row-annotator row-index row))))
         (when more-rows
           (recur more-rows (inc row-index)))))
 

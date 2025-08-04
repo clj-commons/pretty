@@ -47,14 +47,10 @@
           :opt-un [::title
                    ::width
                    ::decorator
-                   ::pad
                    ::align
-                   ::title-pad
                    ::title-align]))
 
 (s/def ::align #{:right :left :center})
-(s/def ::pad #{:left :right :both})
-(s/def ::title-pad ::pad)
 (s/def ::title-align ::align)
 
 (s/def ::key ifn?)
@@ -69,4 +65,5 @@
                              :index int?
                              :value any?)
                      :ret (s/nilable ::font-declarationse)))
+
 (s/def ::default-decorator ::decorator)

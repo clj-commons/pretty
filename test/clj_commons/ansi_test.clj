@@ -121,7 +121,7 @@
 
     '("START |"
        [{:width 10
-         :pad   :right} "AAA"]
+         :align   :left} "AAA"]
        "|"
        [{:width 10} "BBB"]
        "|")
@@ -130,7 +130,7 @@
 
     '("START |"
        [{:width 10
-         :pad   :right
+         :align :left
          :font  :green} "A" "A" "A"]
        "|"
        [{:width 10
@@ -141,7 +141,7 @@
 
     '("START |"
        [{:width 10
-         :pad   :right
+         :align :left
          :font  :green} "A" [nil "B"] [:blue "C"]]
        "|"
        [{:width 10
