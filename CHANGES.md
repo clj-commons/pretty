@@ -1,3 +1,10 @@
+## 3.6.2 -- UNRELEASED
+
+- Fix a bug where the horizontal bar for repeated stack frames could be misaligned
+- Hide `clojure.lang.RestFn` stack frames
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/61?closed=1)
+
 ## 3.6.1 -- 4 Aug 2025
 
 Fix a bug where omitted stack frames were printed.

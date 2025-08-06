@@ -116,13 +116,14 @@
  The default rules:
 
  * omit everything in `clojure.lang`, `java.lang.reflect`
- * omit `clojure.core/with-bindings*` and `clojure.core/apply`
+ * hide `clojure.core/with-bindings*` and `clojure.core/apply`, `clojure.lang.RestFn`
  * hide everything in `sun.reflect`
  * omit a number of functions in `clojure.test`
  * terminate at `speclj.*`, `clojure.main/.*`, or `nrepl.middleware.interruptible-eval`
  "
   [[:name "clojure.core/apply" :hide]
    [:id #"\Qclojure.lang.AFn.applyTo\E(Helper)?.*" :hide]
+   [:id #"\Qclojure.lang.RestFn.\E.*" :hide]
    [:package "clojure.lang" :omit]
    [:name "clojure.core/with-bindings*" :hide]
    [:package #"sun\.reflect.*" :hide]
@@ -382,7 +383,6 @@
                    dec)]
     (assoc frame
       :name-width width
-      :line (str line)
       :name [(get *fonts* (clj-frame-font-key frame))
              (->> names' drop-last (str/join "/"))
              "/"
@@ -401,7 +401,7 @@
 
   Formatting is based on whether the frame is omitted, and whether it is a Clojure or Java frame."
   {:added "0.3.0"}
-  [{:keys [file line names repeats] :as frame}]
+  [{:keys [line names] :as frame}]
   (cond
     (:omitted frame)
     (assoc frame
@@ -415,8 +415,7 @@
     (let [full-name (str (:class frame) "." (:method frame))]
       (assoc frame
         :name [(:java-frame *fonts*) full-name]
-        :name-width (length full-name)
-        :line (str line)))
+        :name-width (length full-name)))
 
     :else
     (format-clojure-frame-base frame)))
@@ -536,29 +535,35 @@
         max-name-width (max-from rows :name-width)
         ;; Allow for the colon in frames w/ a line number (this assumes there's at least one)
         max-file-width (inc (max-from rows #(-> % :file length)))
-        max-line-width (max-from rows #(-> % :line length))
+        max-line-width (max-from rows #(-> % :line str length))
         *lines (volatile! (transient []))
         format-single-frame (fn [{:keys [name file line]} repeat-count frame-index frame-count]
-            (list
-              [{:width max-name-width} name]
-              " "
-              [{:width max-file-width
-                :font source-font} file]
-              (when line ":")
-              " "
-              [{:width max-line-width} line]
-              (when (> repeat-count 1)
-                (cond
-                  (= frame-index 0)
-                  (format " %s (repeats %,d times)"
-                          (if (= 1 frame-count) "─" "┐")
-                          repeat-count)
+                              (let [has-repeat? (> repeat-count 1)
+                                    show-line? (or line has-repeat?)
+                                    show-file? (or show-line? file)]
+                                (list
+                                  [{:width max-name-width} name]
+                                  (when show-file?
+                                    (list
+                                      " "
+                                      [{:width max-file-width
+                                        :font  source-font} file]
+                                      (when show-line?
+                                        (list
+                                          (if line ":" " ")
+                                          [{:width max-line-width} line]
+                                          (when (> repeat-count 1)
+                                            (cond
+                                              (= frame-index 0)
+                                              (format " %s (repeats %,d times)"
+                                                      (if (= 1 frame-count) "─" "┐")
+                                                      repeat-count)
 
-                   (= frame-index (dec frame-count))
-                  " ┘"
+                                              (= frame-index (dec frame-count))
+                                              " ┘"
 
-                  :else
-                  " │"))))]
+                                              :else
+                                              " │")))))))))]
     (doseq [[repeat-count frames] (repetitions :id rows)
             [frame-index frame] (map-indexed vector frames)]
       (vswap! *lines

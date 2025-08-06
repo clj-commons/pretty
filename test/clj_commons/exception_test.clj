@@ -69,17 +69,6 @@
                                   "tcp-client"]
                           :package "riemann"
                           :simple-class "client$tcp_client"}
-                         {:class "clojure.lang.RestFn"
-                          :file "RestFn.java"
-                          :id "clojure.lang.RestFn.invoke:408"
-                          :is-clojure? false
-                          :line 408
-                          :method "invoke"
-                          :name ""
-                          :names []
-                          :omitted true
-                          :package "clojure.lang"
-                          :simple-class "RestFn"}
                          {:class "com.example.error_monitor$make_connection"
                           :file "error_monitor.clj"
                           :id "com.example.error-monitor/make-connection:22"
@@ -214,17 +203,6 @@
                                   "-main"]
                           :package "com.example.error_monitor"
                           :simple-class "main$_main"}
-                         {:class "clojure.lang.RestFn"
-                          :file "RestFn.java"
-                          :id "clojure.lang.RestFn.applyTo:137"
-                          :is-clojure? false
-                          :line 137
-                          :method "applyTo"
-                          :name ""
-                          :names []
-                          :omitted true
-                          :package "clojure.lang"
-                          :simple-class "RestFn"}
                          {:class "com.example.error_monitor.main"
                           :file ""
                           :id "com.example.error_monitor.main.main:-1"
