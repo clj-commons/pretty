@@ -65,12 +65,12 @@
     (countdown (dec n))))
 
 (defn nested-interloper
-  [f arg]
-  (f arg))
+  [f & arg]
+  (apply f arg))
 
 (defn interloper
-  [f arg]
-  (nested-interloper f arg))
+  [& args]
+  (apply nested-interloper args))
 
 (defn countdown-alt
   [n]
