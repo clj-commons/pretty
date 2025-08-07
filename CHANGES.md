@@ -1,6 +1,6 @@
 ## 3.6.2 -- 7 Aug 2025
 
-- Fix a bug where the horizontal bar for repeated stack frames could be misaligned
+- Fix a bug where the vertical bar for repeated stack frames could be misaligned
 - Hide `clojure.lang.RestFn` stack frames
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/61?closed=1)
@@ -24,7 +24,7 @@ Fix a bug where omitted stack frames were printed.
 * `clj-commons.format.table/print-table`
   * The :default-decorator option is now deprecated
   * New column option :formatter will format a column value to a string or composed string
-  * New :row-deprecator option decorates all columns of a row
+  * New :row-decorator option decorates all columns of a row
   * Column widths may be calculated even from a composed string
 * `clj-commons.format.exceptions`
   * Previously, individual stack frames that repeated were identified; Pretty can now identify _sequences_ of repeating
