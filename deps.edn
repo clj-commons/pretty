@@ -6,7 +6,6 @@
   ;; clj -X:test
   {:extra-paths ["test"]
    :extra-deps {criterium/criterium                  {:mvn/version "0.4.6"}
-                nrepl/nrepl                          {:mvn/version "1.3.1"}
                 org.clojure/core.async               {:mvn/version "1.8.741"}
                 nubank/matcher-combinators           {:mvn/version "3.9.1"}
                 io.github.tonsky/clj-reload          {:mvn/version "0.9.8"}
@@ -16,10 +15,15 @@
    :exec-args   {:fn cognitect.test-runner.api/test}        ; for :debug
    :exec-fn     cognitect.test-runner.api/test}
 
+  ;; Used when generating the :pom for install & deploy
+  :pom
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.3.1"
+                             :optional    true}}}
+
   ;; clj -T:build <command>
   :build
   {:deps       {io.github.hlship/build-tools
-                {:git/tag "0.11.0" :git/sha "8c67d11"}}
+                {:git/tag "0.12.0" :git/sha "76bde16"}}
    :ns-default build}
 
   :debug
@@ -54,7 +58,9 @@
 
  :net.lewisship.build/scm
  {:url     "https://github.com/clj-commons/pretty"
-  :license :asl}
+  :license :asl
+  :provided-dependencies
+  {nrepl/nrepl "1.3.1"}}
 
  :codox/config
  {:description "Clojure library to help print things, prettily"
