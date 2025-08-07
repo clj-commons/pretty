@@ -1,4 +1,4 @@
-## 3.6.2 -- UNRELEASED
+## 3.6.2 -- 7 Aug 2025
 
 - Fix a bug where the horizontal bar for repeated stack frames could be misaligned
 - Hide `clojure.lang.RestFn` stack frames
