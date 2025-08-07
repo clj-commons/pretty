@@ -23,7 +23,8 @@
   ;; clj -T:build <command>
   :build
   {:deps       {io.github.hlship/build-tools
-                {:git/tag "0.12.0" :git/sha "76bde16"}}
+                {:git/tag "0.12.0" :git/sha "76bde16"}
+                slipset/deps-deploy {:mvn/version "0.2.1"}}
    :ns-default build}
 
   :debug
