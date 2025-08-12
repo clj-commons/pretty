@@ -1,3 +1,10 @@
+## 3.6.3 -- UNRELEASED
+
+- Restore, at least temporarily, the `io.aviso.exception` and `io.aviso.repl shim` namespaces
+- Add a shim for `io.aviso.exception/*traditional*`
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/62?closed=1)
+
 ## 3.6.2 -- 7 Aug 2025
 
 - Fix a bug where the vertical bar for repeated stack frames could be misaligned
