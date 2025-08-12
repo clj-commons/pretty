@@ -1,14 +1,14 @@
-## 3.6.3 -- UNRELEASED
+## 3.6.3 -- 12 Aug 2025
 
-- Restore, at least temporarily, the `io.aviso.exception` and `io.aviso.repl shim` namespaces
-- Add a shim for `io.aviso.exception/*traditional*`
+* Restore the `io.aviso.exception` and `io.aviso.repl shim` namespaces
+* Add a shim for `io.aviso.exception/*traditional*`
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/62?closed=1)
 
 ## 3.6.2 -- 7 Aug 2025
 
-- Fix a bug where the vertical bar for repeated stack frames could be misaligned
-- Hide `clojure.lang.RestFn` stack frames
+* Fix a bug where the vertical bar for repeated stack frames could be misaligned
+* Hide `clojure.lang.RestFn` stack frames
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/61?closed=1)
 
