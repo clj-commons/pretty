@@ -371,8 +371,7 @@
 
 (defn- format-clojure-frame-base
   [frame]
-  (let [{:keys [line]} frame
-        names' (->> frame
+  (let [names' (->> frame
                     :names
                     counted-terms
                     (map counted-frame-name))
@@ -401,7 +400,7 @@
 
   Formatting is based on whether the frame is omitted, and whether it is a Clojure or Java frame."
   {:added "0.3.0"}
-  [{:keys [line names] :as frame}]
+  [{:keys [names] :as frame}]
   (cond
     (:omitted frame)
     (assoc frame
