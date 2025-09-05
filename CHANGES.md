@@ -1,3 +1,8 @@
+## 3.6.4 -- UNRELEASED
+
+* The default layout for tables has been tightened up
+
+
 ## 3.6.3 -- 12 Aug 2025
 
 * Restore the `io.aviso.exception` and `io.aviso.repl shim` namespaces
