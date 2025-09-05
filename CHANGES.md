@@ -1,7 +1,8 @@
-## 3.6.4 -- UNRELEASED
+## 3.6.4 -- 5 Sep 2025
 
 * The default layout for tables has been tightened up
 
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/63?closed=1)
 
 ## 3.6.3 -- 12 Aug 2025
 
