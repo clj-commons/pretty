@@ -81,20 +81,20 @@
   {:header-font   :bold
    :hbar          "─"
    :header?       true
-   :header-left   "┌─"
-   :header-sep    "─┬─"
-   :header-right  "─┐"
+   :header-left   "┌"
+   :header-sep    "┬"
+   :header-right  "┐"
    :divider?      true
-   :divider-left  "├─"
-   :divider-sep   "─┼─"
-   :divider-right "─┤"
-   :row-left      "│ "
-   :row-sep       " │ "
-   :row-right     " │"
+   :divider-left  "├"
+   :divider-sep   "┼"
+   :divider-right "┤"
+   :row-left      "│"
+   :row-sep       "│"
+   :row-right     "│"
    :footer?       true
-   :footer-left   "└─"
-   :footer-sep    "─┴─"
-   :footer-right  "─┘"})
+   :footer-left   "└"
+   :footer-sep    "┴"
+   :footer-right  "┘"})
 
 (def skinny-style
   "Removes most of the borders and uses simple characters for column separators."
@@ -294,4 +294,3 @@
         (when-not last?
           (print footer-sep)))
       (println footer-right))))
-
