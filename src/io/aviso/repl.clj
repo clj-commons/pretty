@@ -13,3 +13,10 @@
 (defn uncaught-exception-handler
   []
   (repl/uncaught-exception-handler))
+
+(defn pretty-print-stack-trace
+  "Replacement for `clojure.stacktrace/print-stack-trace` and `print-cause-trace`. These functions are used by `clojure.test`."
+  ([tr] (repl/pretty-print-stack-trace tr))
+  ([tr n]
+   (println)
+   (repl/pretty-print-stack-trace tr n)))
