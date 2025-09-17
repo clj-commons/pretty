@@ -1,4 +1,4 @@
-## 3.6.5 -- UNRELEASED
+## 3.6.5 -- 17 Sep 2025
 
 Add a missing bridge function to io.aviso.repl, `pretty-print-exception`.
 
