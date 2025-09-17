@@ -1,3 +1,9 @@
+## 3.6.5 -- UNRELEASED
+
+Add a missing bridge function to io.aviso.repl, `pretty-print-exception`.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/64?closed=1)
+
 ## 3.6.4 -- 5 Sep 2025
 
 * The default layout for tables has been tightened up
