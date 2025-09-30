@@ -804,12 +804,12 @@
 
 (def ^:private re-more-frames
   #"(?ix)
-                            \s+
-                            \Q...\E
-                            \s+
-                            \d+
-                            \s+
-                            (?:more|\Qcommon frames omitted\E)")
+    \s+
+    \Q...\E
+    \s+
+    \d+
+    \s+
+    (?:more|\Qcommon frames omitted\E)")
 
 (defn- add-message-text
   [exceptions line]

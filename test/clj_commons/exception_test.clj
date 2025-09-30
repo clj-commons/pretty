@@ -4,7 +4,7 @@
             [clojure.string :as string]
             [clojure.test :refer [deftest is use-fixtures testing]]
             [matcher-combinators.matchers :as m]
-            [clj-commons.ansi :as ansi :refer [*color-enabled*]]
+            [clj-commons.ansi :refer [*color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
             [clj-commons.format.exceptions :as f :refer [*fonts* parse-exception format-exception]]))
 
@@ -612,7 +612,6 @@ failed with ABC123"
         slurp
         (parse-exception nil)
         (f/format-exception* nil)
-        ansi/compose
         string/split-lines)))
 
 (deftest parse-no-message-exception
