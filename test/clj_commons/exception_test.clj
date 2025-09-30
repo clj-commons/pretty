@@ -1,9 +1,10 @@
 (ns clj-commons.exception-test
   (:require [clj-commons.test-common :as tc]
+            [clojure.java.io :as io]
+            [clojure.string :as string]
             [clojure.test :refer [deftest is use-fixtures testing]]
-            [clojure.string :as str]
             [matcher-combinators.matchers :as m]
-            [clj-commons.ansi :refer [*color-enabled*]]
+            [clj-commons.ansi :as ansi :refer [*color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
             [clj-commons.format.exceptions :as f :refer [*fonts* parse-exception format-exception]]))
 
@@ -38,10 +39,10 @@
     (is (= with-fonts-but-no-color
            with-color-but-no-fonts))
 
-    (is (not (str/includes? with-fonts-but-no-color csi)))))
+    (is (not (string/includes? with-fonts-but-no-color csi)))))
 
 (defn parse [& text-lines]
-  (let [text (str/join \newline text-lines)]
+  (let [text (string/join \newline text-lines)]
     (parse-exception text nil)))
 
 (deftest parse-exceptions
@@ -586,7 +587,6 @@ failed with ABC123"
                 "\tat com.datastax.shaded.netty.util.internal.DeadLockProofWorker$1.run(DeadLockProofWorker.java:42) ~store-service.jar:na"
                 "\t... 3 common frames omitted"))))
 
-
 (deftest write-exceptions-with-nil-data
   (testing "Does not fail with a nil ex-info map key"
     (is (re-find #"nil.*nil"
@@ -603,3 +603,204 @@ failed with ABC123"
                      "clojure.core/apply"
                      "clojure.test/run-tests"})
          (set frame-names)))))
+
+(defn parse-and-format
+  [file]
+  (binding [*color-enabled* false]
+    (-> file
+        io/resource
+        slurp
+        (parse-exception nil)
+        (f/format-exception* nil)
+        ansi/compose
+        string/split-lines)))
+
+(deftest parse-no-message-exception
+  (is (match? ["user/x  REPL Input  ┐ (repeats 255 times)"
+               "user/y  REPL Input  ┘"
+               "user/x  REPL Input"
+               "   ..."
+               "java.lang.StackOverflowError:"]
+              (parse-and-format "overflow-exception.txt"))))
+
+(deftest parse-nested-exception
+
+  (is (match? ["                                                                      ..."
+               "                                                      clojure.core/map/fn                       core.clj:2772"
+               "                                                                      ..."
+               "                                                   clojure.test/test-vars                       test.clj: 731"
+               "                                                                      ..."
+               "                                                clojure.test/test-vars/fn                       test.clj: 735"
+               "                                                                      ..."
+               "                                            clojure.test/test-vars/fn{x2}                       test.clj: 735"
+               "                                                    clojure.test/test-var                       test.clj: 717"
+               "                                                 clojure.test/test-var/fn                       test.clj: 717"
+               "                                 integration.pull-request-closed-tests/fn  pull_request_closed_tests.clj:  73"
+               "                                                     state-flow.core/run*                       core.clj: 359"
+               "                        state-flow.helpers.runners/run-with-fn-validation                    runners.clj:   8"
+               "               state-flow.helpers.runners/run-with-fn-validation/fn121504                    runners.clj:   8"
+               "            state-flow.helpers.runners/run-with-fn-validation/fn121504/fn                    runners.clj:   9"
+               "                                                                      ..."
+               "                                                      state-flow.core/run                       core.clj: 324"
+               "                                                     cats.monad.state/run                     state.cljc: 147"
+               "                                 state-flow.state/error-catching-state/fn                      state.clj:  20 ┐ (repeats 2 times)"
+               "                                             cats.monad.exception/wrap/fn                 exception.cljc: 250 │"
+               "                                         cats.monad.exception/exec-try-on                 exception.cljc: 197 │"
+               "                                cats.monad.exception/wrap/fn/func--auto--                 exception.cljc: 250 │"
+               "                                                state-flow.state/reify/fn                      state.clj:  50 ┘"
+               "                                 state-flow.state/error-catching-state/fn                      state.clj:  20"
+               "                                             cats.monad.exception/wrap/fn                 exception.cljc: 250"
+               "                                         cats.monad.exception/exec-try-on                 exception.cljc: 197"
+               "                                cats.monad.exception/wrap/fn/func--auto--                 exception.cljc: 250"
+               "                                                state-flow.state/reify/fn                      state.clj:  47"
+               "                                 state-flow.state/error-catching-state/fn                      state.clj:  20 ┐ (repeats 6 times)"
+               "                                             cats.monad.exception/wrap/fn                 exception.cljc: 250 │"
+               "                                         cats.monad.exception/exec-try-on                 exception.cljc: 197 │"
+               "                                cats.monad.exception/wrap/fn/func--auto--                 exception.cljc: 250 │"
+               "                                                state-flow.state/reify/fn                      state.clj:  50 ┘"
+               "                                                        cats.core/bind/fn                      core.cljc:  97"
+               "                                                  clojure.core/partial/fn                       core.clj:2641"
+               "                           integration.pull-request-closed-tests/fn/-{x3}  pull_request_closed_tests.clj:  78"
+               "                        integration.pull-request-closed-tests/fn/-{x3}/fn  pull_request_closed_tests.clj:  78 ─ (repeats 2 times)"
+               "                        state-flow.helpers.runners/run-with-fn-validation                    runners.clj:   8"
+               "               state-flow.helpers.runners/run-with-fn-validation/fn121504                    runners.clj:   8"
+               "            state-flow.helpers.runners/run-with-fn-validation/fn121504/fn                    runners.clj:   9"
+               "                                                                      ..."
+               "                                                      state-flow.core/run                       core.clj: 324"
+               "                                                     cats.monad.state/run                     state.cljc: 147"
+               "                                 state-flow.state/error-catching-state/fn                      state.clj:  20 ┐ (repeats 2 times)"
+               "                                             cats.monad.exception/wrap/fn                 exception.cljc: 250 │"
+               "                                         cats.monad.exception/exec-try-on                 exception.cljc: 197 │"
+               "                                cats.monad.exception/wrap/fn/func--auto--                 exception.cljc: 250 │"
+               "                                                state-flow.state/reify/fn                      state.clj:  50 ┘"
+               "                                 state-flow.state/error-catching-state/fn                      state.clj:  20 ┐ (repeats 2 times)"
+               "                                             cats.monad.exception/wrap/fn                 exception.cljc: 250 │"
+               "                                         cats.monad.exception/exec-try-on                 exception.cljc: 197 │"
+               "                                cats.monad.exception/wrap/fn/func--auto--                 exception.cljc: 250 │"
+               "                                                state-flow.state/reify/fn                      state.clj:  47 │"
+               "                                 state-flow.state/error-catching-state/fn                      state.clj:  20 │"
+               "                                             cats.monad.exception/wrap/fn                 exception.cljc: 250 │"
+               "                                         cats.monad.exception/exec-try-on                 exception.cljc: 197 │"
+               "                                cats.monad.exception/wrap/fn/func--auto--                 exception.cljc: 250 │"
+               "                                                state-flow.state/reify/fn                      state.clj:  50 ┘"
+               "                                                        cats.core/bind/fn                      core.cljc:  97"
+               "                                  state-flow.helpers.core/with-resource/-                       core.clj:  48"
+               "                    state-flow.helpers.component.kafka/consume-message/fn                      kafka.clj:  55"
+               "                           common-kafka.components.mock-consumer/consume!              mock_consumer.clj: 231"
+               "      common-kafka.components.mock-consumer/eval68623/consume-raw-message              mock_consumer.clj: 155"
+               "   common-kafka.components.mock-consumer/eval68623/consume-raw-message/fn              mock_consumer.clj: 158"
+               "     common-kafka.components.mock-consumer/eval68591/consume-raw-message*              mock_consumer.clj: 143"
+               "  common-kafka.components.mock-consumer/eval68591/consume-raw-message*/fn              mock_consumer.clj: 148"
+               "                      common-kafka.internals.interceptors/eval48533/enter               interceptors.clj:  28"
+               "                   common-kafka.internals.interceptors/eval48533/enter/fn               interceptors.clj:  32"
+               "                    common-kafka.internals.interceptors/eval48507/execute               interceptors.clj:  15"
+               "                 common-kafka.internals.interceptors/eval48507/execute/fn               interceptors.clj:  25"
+               "                                    io.pedestal.interceptor.chain/execute                      chain.clj: 379"
+               "                                  io.pedestal.interceptor.chain/enter-all                      chain.clj: 235"
+               "                                io.pedestal.interceptor.chain/process-all                      chain.clj: 186"
+               "                             io.pedestal.interceptor.chain/process-all/fn                      chain.clj: 188"
+               "                   io.pedestal.interceptor.chain/process-all-with-binding                      chain.clj: 171"
+               "                                      io.pedestal.interceptor.chain/try-f                      chain.clj:  54"
+               "                          common-kafka.interceptors.handler/handler-in/fn                    handler.clj:  42"
+               "                          common-core.fault-tolerance.attempt/attempt-map                    attempt.clj:  60"
+               "                                                      clojure.core/reduce                       core.clj:6964"
+               "                                                                      ..."
+               "                       common-core.fault-tolerance.attempt/attempt-map/fn                    attempt.clj:  63"
+               "                                                  clojure.core/partial/fn                       core.clj:2641"
+               "                             common-kafka.interceptors.handler/handle-one                    handler.clj:  23"
+               "            common-core.protocols.circuit-breaker/with-circuit-breaker/fn            circuit_breaker.clj:  53"
+               "   common-core.fault-tolerance.circuit-breaker.ChannelCircuitBreaker/run*            circuit_breaker.clj: 269"
+               "               common-core.fault-tolerance.circuit-breaker/eval43588/run*            circuit_breaker.clj: 148"
+               "            common-core.fault-tolerance.circuit-breaker/eval43588/run*/fn            circuit_breaker.clj: 150"
+               "               common-core.fault-tolerance.circuit-breaker/eval43560/run1            circuit_breaker.clj: 134"
+               "            common-core.fault-tolerance.circuit-breaker/eval43560/run1/fn            circuit_breaker.clj: 146"
+               "   common-core.fault-tolerance.circuit-breaker/eval43560/run1/fn/attempt!            circuit_breaker.clj: 139"
+               "   common-core.fault-tolerance.circuit-breaker/eval43414/evaluate-command            circuit_breaker.clj:  65"
+               "common-core.fault-tolerance.circuit-breaker/eval43414/evaluate-command/fn            circuit_breaker.clj:  68"
+               "        common-core.protocols.circuit-breaker/with-circuit-breaker/fn{x2}            circuit_breaker.clj:  53"
+               "                     common-kafka.components.consumer/adapt-handler-fn/fn                   consumer.clj: 127"
+               "                       balatro.diplomat.consumer/eval104644/pull-request!                   consumer.clj:  20"
+               "                    balatro.diplomat.consumer/eval104644/pull-request!/fn                   consumer.clj:  22"
+               "        balatro.controllers.github-event/eval104167/pull-request-handler!               github_event.clj:   7"
+               "     balatro.controllers.github-event/eval104167/pull-request-handler!/fn               github_event.clj:  16"
+               "      balatro.diplomat.producer/eval98024/pr-checks-completed-transition!                   producer.clj: 139"
+               "   balatro.diplomat.producer/eval98024/pr-checks-completed-transition!/fn                   producer.clj: 145"
+               "                  common-kafka.components.mock-producer.Producer/produce!              mock_producer.clj: 100"
+               "                 common-kafka.components.mock-producer/eval68275/produce!              mock_producer.clj:  57"
+               "              common-kafka.components.mock-producer/eval68275/produce!/fn              mock_producer.clj:  60"
+               "                      common-kafka.internals.interceptors/eval48559/leave               interceptors.clj:  35"
+               "                   common-kafka.internals.interceptors/eval48559/leave/fn               interceptors.clj:  39"
+               "                    common-kafka.internals.interceptors/eval48507/execute               interceptors.clj:  15"
+               "                 common-kafka.internals.interceptors/eval48507/execute/fn               interceptors.clj:  25"
+               "                                    io.pedestal.interceptor.chain/execute                      chain.clj: 379"
+               "                                  io.pedestal.interceptor.chain/leave-all                      chain.clj: 266"
+               "                               io.pedestal.interceptor.chain/leave-all/fn                      chain.clj: 268"
+               "                     io.pedestal.interceptor.chain/leave-all-with-binding                      chain.clj: 254"
+               "                                      io.pedestal.interceptor.chain/try-f                      chain.clj:  54"
+               "                   common-kafka.interceptors.mock-handler/producer-out/fn               mock_handler.clj:  64"
+               "        common-kafka.interceptors.mock-handler/eval67883/add-to-produced!               mock_handler.clj:  50"
+               "     common-kafka.interceptors.mock-handler/eval67883/add-to-produced!/fn               mock_handler.clj:  52"
+               "            common-kafka.interceptors.mock-handler/eval67822/add-to-atom!               mock_handler.clj:  40"
+               "         common-kafka.interceptors.mock-handler/eval67822/add-to-atom!/fn               mock_handler.clj:  44"
+               "                                                       clojure.core/swap!                       core.clj:2371"
+               "                                                                      ..."
+               "       common-kafka.components.mock-consumer/messages-loopback-watcher/fn              mock_consumer.clj: 297"
+               "   common-kafka.components.mock-consumer/consume-newly-produced-messages!              mock_consumer.clj: 289"
+               " common-kafka.components.mock-consumer/messages-loopback-watcher-consume!              mock_consumer.clj: 249"
+               "                           common-kafka.components.mock-consumer/consume!              mock_consumer.clj: 231"
+               "      common-kafka.components.mock-consumer/eval68623/consume-raw-message              mock_consumer.clj: 155"
+               "   common-kafka.components.mock-consumer/eval68623/consume-raw-message/fn              mock_consumer.clj: 158"
+               "     common-kafka.components.mock-consumer/eval68591/consume-raw-message*              mock_consumer.clj: 143"
+               "  common-kafka.components.mock-consumer/eval68591/consume-raw-message*/fn              mock_consumer.clj: 152"
+               "                common-kafka.interceptors.mock-errors/error-handling-item                mock_errors.clj:  50"
+               "  common-kafka.components.mock-consumer/eval68591/consume-raw-message*/fn              mock_consumer.clj: 148"
+               "                      common-kafka.internals.interceptors/eval48533/enter               interceptors.clj:  28"
+               "                   common-kafka.internals.interceptors/eval48533/enter/fn               interceptors.clj:  32"
+               "                    common-kafka.internals.interceptors/eval48507/execute               interceptors.clj:  15"
+               "                 common-kafka.internals.interceptors/eval48507/execute/fn               interceptors.clj:  25"
+               "                                    io.pedestal.interceptor.chain/execute                      chain.clj: 379"
+               "                                  io.pedestal.interceptor.chain/enter-all                      chain.clj: 235"
+               "                                io.pedestal.interceptor.chain/process-all                      chain.clj: 186"
+               "                             io.pedestal.interceptor.chain/process-all/fn                      chain.clj: 188"
+               "                   io.pedestal.interceptor.chain/process-all-with-binding                      chain.clj: 171"
+               "                                      io.pedestal.interceptor.chain/try-f                      chain.clj:  54"
+               "                          common-kafka.interceptors.handler/handler-in/fn                    handler.clj:  42"
+               "                          common-core.fault-tolerance.attempt/attempt-map                    attempt.clj:  60"
+               "                                                      clojure.core/reduce                       core.clj:6964"
+               "                                                                      ..."
+               "                       common-core.fault-tolerance.attempt/attempt-map/fn                    attempt.clj:  63"
+               "                                                  clojure.core/partial/fn                       core.clj:2641"
+               "                             common-kafka.interceptors.handler/handle-one                    handler.clj:  23"
+               "            common-core.protocols.circuit-breaker/with-circuit-breaker/fn            circuit_breaker.clj:  53"
+               "   common-core.fault-tolerance.circuit-breaker.ChannelCircuitBreaker/run*            circuit_breaker.clj: 269"
+               "               common-core.fault-tolerance.circuit-breaker/eval43588/run*            circuit_breaker.clj: 148"
+               "            common-core.fault-tolerance.circuit-breaker/eval43588/run*/fn            circuit_breaker.clj: 150"
+               "               common-core.fault-tolerance.circuit-breaker/eval43560/run1            circuit_breaker.clj: 134"
+               "            common-core.fault-tolerance.circuit-breaker/eval43560/run1/fn            circuit_breaker.clj: 146"
+               "   common-core.fault-tolerance.circuit-breaker/eval43560/run1/fn/attempt!            circuit_breaker.clj: 139"
+               "   common-core.fault-tolerance.circuit-breaker/eval43414/evaluate-command            circuit_breaker.clj:  65"
+               "common-core.fault-tolerance.circuit-breaker/eval43414/evaluate-command/fn            circuit_breaker.clj:  68"
+               "        common-core.protocols.circuit-breaker/with-circuit-breaker/fn{x2}            circuit_breaker.clj:  53"
+               "                     common-kafka.components.consumer/adapt-handler-fn/fn                   consumer.clj: 127"
+               "                      balatro.diplomat.consumer/eval104673/transition-pr!                   consumer.clj:  44"
+               "                   balatro.diplomat.consumer/eval104673/transition-pr!/fn                   consumer.clj:  48"
+               "         balatro.controllers.pull-request/eval104468/transition-pr-by-id!               pull_request.clj: 184"
+               "      balatro.controllers.pull-request/eval104468/transition-pr-by-id!/fn               pull_request.clj: 190"
+               "               balatro.controllers.pull-request/eval104404/transition-pr!               pull_request.clj: 158"
+               "            balatro.controllers.pull-request/eval104404/transition-pr!/fn               pull_request.clj: 163"
+               "                                                                      ..."
+               "                           balatro.controllers.pull-request/eval104365/fn               pull_request.clj: 137"
+               "         balatro.controllers.pull-request/eval104270/pr-checks-completed!               pull_request.clj:  46"
+               "      balatro.controllers.pull-request/eval104270/pr-checks-completed!/fn               pull_request.clj:  56"
+               "                       balatro.diplomat.github/eval96773/pr-checks-status                     github.clj:  48"
+               "                    balatro.diplomat.github/eval96773/pr-checks-status/fn                     github.clj:  53"
+               "                       balatro.components.github-api/eval96353/pr-checks!                 github_api.clj: 224"
+               "                    balatro.components.github-api/eval96353/pr-checks!/fn                 github_api.clj: 228"
+               "                          balatro.components.github-api/eval96129/get-pr!                 github_api.clj:  83"
+               "                       balatro.components.github-api/eval96129/get-pr!/fn                 github_api.clj:  87"
+               "                    common-github.components.github-api.impl/request-loop                       impl.clj: 131"
+               "                   balatro.components.github-api/eval96129/get-pr!/fn{x2}                 github_api.clj:  87"
+               "              common-github.components.github-api.impl/unhandled-response                       impl.clj:  86"
+               "clojure.lang.ExceptionInfo: GitHub API request to /repos/nubank/giraffe/pulls/123 returned status 2000"
+               "clojure.lang.ExceptionInfo: Error handling item"]
+              (parse-and-format "nested-exception.txt"))))

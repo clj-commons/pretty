@@ -4,7 +4,7 @@
  :aliases
  {:test
   ;; clj -X:test
-  {:extra-paths ["test"]
+  {:extra-paths ["test" "test-resources"]
    :extra-deps  {criterium/criterium                  {:mvn/version "0.4.6"}
                  org.clojure/core.async               {:mvn/version "1.8.741"}
                  nubank/matcher-combinators           {:mvn/version "3.9.2"}
