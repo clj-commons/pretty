@@ -1,4 +1,4 @@
-## 3.6.6 -- UNRELEASED
+## 3.6.6 -- 30 Sep 2025
 
 Improved `clj-commons.format.exceptions/parse-exception` to deal with exception text changes
 in more recent JREs.
