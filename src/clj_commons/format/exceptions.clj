@@ -773,18 +773,43 @@
 
 (def ^:private re-exception-start
   "The start of an exception, possibly the outermost exception."
-  #"(Caused by: )?(\w+(\.\w+)*): (.*)"
-  ; Group 2 - exception name
-  ; Group 4 - exception message
-  )
+  #"(?ix)
+  (?:caused \s by: \s)?
+  (\w+(?:\.\w+)*)    # Group 1 - exception name
+  (?:
+    : \s
+    (.*))?           # Group 2 - exception message (or nil)")
 
 (def ^:private re-stack-frame
   ;; Sometimes the file name and line number are replaced with "Unknown source"
-  #"\s+at ([a-zA-Z_.$\d<>]+)\(((.+):(\d+))?.*\).*"
-  ; Group 1 - class and method name
-  ; Group 3 - file name (or nil)
-  ; Group 4 - line number (or nil)
-  )
+  #"(?ix)
+  \s+
+  at
+  \s
+  (?:
+    [a-z.]+/)?               # java.base/ prefix
+  ([a-z_.$\d<>]+)            # Group 1 - class and method name
+  \(
+  (?:
+    (?:
+      (.+)                     # Group 2 - file name
+      :
+      (\d+)                    # Group 3 - line number
+    )?
+    .*                         # match \"Native Method\" if no file/line
+   )
+   \)
+   .*                        # Extra text (older JRE JAR and version data?)
+   ")
+
+(def ^:private re-more-frames
+  #"(?ix)
+    \s+
+    \Q...\E
+    \s+
+    \d+
+    \s+
+    (?:more|\Qcommon frames omitted\E)")
 
 (defn- add-message-text
   [exceptions line]
@@ -815,7 +840,7 @@
 (defn parse-exception
   "Given a chunk of text from an exception report (as with `.printStackTrace`), attempts to
   piece together the same information provided by [[analyze-exception]].  The result
-  is ready to pass to [[write-exception*]].
+  is ready to pass to [[format-exception*]].
 
   This code does not attempt to recreate properties associated with the exceptions; in most
   exception's cases, this is not necessarily written to the output. For clojure.lang.ExceptionInfo,
@@ -844,7 +869,7 @@
         (condp = state
 
           :start
-          (let [[_ _ exception-class-name _ exception-message] (re-matches re-exception-start line)]
+          (let [[_ exception-class-name exception-message] (re-matches re-exception-start line)]
             (when-not exception-class-name
               (throw (ex-info "Unable to parse start of exception."
                               {:line line
@@ -869,7 +894,7 @@
                    stack-trace-batch))
 
           :stack-frame
-          (let [[_ class-and-method _ file-name line-number] (re-matches re-stack-frame line)]
+          (let [[_ class-and-method file-name line-number] (re-matches re-stack-frame line)]
             (if class-and-method
               (recur :stack-frame
                      more-lines
@@ -888,7 +913,7 @@
                      [])))
 
           :skip-more-line
-          (if (re-matches #"\s+\.\.\. \d+ (more|common frames omitted)" line)
+          (if (re-matches re-more-frames line)
             (recur :start more-lines
                    exceptions stack-trace stack-trace-batch)
             (recur :start lines

@@ -1,3 +1,10 @@
+## 3.6.6 -- UNRELEASED
+
+Improved `clj-commons.format.exceptions/parse-exception` to deal with exception text changes
+in more recent JREs.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/65?closed=1)
+
 ## 3.6.5 -- 17 Sep 2025
 
 Add a missing bridge function to io.aviso.repl, `pretty-print-exception`.
