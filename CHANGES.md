@@ -1,6 +1,8 @@
-## 3.6.7 -- UNRELEASED
+## 3.6.7 -- 3 Oct 2025
 
 Adderd a :traditional option when printing or formatting exceptions.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/66?closed=1)
 
 ## 3.6.6 -- 30 Sep 2025
 
