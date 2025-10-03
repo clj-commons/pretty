@@ -1,3 +1,7 @@
+## 3.6.7 -- UNRELEASED
+
+Adderd a :traditional option when printing or formatting exceptions.
+
 ## 3.6.6 -- 30 Sep 2025
 
 Improved `clj-commons.format.exceptions/parse-exception` to deal with exception text changes

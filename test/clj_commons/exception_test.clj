@@ -605,14 +605,16 @@ failed with ABC123"
          (set frame-names)))))
 
 (defn parse-and-format
-  [file]
-  (binding [*color-enabled* false]
-    (-> file
-        io/resource
-        slurp
-        (parse-exception nil)
-        (f/format-exception* nil)
-        string/split-lines)))
+  ([file]
+   (parse-and-format file nil))
+  ([file options]
+   (binding [*color-enabled* false]
+     (-> file
+         io/resource
+         slurp
+         (parse-exception options)
+         (f/format-exception* options)
+         string/split-lines))))
 
 (deftest parse-no-message-exception
   (is (match? ["user/x  REPL Input  ┐ (repeats 255 times)"
@@ -621,6 +623,15 @@ failed with ABC123"
                "   ..."
                "java.lang.StackOverflowError:"]
               (parse-and-format "overflow-exception.txt"))))
+
+(deftest parse-no-message-exception-traditional
+  (is (match? ["java.lang.StackOverflowError:"
+               ""
+               "   ..."
+               "user/x  REPL Input  ┐ (repeats 255 times)"
+               "user/y  REPL Input  ┘"
+               "user/x  REPL Input"]
+              (parse-and-format "overflow-exception.txt" {:traditional true}))))
 
 (deftest parse-nested-exception
 

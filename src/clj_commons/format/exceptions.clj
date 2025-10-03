@@ -642,11 +642,13 @@
 (defn- render-exception
   [exception-stack options]
   (let [{show-properties? :properties
-         :or {show-properties? true}} options
+         :keys [traditional]
+         :or {show-properties? true
+              traditional *traditional*}} options
         exception-font (:exception *fonts*)
         message-font (:message *fonts*)
         property-font (:property *fonts*)
-        modern? (not *traditional*)
+        modern? (not traditional)
         max-class-name-width (max-from exception-stack #(-> % :class-name length))
         message-indent (+ 2 max-class-name-width)
         exception-f (fn [{:keys [class-name message properties]}]
@@ -678,7 +680,7 @@
                      "\n")
         root-stack-trace (-> exception-stack last :stack-trace)]
     (list
-      (when *traditional*
+      (when traditional
         exceptions)
 
       (build-stack-trace-output root-stack-trace modern?)
@@ -707,18 +709,20 @@
   :filter      | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
   :properties  | If true (the default) then properties of exceptions will be output
   :frame-limit | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
+  :traditional | If true, the use the traditional Java ordering of stack frames.
 
-  Output may be traditional or modern, as controlled by [[*traditional*]].
+  Output may be traditional or modern, as controlled by the :traditonal option
+  (which defaults to the value of [[*traditional*]]).
+
   Traditional is the typical output order for Java: the stack of exceptions comes first (outermost to
   innermost) followed by the stack trace of the innermost exception, with the frames
   in order from deepest to most shallow.
 
-  Modern output is more readable; the stack trace comes first and is reversed: shallowest frame to most deep.
+  Modern output is the default: the stack trace comes first and is reversed: shallowest frame to most deep.
   Then the exception stack is output, from the root exception to the outermost exception.
   The modern output order is more readable, as it puts the most useful information together at the bottom, so that
-  it is not necessary to scroll back to see, for example, where the exception occurred.
-
-  The default is modern.
+  it is not necessary to scroll back to see, for example, where the exception occurred, and more sensible,
+  since it reflects a chronological order.
 
   The stack frame filter is passed the map detailing each stack frame
   in the stack trace, and must return one of the following values:
