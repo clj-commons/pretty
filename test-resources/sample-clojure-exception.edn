@@ -1,0 +1,69 @@
+{:clojure.main/message
+ "Execution error (ExceptionInfo) at expand-bom/ensure-unique-dependencies! (expand_bom.clj:78).\nConflicts in managed dependencies\n",
+ :clojure.main/triage
+ {:clojure.error/class clojure.lang.ExceptionInfo,
+  :clojure.error/line 78,
+  :clojure.error/cause "Conflicts in managed dependencies",
+  :clojure.error/symbol expand-bom/ensure-unique-dependencies!,
+  :clojure.error/source "expand_bom.clj",
+  :clojure.error/phase :execution},
+ :clojure.main/trace
+ {:via
+  [{:type clojure.lang.Compiler$CompilerException,
+    :message
+    "Syntax error macroexpanding at (/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj:1:125).",
+    :data
+    {:clojure.error/phase :execution,
+     :clojure.error/line 1,
+     :clojure.error/column 125,
+     :clojure.error/source
+     "/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj"},
+    :at [clojure.lang.Compiler load "Compiler.java" 8235]}
+   {:type clojure.lang.ExceptionInfo,
+    :message "Conflicts in managed dependencies",
+    :data
+    {:conflicts
+     #{#{{:coordinates [org.apache.httpcomponents/httpclient "4.5.14"],
+          :source :manually-managed}}}},
+    :at
+    [expand_bom$ensure_unique_dependencies_BANG_
+     invokeStatic
+     "expand_bom.clj"
+     78]}],
+  :trace
+  [[expand_bom$ensure_unique_dependencies_BANG_
+    invokeStatic
+    "expand_bom.clj"
+    78]
+   [expand_bom$ensure_unique_dependencies_BANG_
+    invoke
+    "expand_bom.clj"
+    65]
+   [expand_bom$import_boms invokeStatic "expand_bom.clj" 95]
+   [expand_bom$import_boms doInvoke "expand_bom.clj" 90]
+   [clojure.lang.RestFn invoke "RestFn.java" 424]
+   [clojure.lang.Var invoke "Var.java" 390]
+   [user$eval2648 invokeStatic "form-init4939043928554804837.clj" 1]
+   [user$eval2648 invoke "form-init4939043928554804837.clj" 1]
+   [clojure.lang.Compiler eval "Compiler.java" 7757]
+   [clojure.lang.Compiler eval "Compiler.java" 7747]
+   [clojure.lang.Compiler load "Compiler.java" 8223]
+   [clojure.lang.Compiler loadFile "Compiler.java" 8161]
+   [clojure.main$load_script invokeStatic "main.clj" 476]
+   [clojure.main$init_opt invokeStatic "main.clj" 478]
+   [clojure.main$init_opt invoke "main.clj" 478]
+   [clojure.main$initialize invokeStatic "main.clj" 509]
+   [clojure.main$null_opt invokeStatic "main.clj" 543]
+   [clojure.main$null_opt invoke "main.clj" 540]
+   [clojure.main$main invokeStatic "main.clj" 665]
+   [clojure.main$main doInvoke "main.clj" 617]
+   [clojure.lang.RestFn applyTo "RestFn.java" 140]
+   [clojure.lang.Var applyTo "Var.java" 707]
+   [clojure.main main "main.java" 40]],
+  :cause "Conflicts in managed dependencies",
+  :data
+  {:conflicts
+   #{#{{:coordinates [org.apache.httpcomponents/httpclient "4.5.14"],
+        :source :manually-managed}}}},
+  :phase :execution}}
+

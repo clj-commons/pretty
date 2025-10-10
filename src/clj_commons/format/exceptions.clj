@@ -1,6 +1,7 @@
 (ns clj-commons.format.exceptions
   "Format and output exceptions in a pretty (structured, formatted) way."
-  (:require [clojure.pprint :as pp]
+  (:require [clojure.edn :as edn]
+            [clojure.pprint :as pp]
             [clojure.set :as set]
             [clojure.string :as str]
             [clj-commons.ansi :refer [compose perr]]
@@ -615,11 +616,11 @@
 
 
 (defn- format-property-value
-  [indentation value]
+  [indentation print-level print-length value]
   (let [pretty-value (pp/write value
                                :stream nil
-                               :length *print-length*
-                               :level *print-level*
+                               :length print-length
+                               :level print-level
                                :dispatch exception-dispatch)]
     (indented-value indentation pretty-value)))
 
@@ -642,8 +643,10 @@
 (defn- render-exception
   [exception-stack options]
   (let [{show-properties? :properties
-         :keys [traditional]
+         :keys            [traditional print-level print-length]
          :or {show-properties? true
+              print-level      *print-level*
+              print-length     *print-length*
               traditional *traditional*}} options
         exception-font (:exception *fonts*)
         message-font (:message *fonts*)
@@ -672,7 +675,7 @@
                                            :font property-font} k]
                                          ": "
                                          [property-font
-                                          (format-property-value value-indent (get properties' k))]))
+                                          (format-property-value value-indent print-level print-length (get properties' k))]))
                                  sorted-keys)))
                         "\n"))
         exceptions (list
@@ -704,12 +707,14 @@
 
   The options map may have the following keys:
 
-  Key          | Description
-  ---          |---
-  :filter      | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
-  :properties  | If true (the default) then properties of exceptions will be output
-  :frame-limit | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
-  :traditional | If true, the use the traditional Java ordering of stack frames.
+  Key           | Description
+  ---           |---
+  :filter       | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
+  :properties   | If true (the default) then properties of exceptions will be output
+  :frame-limit  | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
+  :traditional  | If true, the use the traditional Java ordering of stack frames.
+  :print-level  | Override [[*print-level*]]
+  :print-length | Override [[*print-length*]]
 
   Output may be traditional or modern, as controlled by the :traditonal option
   (which defaults to the value of [[*traditional*]]).
@@ -841,26 +846,39 @@
                        :line-number line-number}
                       t)))))
 
-(defn parse-exception
-  "Given a chunk of text from an exception report (as with `.printStackTrace`), attempts to
-  piece together the same information provided by [[analyze-exception]].  The result
-  is ready to pass to [[format-exception*]].
+(defn- edn->exception-map
+  [m]
+  (let [{:keys [message type data]} m]
+    (cond-> {:class-name (name type)
+             :message    message}
+            (seq data) (assoc-in [:properties :data] data))))
 
-  This code does not attempt to recreate properties associated with the exceptions; in most
-  exception's cases, this is not necessarily written to the output. For clojure.lang.ExceptionInfo,
-  it is hard to distinguish the message text from the printed exception map.
+(defn- edn->frame
+  [data]
+  (let [[class-name method-name source-file line-number] data]
+    (StackTraceElement. (name class-name)
+                        (name method-name)
+                        source-file
+                        (int line-number))))
 
-  The options are used when processing the stack trace and may include the :filter and :frame-limit keys.
+(defn- parse-edn-stacktrace
+  [s options]
+  (let [data (try
+               (edn/read-string s)
+               (catch Throwable _
+                 nil))
+        root-trace (:clojure.main/trace data)]
+    (when root-trace
+      (let [{:keys [via trace]} root-trace
+            exceptions (mapv edn->exception-map via)
+            *cache (volatile! {})
+            stack-trace (->> trace
+                             (map edn->frame)
+                             (map #(transform-stack-trace-element current-dir-prefix *cache %)))
+            stack-trace' (filter-stack-trace-maps stack-trace options)]
+        (update exceptions (-> exceptions count dec) assoc :stack-trace stack-trace')))))
 
-  Returns a sequence of exception maps; the final map will include the :stack-trace key (a vector
-  of stack trace element maps).  The exception maps are ordered outermost to innermost (that final map
-  is the root exception).
-
-  This should be considered experimental code; there are many cases where it may not work properly.
-
-  It will work quite poorly with exceptions whose message incorporates a nested exception's
-  .printStackTrace output. This happens too often with JDBC exceptions, for example."
-  {:added "0.1.21"}
+(defn- parse-print-stack-trace-output
   [exception-text options]
   (loop [state :start
          lines (str/split-lines exception-text)
@@ -876,7 +894,7 @@
           (let [[_ exception-class-name exception-message] (re-matches re-exception-start line)]
             (when-not exception-class-name
               (throw (ex-info "Unable to parse start of exception."
-                              {:line line
+                              {:line           line
                                :exception-text exception-text})))
 
             ;; The exception message may span a couple of lines, so check for that before absorbing
@@ -884,7 +902,7 @@
             (recur :exception-message
                    more-lines
                    (conj exceptions {:class-name exception-class-name
-                                     :message exception-message})
+                                     :message    exception-message})
                    stack-trace
                    stack-trace-batch))
 
@@ -922,6 +940,35 @@
                    exceptions stack-trace stack-trace-batch)
             (recur :start lines
                    exceptions stack-trace stack-trace-batch)))))))
+
+(defn parse-exception
+  "Given a chunk of text from an exception report, attempts to
+  piece together the same information provided by [[analyze-exception]].  The result
+  is ready to pass to [[format-exception*]].
+
+  An exception report may be in two forms:
+
+  * The output from Exception/printStackTrace
+  * The EDN report generated by the `clojure` or `clj` commands
+
+  For printStackTrace output, this does not attempt to recreate properties associated with the exceptions; in most
+  exception's cases, this is not necessarily written to the output. For clojure.lang.ExceptionInfo,
+  it is hard to distinguish the message text from the printed exception map.
+
+  The options are used when processing the stack trace and may include the :filter and :frame-limit keys.
+
+  Returns a sequence of exception maps; the final map will include the :stack-trace key (a vector
+  of stack trace element maps).  The exception maps are ordered outermost to innermost (that final map
+  is the root exception).
+
+  This should be considered experimental code; there are many cases where it may not work properly.
+
+  It will work quite poorly with exceptions whose message incorporates a nested exception's
+  .printStackTrace output. This happens too often with JDBC exceptions, for example."
+  {:added "0.1.21"}
+  [exception-text options]
+  (or (parse-edn-stacktrace exception-text options)
+      (parse-print-stack-trace-output exception-text options)))
 
 (defn format-stack-trace-element
   "Formats a stack trace element into a single string identifying the Java method or Clojure function being executed."
