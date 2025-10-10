@@ -836,5 +836,14 @@ failed with ABC123"
                "                expand-bom/import-boms  expand_bom.clj:  95"
                "expand-bom/ensure-unique-dependencies!  expand_bom.clj:  78"
                "             clojure.lang.ExceptionInfo: Conflicts in managed dependencies"
-               "clojure.lang.Compiler$CompilerException: Syntax error macroexpanding at (/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj:1:125)."]
-              (parse-and-format "sample-clojure-exception.edn" {:filter (constantly :show)}))))
+               "    data: {:conflicts"
+               "       #{#{{:coordinates [org.apache.httpcomponents/httpclient \"4.5.14\"],"
+               "            :source :manually-managed}}}}"
+               "clojure.lang.Compiler$CompilerException: Syntax error macroexpanding at (/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj:1:125)."
+               "    data: #:clojure.error{:phase :execution,"
+               "                      :line 1,"
+               "                      :column 125,"
+               "                      :source"
+               "                      \"/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj\"}"]
+              (parse-and-format "sample-clojure-exception.edn" {:print-level 10
+                                                                :filter      (constantly :show)}))))

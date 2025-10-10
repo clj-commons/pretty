@@ -616,11 +616,11 @@
 
 
 (defn- format-property-value
-  [indentation value]
+  [indentation print-level print-length value]
   (let [pretty-value (pp/write value
                                :stream nil
-                               :length *print-length*
-                               :level *print-level*
+                               :length print-length
+                               :level print-level
                                :dispatch exception-dispatch)]
     (indented-value indentation pretty-value)))
 
@@ -643,8 +643,10 @@
 (defn- render-exception
   [exception-stack options]
   (let [{show-properties? :properties
-         :keys [traditional]
+         :keys            [traditional print-level print-length]
          :or {show-properties? true
+              print-level      *print-level*
+              print-length     *print-length*
               traditional *traditional*}} options
         exception-font (:exception *fonts*)
         message-font (:message *fonts*)
@@ -673,7 +675,7 @@
                                            :font property-font} k]
                                          ": "
                                          [property-font
-                                          (format-property-value value-indent (get properties' k))]))
+                                          (format-property-value value-indent print-level print-length (get properties' k))]))
                                  sorted-keys)))
                         "\n"))
         exceptions (list
@@ -705,12 +707,14 @@
 
   The options map may have the following keys:
 
-  Key          | Description
-  ---          |---
-  :filter      | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
-  :properties  | If true (the default) then properties of exceptions will be output
-  :frame-limit | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
-  :traditional | If true, the use the traditional Java ordering of stack frames.
+  Key           | Description
+  ---           |---
+  :filter       | The stack frame filter, which defaults to [[*default-stack-frame-filter*]]
+  :properties   | If true (the default) then properties of exceptions will be output
+  :frame-limit  | If non-nil, the number of stack frames to keep when outputting the stack trace of the deepest exception
+  :traditional  | If true, the use the traditional Java ordering of stack frames.
+  :print-level  | Override [[*print-level*]]
+  :print-length | Override [[*print-length*]]
 
   Output may be traditional or modern, as controlled by the :traditonal option
   (which defaults to the value of [[*traditional*]]).
@@ -845,9 +849,9 @@
 (defn- edn->exception-map
   [m]
   (let [{:keys [message type data]} m]
-    {:class-name (name type)
-     :message    message
-     :data       data}))
+    (cond-> {:class-name (name type)
+             :message    message}
+            (seq data) (assoc-in [:properties :data] data))))
 
 (defn- edn->frame
   [data]
