@@ -814,3 +814,27 @@ failed with ABC123"
                "clojure.lang.ExceptionInfo: GitHub API request to /repos/nubank/giraffe/pulls/123 returned status 2000"
                "clojure.lang.ExceptionInfo: Error handling item"]
               (parse-and-format "nested-exception.txt"))))
+
+(deftest clojure-tool-report
+  (is (match? ["                     clojure.main.main       main.java:  40"
+               "              clojure.lang.Var.applyTo        Var.java: 707"
+               "           clojure.lang.RestFn.applyTo     RestFn.java: 140"
+               "                     clojure.main/main        main.clj: 617"
+               "                     clojure.main/main        main.clj: 665"
+               "                 clojure.main/null-opt        main.clj: 543"
+               "               clojure.main/initialize        main.clj: 509"
+               "                 clojure.main/init-opt        main.clj: 478"
+               "              clojure.main/load-script        main.clj: 476"
+               "        clojure.lang.Compiler.loadFile   Compiler.java:8161"
+               "            clojure.lang.Compiler.load   Compiler.java:8223"
+               "            clojure.lang.Compiler.eval   Compiler.java:7747"
+               "            clojure.lang.Compiler.eval   Compiler.java:7757"
+               "                         user/eval2648      REPL Input"
+               "               clojure.lang.Var.invoke        Var.java: 390"
+               "            clojure.lang.RestFn.invoke     RestFn.java: 424"
+               "                expand-bom/import-boms  expand_bom.clj:  90"
+               "                expand-bom/import-boms  expand_bom.clj:  95"
+               "expand-bom/ensure-unique-dependencies!  expand_bom.clj:  78"
+               "             clojure.lang.ExceptionInfo: Conflicts in managed dependencies"
+               "clojure.lang.Compiler$CompilerException: Syntax error macroexpanding at (/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj:1:125)."]
+              (parse-and-format "sample-clojure-exception.edn" {:filter (constantly :show)}))))
