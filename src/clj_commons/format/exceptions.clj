@@ -668,9 +668,10 @@
                                 sorted-keys (cond-> (keys properties')
                                                     (not (sorted? properties')) sort)
                                 max-key-width (max-from sorted-keys length)
-                                value-indent (+ 2 max-key-width)]
+                                ;; two space indent, then ": " separator
+                                value-indent (+ 4 max-key-width)]
                             (map (fn [k]
-                                   (list "\n    "
+                                   (list "\n  "
                                          [{:width max-key-width
                                            :font property-font} k]
                                          ": "
