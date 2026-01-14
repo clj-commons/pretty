@@ -4,6 +4,7 @@
             [clojure.string :as string]
             [clojure.test :refer [deftest is use-fixtures testing]]
             [matcher-combinators.matchers :as m]
+            [matcher-combinators.test :refer [match?]]
             [clj-commons.ansi :refer [*color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
             [clj-commons.format.exceptions :as f :refer [*fonts* parse-exception format-exception]]))
