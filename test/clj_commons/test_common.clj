@@ -1,7 +1,6 @@
 (ns clj-commons.test-common
   (:require clj-commons.pretty.spec
             [clojure.spec.test.alpha :as stest]
-            matcher-combinators.clj-test
             [clj-commons.ansi :as ansi]))
 
 (defn spec-fixture

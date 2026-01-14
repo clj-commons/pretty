@@ -3,6 +3,7 @@
             [clj-commons.ansi :as ansi]
             [clj-commons.test-common :as tc]
             [clj-commons.pretty.annotations :as a :refer [callouts default-style annotate-lines]]
+            [matcher-combinators.test :refer [match?]]
             [matcher-combinators.matchers :as m])
   (:import (clojure.lang ExceptionInfo)))
 
@@ -224,9 +225,3 @@
 (deftest wrong-marker-type
   (is (thrown-with-msg? ExceptionInfo #"Marker should be a function or a string"
                         (extend-marker 0 5))))
-
-
-
-
-
-

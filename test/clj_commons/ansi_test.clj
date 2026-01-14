@@ -1,15 +1,15 @@
 (ns clj-commons.ansi-test
-  (:require [clj-commons.ansi :as ansi]
-            [clj-commons.test-common :as tc]
+  (:require [clj-commons.test-common :as tc]
             [clojure.string :as str]
             [clojure.test :refer [deftest is are use-fixtures]]
-            [clj-commons.ansi :refer [compose *color-enabled*]]
+            [clj-commons.ansi  :as ansi :refer [compose *color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
+            [matcher-combinators.test :refer [match?]]
             [matcher-combinators.matchers :as m]))
 
 (use-fixtures :once tc/spec-fixture tc/force-ansi-fixture)
 
-(deftest sanity-check
+(deftest sanity-check-color-is-enabled
   (is (= true *color-enabled*)))
 
 (defn- safe-compose*

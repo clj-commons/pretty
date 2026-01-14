@@ -4,6 +4,7 @@
             [clj-commons.format.binary :as b]
             [clj-commons.test-common :as tc]
             [clojure.string :as string]
+            [matcher-combinators.test :refer [match?]]
             [clojure.test :refer [deftest is are use-fixtures]])
   (:import (java.nio ByteBuffer)))
 
