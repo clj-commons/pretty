@@ -1,14 +1,12 @@
 {:paths ["src"]
- :deps  {org.clojure/clojure {:mvn/version "1.12.2"}}
+ :deps  {org.clojure/clojure {:mvn/version "1.12.4"}}
 
  :aliases
  {:test
   ;; clj -X:test
   {:extra-paths ["test" "test-resources"]
-   :extra-deps  {criterium/criterium                  {:mvn/version "0.4.6"}
-                 org.clojure/core.async               {:mvn/version "1.8.741"}
+   :extra-deps  {org.clojure/core.async               {:mvn/version "1.8.741"}
                  nubank/matcher-combinators           {:mvn/version "3.9.2"}
-                 io.github.tonsky/clj-reload          {:mvn/version "0.9.8"}
                  io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                        :git/sha "dfb30dd"}}
    :jvm-opts    ["-Dclj-commons.ansi.enabled=true"]
@@ -17,7 +15,7 @@
 
   ;; Used when generating the :pom for install & deploy
   :pom
-  {:extra-deps {nrepl/nrepl {:mvn/version "1.4.0"
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.5.2"
                              :optional    true}}}
 
   ;; clj -T:build <command>
@@ -36,7 +34,12 @@
   :1.10
   {:override-deps {org.clojure/clojure ^:antq/exclude {:mvn/version "1.10.3"}}}
 
-  ;; clj -M:test:demo
+  :dev
+  {:extra-paths ["dev"]
+   :extra-deps  {criterium/criterium         {:mvn/version "0.4.6"}
+                 io.github.tonsky/clj-reload {:mvn/version "1.0.0"}}}
+
+  ;; clj -M:dev:demo
   :demo
   {:main-opts ["-m" "demo"]}
 
@@ -46,11 +49,11 @@
   ;; clj -M:lint
 
   :lint
-  {:deps      {clj-kondo/clj-kondo {:mvn/version "2025.07.28"}}
-   :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
+  {:deps      {clj-kondo/clj-kondo {:mvn/version "2026.01.12"}}
+   :main-opts ["-m" "clj-kondo.main" "--lint" "src" "test"]}
 
   :nrepl
-  {:extra-deps {nrepl/nrepl {:mvn/version "1.4.0"}}
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.5.2"}}
    :main-opts  ["-m" "nrepl.cmdline"]}
 
   :repl

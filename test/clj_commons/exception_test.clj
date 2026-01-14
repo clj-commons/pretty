@@ -601,7 +601,7 @@ failed with ABC123"
          ;; A few sample Java and Clojure frame names
          (m/embeds #{"java.lang.Thread.getStackTrace"
                      "clojure.core/apply"
-                     "clojure.test/run-tests"})
+                     "clojure.test/test-var"})
          (set frame-names)))))
 
 (defn parse-and-format

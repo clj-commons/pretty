@@ -1,4 +1,3 @@
-(ns user
-  (:require matcher-combinators.clj-test))
+(ns user)
 
 (alter-var-root #'*warn-on-reflection* (constantly true))

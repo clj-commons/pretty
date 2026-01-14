@@ -9,8 +9,7 @@
     [clojure.java.io :as io]
     [clojure.repl :refer [pst]]
     [criterium.core :as c]
-    playground
-    [clojure.test :refer [report deftest is]])
+    playground)
   (:import
     (java.nio.file Files)
     (java.sql SQLException)))
@@ -78,10 +77,6 @@
     (throw (RuntimeException. "Big Boom"))
     (interloper countdown-alt (dec n))))
 
-(defn test-failure
-  []
-  (report {:type :error :expected nil :actual (make-ex-info)}))
-
 (defn fake-jdbc-error
   []
   (run! pout
@@ -136,7 +131,7 @@
 
 
   (println "\nBinary output:\n")
-  (-> (io/file "test/tiny-clojure.gif")
+  (-> (io/file "test-resources/tiny-clojure.gif")
       .toPath
       Files/readAllBytes
       (b/print-binary {:ascii true}))
@@ -157,17 +152,6 @@
     routes)
 
   (println))
-
-(deftest fail-wrong-exception
-  (is (thrown? IllegalArgumentException
-               (jdbc-update))))
-
-(deftest error-thrown-exception
-  (jdbc-update))
-
-(deftest fail-wrong-message
-  (is (thrown-with-msg? SQLException #"validation failure"
-                        (jdbc-update))))
 
 (comment
 

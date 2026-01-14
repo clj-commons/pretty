@@ -7,7 +7,7 @@
             [clojure.test :refer [deftest is are use-fixtures]])
   (:import (java.nio ByteBuffer)))
 
-(use-fixtures :once tc/spec-fixture)
+(use-fixtures :once tc/spec-fixture tc/force-ansi-fixture)
 
 (defn- format-binary-plain
   [input]
@@ -119,5 +119,3 @@
     "\u001B" "\u001Cxyz"
     ["{0;90}0000:{} {0;32;102;2}1B{} {0;102}--{} {0;102}--{} {0;102}--{}                                     │ {0;32;101;2}1C{} {0;36;101}78{} {0;36;101}79{} {0;36;101}7A{}"]
     ))
-
-

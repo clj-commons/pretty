@@ -7,7 +7,7 @@
             [clj-commons.pretty-impl :refer [csi]]
             [matcher-combinators.matchers :as m]))
 
-(use-fixtures :once tc/spec-fixture)
+(use-fixtures :once tc/spec-fixture tc/force-ansi-fixture)
 
 (deftest sanity-check
   (is (= true *color-enabled*)))
