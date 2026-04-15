@@ -1,0 +1,31 @@
+#error {
+        :cause "Divide by zero"
+        :via
+        [{:type clojure.lang.ExceptionInfo
+          :message "Divide failed"
+          :data {:num 0, :den 0}
+          :at [user$eval156 invokeStatic "NO_SOURCE_FILE" 1]}
+         {:type java.lang.ArithmeticException
+          :message "Divide by zero"
+          :at [clojure.lang.Numbers divide "Numbers.java" 190]}]
+        :trace
+        [[clojure.lang.Numbers divide "Numbers.java" 190]
+         [clojure.lang.Numbers divide "Numbers.java" 3915]
+         [user$eval156 invokeStatic "NO_SOURCE_FILE" 1]
+         [user$eval156 invoke "NO_SOURCE_FILE" 1]
+         [clojure.lang.Compiler eval "Compiler.java" 7757]
+         [clojure.lang.Compiler eval "Compiler.java" 7712]
+         [clojure.core$eval invokeStatic "core.clj" 3232]
+         [clojure.core$eval invoke "core.clj" 3228]
+         [clojure.main$repl$read_eval_print__9248$fn__9251 invoke "main.clj" 437]
+         [clojure.main$repl$read_eval_print__9248 invoke "main.clj" 437]
+         [clojure.main$repl$fn__9257 invoke "main.clj" 459]
+         [clojure.main$repl invokeStatic "main.clj" 459]
+         [clojure.main$repl_opt invokeStatic "main.clj" 523]
+         [clojure.main$main invokeStatic "main.clj" 668]
+         [clojure.main$main doInvoke "main.clj" 617]
+         [clojure.lang.RestFn invoke "RestFn.java" 400]
+         [clojure.lang.AFn applyToHelper "AFn.java" 152]
+         [clojure.lang.RestFn applyTo "RestFn.java" 135]
+         [clojure.lang.Var applyTo "Var.java" 707]
+         [clojure.main main "main.java" 40]]}

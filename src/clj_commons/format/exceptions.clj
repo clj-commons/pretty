@@ -862,22 +862,41 @@
                         source-file
                         (int line-number))))
 
+(defn- read-as-edn
+  [s]
+  (try
+    (edn/read-string
+      {:eof     nil
+       ;; A more general case of just keeping the value if anything in the exception
+       ;; uses an unknown tag, such as #object, or #error (which is output when printing
+       ;; an exception, but for which there is no reader.
+       :default (fn [_tag value] value)}
+      s)
+    (catch Exception _
+      nil)))
+
+
+(defn- exception-map->exceptions
+  [root-trace options]
+  (let [{:keys [via trace]} root-trace
+        exceptions (mapv edn->exception-map via)
+        *cache (volatile! {})
+        stack-trace (->> trace
+                         (map edn->frame)
+                         (map #(transform-stack-trace-element current-dir-prefix *cache %)))
+        stack-trace' (filter-stack-trace-maps stack-trace options)]
+    (update exceptions (-> exceptions count dec) assoc :stack-trace stack-trace')))
+
 (defn- parse-edn-stacktrace
   [s options]
-  (let [data (try
-               (edn/read-string s)
-               (catch Throwable _
-                 nil))
-        root-trace (:clojure.main/trace data)]
-    (when root-trace
-      (let [{:keys [via trace]} root-trace
-            exceptions (mapv edn->exception-map via)
-            *cache (volatile! {})
-            stack-trace (->> trace
-                             (map edn->frame)
-                             (map #(transform-stack-trace-element current-dir-prefix *cache %)))
-            stack-trace' (filter-stack-trace-maps stack-trace options)]
-        (update exceptions (-> exceptions count dec) assoc :stack-trace stack-trace')))))
+  (let [data (read-as-edn s)]
+    (when (map? data)
+      (if-let [root-trace (:clojure.main/trace data)]
+        (exception-map->exceptions root-trace options)
+        (let [{:keys [via trace]} data]
+          (when (and (some? via)
+                     (some? trace))
+            (exception-map->exceptions data options)))))))
 
 (defn- parse-print-stack-trace-output
   [exception-text options]
