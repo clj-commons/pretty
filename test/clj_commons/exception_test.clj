@@ -848,3 +848,28 @@ failed with ABC123"
                "                        \"/private/var/folders/yg/vytvxpw500520vzjlc899dlm0000gn/T/form-init4939043928554804837.clj\"}"]
               (parse-and-format "sample-clojure-exception.edn" {:print-level 10
                                                                 :filter      (constantly :show)}))))
+
+(deftest clojure-exception-report
+  (is (match?
+        ["                   clojure.main.main      main.java:  40"
+         "            clojure.lang.Var.applyTo       Var.java: 707"
+         "         clojure.lang.RestFn.applyTo    RestFn.java: 135"
+         "      clojure.lang.AFn.applyToHelper       AFn.java: 152"
+         "          clojure.lang.RestFn.invoke    RestFn.java: 400"
+         "                   clojure.main/main       main.clj: 617"
+         "                   clojure.main/main       main.clj: 668"
+         "               clojure.main/repl-opt       main.clj: 523"
+         "                   clojure.main/repl       main.clj: 459"
+         "                clojure.main/repl/fn       main.clj: 459"
+         "   clojure.main/repl/read-eval-print       main.clj: 437"
+         "clojure.main/repl/read-eval-print/fn       main.clj: 437"
+         "                   clojure.core/eval       core.clj:3232"
+         "          clojure.lang.Compiler.eval  Compiler.java:7712"
+         "          clojure.lang.Compiler.eval  Compiler.java:7757"
+         "                        user/eval156     REPL Input"
+         "         clojure.lang.Numbers.divide   Numbers.java:3915"
+         "         clojure.lang.Numbers.divide   Numbers.java: 190"
+         "java.lang.ArithmeticException: Divide by zero"
+         "   clojure.lang.ExceptionInfo: Divide failed"
+         "  data: {:num 0, :den 0}"]
+        (parse-and-format "sample-exception.edn" {:filter (constantly :show)}))))

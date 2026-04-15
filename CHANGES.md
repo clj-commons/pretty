@@ -1,3 +1,8 @@
+## 3.7.0 -- UNRELASED
+
+* `clj-commons.format.exceptions/parse-exception`
+  * Can now also parse the output of printing an exception (using `pr`, `prn`, or `pr-str`)
+  * Unknown reader tags when parsing EDN are ignored and the value is passed through 
 
 ## 3.6.8 -- 14 Jan 2026
 
