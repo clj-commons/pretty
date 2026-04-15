@@ -4,6 +4,8 @@
   * Can now also parse the output of printing an exception (using `pr`, `prn`, or `pr-str`)
   * Unknown reader tags when parsing EDN are ignored and the value is passed through 
 
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/68?closed=1)
+
 ## 3.6.8 -- 14 Jan 2026
 
 `clj-commons.format.exceptions`:
