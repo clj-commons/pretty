@@ -1,4 +1,4 @@
-## 3.7.0 -- UNRELASED
+## 3.7.0 -- 14 Apr 2026
 
 * `clj-commons.format.exceptions/parse-exception`
   * Can now also parse the output of printing an exception (using `pr`, `prn`, or `pr-str`)
