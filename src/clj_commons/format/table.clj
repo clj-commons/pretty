@@ -125,6 +125,22 @@
    :row-right     nil
    :footer?       false})
 
+(def ^{:added "3.NEXT"}
+  markdown-style
+  "A style that produces output compatible with Markdown table syntax.
+  Intended for output consumed by tools that render Markdown, such as AI agents."
+  {:header-font   nil
+   :hbar          "-"
+   :header?       false
+   :divider?      true
+   :divider-left  "|-"
+   :divider-sep   "-|-"
+   :divider-right "-|"
+   :row-left      "| "
+   :row-sep       " | "
+   :row-right     " |"
+   :footer?       false})
+
 (def ^{:added   "3.5.0"
        :dynamic true}
   *default-style*
