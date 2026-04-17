@@ -1,5 +1,9 @@
 ## 3.NEXT -- UNRELEASED
 
+* Added `markdown-style` to `clj-commons.format.table`, which produces output compatible with Markdown table syntax
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/69?closed=1)
+
 ## 3.7.0 -- 14 Apr 2026
 
 * `clj-commons.format.exceptions/parse-exception`
