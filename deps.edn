@@ -5,8 +5,8 @@
  {:test
   ;; clj -X:test
   {:extra-paths ["test" "test-resources"]
-   :extra-deps  {org.clojure/core.async               {:mvn/version "1.8.741"}
-                 nubank/matcher-combinators           {:mvn/version "3.9.2"}
+   :extra-deps  {org.clojure/core.async               {:mvn/version "1.9.865"}
+                 nubank/matcher-combinators           {:mvn/version "3.10.0"}
                  io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"
                                                        :git/sha "dfb30dd"}}
    :jvm-opts    ["-Dclj-commons.ansi.enabled=true"]
@@ -15,7 +15,7 @@
 
   ;; Used when generating the :pom for install & deploy
   :pom
-  {:extra-deps {nrepl/nrepl {:mvn/version "1.5.2"
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.7.0"
                              :optional    true}}}
 
   ;; clj -T:build <command>
@@ -49,11 +49,11 @@
   ;; clj -M:lint
 
   :lint
-  {:deps      {clj-kondo/clj-kondo {:mvn/version "2026.01.12"}}
+  {:deps      {clj-kondo/clj-kondo {:mvn/version "2026.04.15"}}
    :main-opts ["-m" "clj-kondo.main" "--lint" "src" "test"]}
 
   :nrepl
-  {:extra-deps {nrepl/nrepl {:mvn/version "1.5.2"}}
+  {:extra-deps {nrepl/nrepl {:mvn/version "1.7.0"}}
    :main-opts  ["-m" "nrepl.cmdline"]}
 
   :repl
