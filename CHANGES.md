@@ -1,4 +1,4 @@
-## 3.8.0 -- UNRELEASED
+## 3.8.0 -- 27 Apr 2026
 
 *Breaking Changes*
 
@@ -17,7 +17,7 @@ Other changes:
   * Can now also parse the output of printing an exception (using `pr`, `prn`, or `pr-str`)
   * Unknown reader tags when parsing EDN are ignored and the value is passed through 
 
-[Closed IsBsues](https://github.com/clj-commons/pretty/milestone/68?closed=1)
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/68?closed=1)
 
 ## 3.6.8 -- 14 Jan 2026
 
