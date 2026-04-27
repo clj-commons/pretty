@@ -1,4 +1,11 @@
-## 3.NEXT -- UNRELEASED
+## 3.8.0 -- UNRELEASED
+
+*Breaking Changes*
+
+* Removed the `io.aviso.exception` and `io.aviso.repl` namespaces
+* Use https://github.com/clj-commons/pretty-aviso-bridge instead
+
+Other changes:
 
 * Added `markdown-style` to `clj-commons.format.table`, which produces output compatible with Markdown table syntax
 
@@ -10,7 +17,7 @@
   * Can now also parse the output of printing an exception (using `pr`, `prn`, or `pr-str`)
   * Unknown reader tags when parsing EDN are ignored and the value is passed through 
 
-[Closed Issues](https://github.com/clj-commons/pretty/milestone/68?closed=1)
+[Closed IsBsues](https://github.com/clj-commons/pretty/milestone/68?closed=1)
 
 ## 3.6.8 -- 14 Jan 2026
 
