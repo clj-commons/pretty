@@ -125,7 +125,7 @@
    :row-right     nil
    :footer?       false})
 
-(def ^{:added "3.NEXT"}
+(def ^{:added "3.8.0"}
   markdown-style
   "A style that produces output compatible with Markdown table syntax.
   Intended for output consumed by tools that render Markdown, such as AI agents."
