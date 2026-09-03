@@ -1,3 +1,7 @@
+## 3.9.0 -- UNRELEASED
+
+* `clj-commons.ansi/wrap` splits a composed string into a sequence of composed strings for soft or hard wrapping
+
 ## 3.8.0 -- 27 Apr 2026
 
 *Breaking Changes*

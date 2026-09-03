@@ -47,6 +47,16 @@
         :args (s/* ::ansi/composed-string)
         :ret string?)
 
+(s/def ::ansi/mode #{:soft :hard})
+
+(s/fdef ansi/wrap
+        :args (s/cat
+                :opts (s/or :width ::positive-integer
+                            :map (s/keys :req-un [::ansi/width]
+                                         :opt-un [::ansi/mode]))
+                :inputs (s/* ::ansi/composed-string))
+        :ret (s/coll-of ::ansi/composed-string :kind vector?))
+
 (s/fdef ansi/pout
         :args (s/* ::ansi/composed-string)
         :ret nil?)

@@ -300,6 +300,275 @@
       (.append buffer reset-font))
     (.toString buffer)))
 
+(defn- whitespace-char?
+  [^Character ch]
+  (Character/isWhitespace (char ch)))
+
+(defn- skip-whitespace
+  [^String s ^long i]
+  (let [n (.length s)]
+    (loop [i i]
+      (if (and (< i n) (whitespace-char? (.charAt s i)))
+        (recur (inc i))
+        i))))
+
+(defn- add-run
+  [line fonts text]
+  (if (or (nil? text) (= "" text))
+    line
+    (let [prev (peek line)]
+      (if (and prev (= fonts (:fonts prev)))
+        (conj (pop line) {:fonts fonts :text (str (:text prev) text)})
+        (conj (or line []) {:fonts fonts :text text})))))
+
+(defn- emit-text-runs
+  [result fonts ^String s]
+  (let [parts (str/split s #"\n" -1)]
+    (reduce (fn [r [i part]]
+              (let [r (if (pos? i)
+                        (conj r :break)
+                        r)]
+                (if (= "" part)
+                  r
+                  (conj r {:fonts fonts :text part}))))
+            result
+            (map-indexed vector parts))))
+
+(defn- flatten-markup
+  "Walk composed strings like [[normalize-markup]], stringifying scalars once.
+  Drops :width/:align. Returns a vector of {:fonts :text} runs and :break tokens."
+  [inputs]
+  (letfn [(walk [result fonts input]
+            (cond
+              (nil-or-empty-string? input)
+              result
+
+              (vector? input)
+              (let [decl (extract-span-decl (first input))
+                    font (:font decl)
+                    fonts' (if (some? font)
+                             (conj fonts font)
+                             fonts)]
+                (reduce #(walk %1 fonts' %2) result (next input)))
+
+              (sequential? input)
+              (reduce #(walk %1 fonts %2) result input)
+
+              :else
+              (emit-text-runs result fonts (str input))))]
+    (reduce #(walk %1 [] %2) [] inputs)))
+
+(defn- chunk-text
+  [fonts ^String s]
+  (let [n (.length s)]
+    (loop [i 0
+           acc []]
+      (if (>= i n)
+        acc
+        (let [ws? (whitespace-char? (.charAt s i))
+              j (loop [k (inc i)]
+                  (if (and (< k n)
+                           (= ws? (whitespace-char? (.charAt s k))))
+                    (recur (inc k))
+                    k))]
+          (recur j (conj acc {:kind (if ws? :ws :word)
+                              :fonts fonts
+                              :text (subs s i j)})))))))
+
+(defn- tokenize-runs
+  [items]
+  (into []
+        (mapcat (fn [item]
+                  (if (= :break item)
+                    [:break]
+                    (chunk-text (:fonts item) (:text item)))))
+        items))
+
+(defn- tokens-width
+  [tokens]
+  (transduce (map #(count (:text %))) + 0 tokens))
+
+(defn- commit-ws
+  [{:keys [pending-ws] :as state}]
+  (reduce (fn [s {:keys [fonts text]}]
+            (-> s
+                (update :line add-run fonts text)
+                (update :col + (count text))))
+          (assoc state :pending-ws [])
+          pending-ws))
+
+(defn- add-word-tokens
+  [state words]
+  (reduce (fn [s {:keys [fonts text]}]
+            (-> s
+                (update :line add-run fonts text)
+                (update :col + (count text))))
+          state
+          words))
+
+(defn- flush-line
+  [{:keys [line lines] :as state} after-wrap?]
+  (assoc state
+    :lines (conj lines line)
+    :line []
+    :col 0
+    :pending-ws []
+    :after-wrap? after-wrap?))
+
+(defn- wrap-soft
+  [tokens width]
+  (loop [tokens (seq tokens)
+         state {:line [] :lines [] :col 0 :pending-ws [] :after-wrap? false}]
+    (if (nil? tokens)
+      (let [state (cond-> state
+                          (seq (:pending-ws state))
+                          commit-ws)
+            {:keys [line lines]} state]
+        (conj lines line))
+      (let [item (first tokens)]
+        (cond
+          (= :break item)
+          (let [state (cond-> state
+                              (seq (:pending-ws state))
+                              commit-ws)]
+            (recur (next tokens) (flush-line state false)))
+
+          (= :ws (:kind item))
+          (recur (next tokens) (update state :pending-ws (fnil conj []) item))
+
+          :else
+          (let [[words more] (split-with #(= :word (:kind %)) tokens)
+                word-width (tokens-width words)
+                {:keys [col after-wrap? pending-ws]} state
+                ws-width (tokens-width pending-ws)
+                state (cond
+                        (zero? col)
+                        (let [state (if after-wrap?
+                                      (assoc state :pending-ws [] :after-wrap? false)
+                                      (commit-ws (assoc state :after-wrap? false)))]
+                          (add-word-tokens state words))
+
+                        (<= (+ col ws-width word-width) width)
+                        (-> state
+                            commit-ws
+                            (add-word-tokens words)
+                            (assoc :after-wrap? false))
+
+                        :else
+                        (-> state
+                            (assoc :pending-ws [])
+                            (flush-line true)
+                            (assoc :after-wrap? false)
+                            (add-word-tokens words)))]
+            (recur (seq more) state)))))))
+
+(defn- wrap-hard
+  [runs width]
+  (loop [runs (seq runs)
+         i 0
+         line []
+         lines []
+         col 0]
+    (if (nil? runs)
+      (conj lines line)
+      (let [item (first runs)]
+        (if (= :break item)
+          (recur (next runs) 0 [] (conj lines line) 0)
+          (let [fonts (:fonts item)
+                ^String text (:text item)
+                n (.length text)]
+            (cond
+              (>= i n)
+              (recur (next runs) 0 line lines col)
+
+              (= col width)
+              (let [i (if (whitespace-char? (.charAt text i))
+                        (skip-whitespace text i)
+                        i)]
+                (recur runs i [] (conj lines line) 0))
+
+              :else
+              (let [fits (- width col)
+                    take-n (min fits (- n i))
+                    chunk (subs text i (+ i take-n))]
+                (recur runs
+                       (+ i take-n)
+                       (add-run line fonts chunk)
+                       lines
+                       (+ col take-n))))))))))
+
+(defn- nest-groups
+  [runs depth]
+  (if (empty? runs)
+    []
+    (loop [groups (partition-by #(nth (:fonts %) depth nil) runs)
+           acc []]
+      (if (empty? groups)
+        acc
+        (let [g (first groups)
+              font (nth (:fonts (first g)) depth nil)]
+          (if (nil? font)
+            (recur (next groups) (into acc (map :text) g))
+            (let [inner (nest-groups g (inc depth))
+                  span (into [font] inner)]
+              (recur (next groups) (conj acc span)))))))))
+
+(defn- nest-line
+  [runs]
+  (let [pieces (nest-groups runs 0)]
+    (cond
+      (empty? pieces) ""
+      (= 1 (count pieces)) (first pieces)
+      :else (seq pieces))))
+
+(defn wrap
+  "Breaks composed strings into a sequence of composed strings, each a visual line.
+
+  The first argument is either a positive integer width, or a map of options:
+
+  Key    | Type             | Description
+  ---    |---               |---
+  :width | positive integer | Maximum number of characters per line
+  :mode  | :soft or :hard   | Wrap mode, default :soft
+
+  Remaining arguments are composed strings, as with [[compose]].
+
+  Span `:width` and `:align` are ignored (padding is not applied).
+
+  :soft mode (the default) breaks at whitespace. Wrap-point whitespace is consumed
+  and does not appear in either adjacent line. A word longer than `width` is placed
+  on its own line and may exceed `width`.
+
+  :hard mode breaks at exactly `width` characters, including mid-word.
+  Whitespace at the hard-break column is consumed.
+
+  Embedded newlines force a line break (consecutive newlines produce empty lines).
+
+  Returns a vector of composed strings, one per line. Each line can be passed to
+  [[compose]] or [[pout]] independently.
+
+  Example:
+
+      (doseq [line (wrap 40 [:italic message])]
+        (pout line))"
+  {:added "3.9.0"}
+  [width-or-opts & inputs]
+  (let [{:keys [width mode]
+         :or   {mode :soft}} (if (map? width-or-opts)
+                               width-or-opts
+                               {:width width-or-opts})
+        _ (when-not (and (integer? width) (pos? width))
+            (throw (ex-info "wrap width must be a positive integer"
+                            {:width width})))
+        _ (when-not (#{:soft :hard} mode)
+            (throw (ex-info "wrap mode must be :soft or :hard"
+                            {:mode mode})))
+        runs (flatten-markup inputs)
+        lines (if (= :hard mode)
+                (wrap-hard runs width)
+                (wrap-soft (tokenize-runs runs) width))]
+    (mapv nest-line lines)))
+
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes ANSI formatting codes
   for font color and other characteristics.
@@ -399,7 +668,9 @@
   This will compose to a string that when output produces
   the value of `message` in red text, padded with spaces on the left to be 20 characters.
 
-  `compose` does not truncate a span to a width, it only pads if the span in too short."
+  `compose` does not truncate a span to a width, it only pads if the span in too short.
+
+  See [[wrap]] to split a composed string into multiple lines."
   {:added "1.4.0"}
   ^String [& inputs]
   (compose* inputs))
