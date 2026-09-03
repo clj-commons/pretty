@@ -2,7 +2,7 @@
   (:require [clj-commons.test-common :as tc]
             [clojure.string :as str]
             [clojure.test :refer [deftest is are use-fixtures]]
-            [clj-commons.ansi  :as ansi :refer [compose *color-enabled*]]
+            [clj-commons.ansi  :as ansi :refer [compose wrap *color-enabled*]]
             [clj-commons.pretty-impl :refer [csi]]
             [matcher-combinators.test :refer [match?]]
             [matcher-combinators.matchers :as m]))
@@ -203,3 +203,67 @@
 
     (is (= (compose [{:font font-kw} "text"])
            (compose [{:font font-vector} "text"])))))
+
+(defn- visible-length
+  [composed]
+  (binding [*color-enabled* false]
+    (count (compose composed))))
+
+(deftest wrap-plain-text
+  (is (= ["The quick" "brown fox"]
+         (wrap 10 "The quick brown fox")))
+  (is (= ["The quick" "brown fox"]
+         (wrap {:width 10} "The quick brown fox")))
+  (is (= [""]
+         (wrap 10)))
+  (is (= [""]
+         (wrap 10 nil ""))))
+
+(deftest wrap-soft-vs-hard
+  (is (= ["supercalifragilistic"]
+         (wrap {:width 5 :mode :soft} "supercalifragilistic")))
+  (is (= ["super" "calif" "ragil" "istic"]
+         (wrap {:width 5 :mode :hard} "supercalifragilistic")))
+  (is (= ["hello" "world"]
+         (wrap {:width 5 :mode :hard} "hello world"))))
+
+(deftest wrap-nested-fonts
+  (is (= [[:red "Hello"]
+          [:red [:bold "beautiful"]]
+          [:red "world"]]
+         (wrap 10 [:red "Hello " [:bold "beautiful"] " world"]))))
+
+(deftest wrap-font-spans-boundary
+  (is (= [[:red "ab" [:bold "cd"]]
+          [:red [:bold "ef"] "gh"]]
+         (wrap {:width 4 :mode :hard} [:red "ab" [:bold "cdef"] "gh"]))))
+
+(deftest wrap-forced-newlines
+  (is (= ["one" "two" "three"]
+         (wrap 20 "one\ntwo\nthree")))
+  (is (= ["one" "" "two"]
+         (wrap 20 "one\n\ntwo")))
+  (is (= ["one" ""]
+         (wrap 20 "one\n"))))
+
+(deftest wrap-drops-width-and-align
+  (is (= ["AAA" "BBB"]
+         (wrap 3 [{:width 10 :align :left} "AAA BBB"]))))
+
+(deftest wrap-stringifies-scalars
+  (is (= ["ab12c" "d"]
+         (wrap {:width 5 :mode :hard} "ab" 12 "cd"))))
+
+(deftest wrap-line-length
+  (let [lines (wrap 10 "The quick brown fox jumps")]
+    (is (every? #(<= (visible-length %) 10) lines)))
+  (let [lines (wrap {:width 5 :mode :hard} "abcdefghijklmnop")]
+    (is (every? #(= 5 (visible-length %)) (butlast lines)))
+    (is (<= (visible-length (last lines)) 5))))
+
+(deftest wrap-preserves-fonts-when-composed
+  (is (= (safe-compose [[:red "Hello"]])
+         (safe-compose [(first (wrap 10 [:red "Hello " [:bold "beautiful"] " world"]))])))
+  (is (= (safe-compose [[:red [:bold "beautiful"]]])
+         (safe-compose [(second (wrap 10 [:red "Hello " [:bold "beautiful"] " world"]))]))))
+
