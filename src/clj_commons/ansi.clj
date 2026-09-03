@@ -21,6 +21,8 @@
   other font characteristics (bold, underline, italic, etc.) along with colors.
 
   This will be false if the environment variable NO_COLOR is non-blank.
+  
+  This will be true if the environment variable COLOR_ENABLED is non-blank.
 
   Otherwise, the JVM system property `clj-commons.ansi.enabled` (if present) determines
   the value; \"true\" enables colors, any other value disables colors.
@@ -30,8 +32,15 @@
   then color will be enabled.
 
   The nrepl.core check has been verified to work with Cursive, with `lein repl`, and with `clojure` (or `clj`)."
-  (if (seq (System/getenv "NO_COLOR"))
+  (cond
+    (seq (System/getenv "NO_COLOR"))
     false
+
+    ;; Set this when used inside a system that can properly parse the ANSI escape sequences.
+    (seq (System/getenv "COLOR_ENABLED"))
+    true
+    
+    :else
     (let [flag (System/getProperty "clj-commons.ansi.enabled")]
       (cond
         (some? flag) (to-boolean flag)
@@ -687,5 +696,3 @@
   [& inputs]
   (binding [*out* *err*]
     (println (compose* inputs))))
-
-
