@@ -219,6 +219,10 @@
   (is (= [""]
          (wrap 10 nil ""))))
 
+(deftest wrap-does-not-return-a-vector
+  (is (not (vector?
+             (wrap 10 nil)))))
+
 (deftest wrap-soft-vs-hard
   (is (= ["supercalifragilistic"]
          (wrap {:width 5 :mode :soft} "supercalifragilistic")))
@@ -266,4 +270,3 @@
          (safe-compose [(first (wrap 10 [:red "Hello " [:bold "beautiful"] " world"]))])))
   (is (= (safe-compose [[:red [:bold "beautiful"]]])
          (safe-compose [(second (wrap 10 [:red "Hello " [:bold "beautiful"] " world"]))]))))
-

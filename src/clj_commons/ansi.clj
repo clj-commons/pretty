@@ -553,7 +553,7 @@
 
   Embedded newlines force a line break (consecutive newlines produce empty lines).
 
-  Returns a vector of composed strings, one per line. Each line can be passed to
+  Returns a seq of composed strings, one per line. Each line can be passed to
   [[compose]] or [[pout]] independently.
 
   Example:
@@ -576,7 +576,7 @@
         lines (if (= :hard mode)
                 (wrap-hard runs width)
                 (wrap-soft (tokenize-runs runs) width))]
-    (mapv nest-line lines)))
+    (map nest-line lines)))
 
 (defn compose
   "Given a Hiccup-inspired data structure, composes and returns a string that includes ANSI formatting codes
