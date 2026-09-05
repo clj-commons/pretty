@@ -219,6 +219,11 @@
   (is (= [""]
          (wrap 10 nil ""))))
 
+(deftest handles-newlines-and-embedded-lists
+  (is (= ["The quick" "brown fox" "is hungry"]
+         (wrap 10 (list "The " "quick brown " "fox"
+                        (list "\nis " "hungry"))))))
+
 (deftest wrap-does-not-return-a-vector
   (is (not (vector?
              (wrap 10 nil)))))
