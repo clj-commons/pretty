@@ -147,6 +147,47 @@
   "Default style used for table output.  Defaults to [[default-style]]."
   default-style)
 
+(defn- extract-value
+  [column row row-index default-decorator]
+  (let [{:keys [formatter wrap width decorator last? align key]} column
+        base-value      (some-> row key)
+        formatted-value (cond-> base-value formatter formatter)
+        decorator'      (or decorator default-decorator)
+        font            (when decorator'
+                          (decorator' row-index formatted-value))
+        font-decl       {:font  font
+                         :width width
+                         :align (or align (if last? :left :right))}]
+    (if-not wrap
+      ;; Standard case: a single formatted value with its font.
+      (list [font-decl formatted-value])
+      (->> (ansi/wrap {:width width
+                       :mode  wrap} formatted-value)
+           (map #(vector font-decl %))))))
+
+(defn- print-row
+  [row-left row-sep row-right row-font row-annotation columns column-values]
+  (loop [column-values column-values
+         first?        true]
+    (when-not (every? nil? column-values)
+      (let [tuples (->> column-values
+                        (map first)
+                        (map vector columns))]
+        (pout
+          row-left
+          [row-font
+           (for [[{:keys [last? width]} value] tuples]
+             (list
+               (if (nil? value)
+                 [{:width width}]
+                 value)
+               (when-not last?
+                 row-sep)))]
+          row-right
+          (when first? row-annotation)))
+      (recur (map next column-values)
+             false))))
+
 (defn print-table
   "Similar to clojure.pprint/print-table, but with fancier graphics and more control
   over column titles.
@@ -168,6 +209,8 @@
   :formatter   | function               | Passed the column value and returns formatted content as a string or composed string
   :decorator   | function               | May return a font declaration for the cell
   :align       | :right, :left, :center | Defaults to :right except for last column, which aligns :left
+  :wrap        | :soft or :hard         | If provided, the value is wrapped (with [[wrap]]) and the cell may extend
+                                          over multiple lines.
 
   :key is typically a keyword but can be an arbitrary function
   (in which case, you must also provide :title). The return
@@ -180,6 +223,8 @@
 
   :width will be determined as the maximum width of the title or of any
   formatted value in the data.
+
+  When using a :wrap value, the :width should be explicit.
 
   The decorator is a function; it will be
   passed the row index and the value for the column,
@@ -261,7 +306,7 @@
                 row-sep)))
       row-right)
 
-    ;; divider seperates the title bar from the rows
+    ;; divider separates the title bar from the rows
     (when divider?
       (pout
         divider-left
@@ -275,30 +320,13 @@
       (loop [[row & more-rows] rows
              row-index 0]
         (let [row-font (when row-decorator
-                         (row-decorator row-index row))]
-          (pout
-            row-left
-            (for [{:keys [width key decorator formatter last? align]
-                   :or   {formatter identity}} columns'
-                  :let [value (-> row key formatter)
-                        decorator' (or decorator default-decorator)
-                        font (when decorator'
-                               (decorator' row-index value))]]
-              ;; The font, if any, from the row decorator is around the value
-              ;; (and around the columns' font from its decorator) but not
-              ;; the row seperator.
-              (list [row-font
-                     [{:font  font
-                       :align (or align
-                                  (if last? :left :right))
-                       :width width}
-                      value]]
-                    (when-not last?
-                      row-sep)))
-            ;; After the last column:
-            row-right
-            (when row-annotator
-              (row-annotator row-index row))))
+                         (row-decorator row-index row))
+              row-annotation (when row-annotator
+                               (row-annotator row-index row))]
+          (print-row row-left row-sep row-right row-font
+                     row-annotation
+                     columns'
+                     (map #(extract-value % row row-index default-decorator) columns')))
         (when more-rows
           (recur more-rows (inc row-index)))))
 

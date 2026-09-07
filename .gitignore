@@ -19,3 +19,4 @@ manual/output-site
 .portal/vs-code.edn
 .cpcache
 /.clj-kondo/imports/
+.clojure-mcp

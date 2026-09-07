@@ -2,6 +2,9 @@
 
 * `clj-commons.ansi/wrap` splits a composed string into a sequence of composed strings for soft or hard wrapping
 * `clj-commons.ansi/*color-enabled*` will now default to true when the environment variable COLOR_ENABLED is non-blank
+* `clj-commons.format.table`: Added :wrap key for column definitions (can be :hard or :soft).
+  Columns that wrap will be extended across multiple lines.
+
 
 ## 3.8.0 -- 27 Apr 2026
 
