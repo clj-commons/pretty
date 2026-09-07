@@ -1,5 +1,6 @@
 (ns clj-commons.table-test
   (:require [clj-commons.test-common :as tc]
+            clj-commons.format.table.specs
             [clojure.string :as string]
             [clojure.test :refer [deftest is use-fixtures]]
             [clj-commons.ansi :as ansi]
@@ -84,3 +85,31 @@
                                    {:key :last :title "Family name"}]
                          :style   table/markdown-style}
                         sample-rows))))
+
+(deftest columns-with-wrap
+  (is (= ["        Title        |  Genre |             Summary           "
+          "---------------------+--------+-------------------------------"
+          " I Have No Mouth And | horror | A maleovolent AI physically an *"
+          "       I Must Scream |        | d psychologically tortures the"
+          "                     |        | last remaining humans.        "
+          " The Lathe Of Heaven |     sf | A man whose convinced that his *"
+          "                     |        | dreams come true seeks the car"
+          "                     |        | e of a doctor                 "
+          ;; The space follows the newline and is kept:
+          "                     |        |  who wishes to take that power"
+          "                     |        | for himself.                  "]
+         (capture-table {:columns       [{:key   :title
+                                          :width 20
+                                          :wrap  :soft}
+                                         :genre
+                                         {:key   :summary
+                                          :width 30
+                                          :wrap  :hard}]
+                         :row-annotator (constantly " *")
+                         :style         table/skinny-style}
+                        [{:title   "I Have No Mouth And I Must Scream"
+                          :genre   "horror"
+                          :summary "A maleovolent AI physically and psychologically tortures the last remaining humans."}
+                         {:title   "The Lathe Of Heaven"
+                          :genre   "sf"
+                          :summary "A man whose convinced that his dreams come true seeks the care of a doctor\n who wishes to take that power for himself."}]))))

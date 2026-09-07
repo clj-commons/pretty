@@ -14,9 +14,9 @@
 
 (ns clj-commons.format.table.specs
   (:require [clojure.spec.alpha :as s]
-            [clj-commons.format.table :refer [print-table]]))
+            [clj-commons.format.table :as table]))
 
-(s/fdef print-table
+(s/fdef table/print-table
         :args (s/cat :columns
                      (s/or :columns ::columns
                            :opts ::options)
@@ -46,6 +46,7 @@
   (s/keys :req-un [::key]
           :opt-un [::title
                    ::width
+                   ::wrap
                    ::decorator
                    ::align
                    ::title-align]))
@@ -56,6 +57,7 @@
 (s/def ::key ifn?)
 (s/def ::title string?)
 (s/def ::width (s/and int? pos?))
+(s/def ::wrap #{:soft :hard})
 (s/def ::font-declaration (s/or
                              :keyword keyword?
                              :vector (s/coll-of (s/nilable keyword?)
