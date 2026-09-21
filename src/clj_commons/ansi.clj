@@ -375,11 +375,12 @@
       (if (>= i n)
         acc
         (let [ws? (whitespace-char? (.charAt s i))
-              j (loop [k (inc i)]
-                  (if (and (< k n)
-                           (= ws? (whitespace-char? (.charAt s k))))
-                    (recur (inc k))
-                    k))]
+              j (long
+                  (loop [k (inc i)]
+                    (if (and (< k n)
+                             (= ws? (whitespace-char? (.charAt s k))))
+                      (recur (inc k))
+                      k)))]
           (recur j (conj acc {:kind (if ws? :ws :word)
                               :fonts fonts
                               :text (subs s i j)})))))))
@@ -472,7 +473,7 @@
             (recur (seq more) state)))))))
 
 (defn- wrap-hard
-  [runs width]
+  [runs ^long width]
   (loop [runs (seq runs)
          i 0
          line []
@@ -485,20 +486,21 @@
           (recur (next runs) 0 [] (conj lines line) 0)
           (let [fonts (:fonts item)
                 ^String text (:text item)
-                n (.length text)]
+                n (long (.length text))]
             (cond
               (>= i n)
               (recur (next runs) 0 line lines col)
 
               (= col width)
-              (let [i (if (whitespace-char? (.charAt text i))
-                        (skip-whitespace text i)
-                        i)]
+              (let [i (long
+                        (if (whitespace-char? (.charAt text i))
+                          (skip-whitespace text i)
+                          i))]
                 (recur runs i [] (conj lines line) 0))
 
               :else
               (let [fits (- width col)
-                    take-n (min fits (- n i))
+                    take-n (long (min fits (- n i)))
                     chunk (subs text i (+ i take-n))]
                 (recur runs
                        (+ i take-n)
