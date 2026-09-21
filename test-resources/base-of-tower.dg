@@ -1,0 +1,66 @@
+#base-of-tower
+(around the tower *)
+(name *) Base of the Tower
+(look *)
+    Behind the concrete building a steel girder rises from the sand
+    (if) (lit by flashlight *)
+    (then)
+        ; you shine your flashlight up towards the tower looming above you
+    (elseif) (lit by headlights *)
+    (then)
+        , one of three legs of the huge electrical tower looming like
+        some gargantuan spider into blackness above you
+    (else)
+        ; far above you, a red warning light blinks on and off
+    (endif)
+    .
+    A tumbleweed drifts lazily against the rusted metal among scrawny weeds
+    and bits of trash.
+    (if) (#rusty-can is pristine)
+    (then)
+        Someone left a tin can here years ago: ridged ripples run down
+        its rusty side.
+    (endif)
+
+    (par)
+    The desert stretches in all directions except back south towards the
+    (if) (brightly lit *)
+    (then)
+            glow of the
+    (endif)
+    building.
+(place #weed-strewn-rust southeast of *)
+(#tumbleweed/
+    #rusty-can/
+    #girder/
+    #scrawny-weeds/
+    #bits-of-trash/
+    #red-warning-light/
+    #tower
+    is #in *)
+
+#tumbleweed
+(name *) tumbleweed
+(dict *) tumble weed
+
+#rusty-can
+(item *)
+(name *) rusty tin can
+(unlikely $Action)
+    (* is one of $Action)
+
+#girder
+(name *) steel girder
+
+#scrawny-weeds
+(name *) scrawny weeds
+(plural *)
+
+#bits-of-trash
+(name *) bits of trash
+(plural *)
+(descr *)
+    Bits of dirty paper and cardboard, tiny scraps of wire, broken bits of plastic, and other indistinguishable and useless things.
+
+#red-warning-light
+(name *) red warning light

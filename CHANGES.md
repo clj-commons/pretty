@@ -1,3 +1,12 @@
+## 3.10.0 -- UNRELEASED
+
+Add new functions to `clj-commons.pretty.annotations`
+to streamline the typical usage; new functions:
+
+* `create-annotation-set`
+* `add-callout`
+* 'render-annotation-set'
+
 ## 3.9.0 -- 6 Sep 2026
 
 * `clj-commons.ansi/wrap` splits a composed string into a sequence of composed strings for soft or hard wrapping

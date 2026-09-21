@@ -1,7 +1,9 @@
 (ns clj-commons.pretty.annotations-test
-  (:require [clojure.test :refer [deftest is use-fixtures]]
-            [clj-commons.ansi :as ansi]
-            [clj-commons.test-common :as tc]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string]
+            [clojure.test :refer [deftest is use-fixtures]]
+            [clj-commons.ansi :as ansi :refer [pout]]
+            [clj-commons.test-common :as tc :refer [output-lines with-no-color]]
             [clj-commons.pretty.annotations :as a :refer [callouts default-style annotate-lines]]
             [matcher-combinators.test :refer [match?]]
             [matcher-combinators.matchers :as m])
@@ -225,3 +227,76 @@
 (deftest wrong-marker-type
   (is (thrown-with-msg? ExceptionInfo #"Marker should be a function or a string"
                         (extend-marker 0 5))))
+
+(defn- render
+  [annotation-set]
+  (output-lines
+    (with-no-color
+      (run! pout (a/render-annotation-set annotation-set)))))
+
+(deftest annotation-set
+  ;; Make believe that we're annotating Dialog code.
+  (let [annotation-set (-> "base-of-tower.dg"
+                           io/resource
+                           slurp
+                           string/split-lines
+                           (a/create-annotation-set)
+                           ;; lines and offsets are 0 indexed, even though presented as 1 indexed
+                           ;; Order of callouts never matters
+                           (a/add-callout 64 {:offset 1} "is the color relevant?")
+                           (a/add-callout 6 {:offset 5} "this is a then")
+                           (a/add-callout 13 {:offset 8} "not a comment")
+                           (a/add-callout 64 {:offset 13 :length 5} "not heavy"))]
+    ;; This captures overlapping windows, the window cutting off at the last line (65),
+    ;; multiple annotations on a single line.
+    (is (match? [" 5:     Behind the concrete building a steel girder rises from the sand"
+                 " 6:     (if) (lit by flashlight *)"
+                 " 7:     (then)"
+                 "         ▲"
+                 "         │"
+                 "         └╴ this is a then"
+                 " 8:         ; you shine your flashlight up towards the tower looming above you"
+                 " 9:     (elseif) (lit by headlights *)"
+                 "12:         some gargantuan spider into blackness above you"
+                 "13:     (else)"
+                 "14:         ; far above you, a red warning light blinks on and off"
+                 "            ▲"
+                 "            │"
+                 "            └╴ not a comment"
+                 "15:     (endif)"
+                 "16:     ."
+                 "63:     Bits of dirty paper and cardboard, tiny scraps of wire, broken bits of plastic, and other indistinguishable and useless things."
+                 "64: "
+                 "65: #red-warning-light"
+                 "     ▲           ▲▲▲▲▲"
+                 "     │           │"
+                 "     │           └╴ not heavy"
+                 "     └╴ is the color relevant?"
+                 "66: (name *) red warning light"]
+                (render annotation-set)))))
+
+(deftest annotation-set-override-defaults
+  (let [annotation-set (-> "base-of-tower.dg"
+                           io/resource
+                           slurp
+                           string/split-lines
+                           (a/create-annotation-set {:line-offset 101
+                                                     :window      5
+                                                     :style       (assoc a/default-style
+                                                                    :spacing :minimal
+                                                                    :marker a/underline-marker)})
+                           (a/add-callout 2 {:offset 9
+                                             :length 4} "All your base are belong to us")
+                           (a/add-callout 2 {:offset 1} "Mark your time"))]
+    (is (match? ["101: #base-of-tower"
+                 "102: (around the tower *)"
+                 "103: (name *) Base of the Tower"
+                 "      ┯       ┯━━━"
+                 "      │       └╴ All your base are belong to us"
+                 "      └╴ Mark your time"
+                 "104: (look *)"
+                 "105:     Behind the concrete building a steel girder rises from the sand"
+                 "106:     (if) (lit by flashlight *)"
+                 "107:     (then)"
+                 "108:         ; you shine your flashlight up towards the tower looming above you"]
+                (render annotation-set)))))

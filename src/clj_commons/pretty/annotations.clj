@@ -277,3 +277,68 @@
   [^long length]
   (str "┯" (nchars (dec length) "━")))
 
+
+(defn create-annotation-set
+  "Creates an annotation set from a seq of lines.
+
+  Options:
+
+  :width - number (defaults to 120). Total width available for line numbers, callouts, and annotation text. A soft wrap
+  is added as necessary.
+  :window - number of lines before and after an annotated line to display (for context)
+  :line-offset - number (default 1) adjustment to actual line number when rendering
+  "
+  {:since "3.10.0"}
+  ([lines]
+   (create-annotation-set lines nil))
+  ([lines opts]
+   {:lines    (vec lines)
+    :opts     (merge {:width       120
+                      :window      2
+                      :line-offset 1
+                      :style       *default-style*} opts)
+    :callouts {}}))
+
+(defn add-callout
+  "Adds a callout to an annotation set. Options mare the same as for [[callouts]],
+  (:offset, :length, :font, :marker) though a :message key is added the options."
+  {:since "3.10.0"}
+  [annotation-set line callout-opts & message]
+  (update-in annotation-set [:callouts line] conj
+             (assoc callout-opts :message message)))
+
+(defn render-annotation-set
+  "Invoked once all callouts have been added to the annotation set.
+  Returns a seq of composed strings, each one rendered line."
+  {:since "3.10.0"}
+  [annotation-set]
+  (let [{:keys     [lines opts]
+         callouts' :callouts} annotation-set
+        {:keys [window line-offset style]} opts
+        display-lines     (->> callouts'
+                               keys
+                               (mapcat #(range (- % window) (+ % window 1)))
+                               (remove neg?)
+                               (remove #(>= % (count lines)))
+                               distinct
+                               sort)
+        line-number-width (->> display-lines
+                               last
+                               (+ line-offset)
+                               str
+                               count
+                               inc)
+        callout-indent    (nchars (inc line-number-width) " ")]
+    (reduce (fn [result line]
+              ;; Render each line; render callouts for each line that has callouts.
+              (let [result' (conj result
+                                  (list
+                                    [{:width line-number-width} (+ line line-offset) ":"]
+                                    " "
+                                    (nth lines line)))]
+                (if-let [line-callouts (get callouts' line)]
+                  (into result' (->> (callouts style line-callouts)
+                                     (map #(list callout-indent %))))
+                  result')))
+            []
+            display-lines)))
