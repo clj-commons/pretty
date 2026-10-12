@@ -11,7 +11,8 @@
   This kind of output is common with various kinds of parsers or interpreters.
 
   Specs for types and functions are in the [[spec]] namespace."
-  {:added "3.3.0"})
+  {:added "3.3.0"}
+  (:require [clj-commons.ansi :as ansi]))
 
 (def default-style
   "The default style used when generating callouts.
@@ -37,6 +38,8 @@
 
   :marker can also be a function; the function is passed the length
   and returns a string (or composed string) that must be that number of characters wide.
+
+  :bar and :nib must be simple, not composed, strings.
 
   Note: rendering of Unicode characters in HTML often uses incorrect fonts or adds unwanted
   character spacing; the annotations look proper in console output."
@@ -125,28 +128,35 @@
                  (next annotations)
                  result'))))))
 
-(defn- bars+message
-  [style annotations]
-  (let [{:keys [font bar nib]} style]
-    (loop [output-offset 0
-           [annotation & more-annotations] annotations
-           result [font]]
-      (let [{:keys [offset font message]} annotation
-            spaces-needed (- offset output-offset)
-            last? (not (seq more-annotations))
-            result' (conj result
-                          (nchars spaces-needed \space)
-                          [font
-                           (if last?
-                             nib
-                             bar)
-                           (when last?
-                             message)])]
-        (if last?
-          result'
-          (recur (long (+ offset 1))
-                 more-annotations
-                 result'))))))
+(defn- annotation-message-lines
+  "Produces a composed string of the vertical bars for annotations and the nib and message
+  for the final annotation. The message is wrapped and may consume multiple lines.
+  Returns a seq of composed strings, one composed string per line."
+  [style annotations width]
+  (let [{:keys [font bar nib]} style
+        bar-count       (count bar)
+        last-annotation (last annotations)
+        *output-offset  (volatile! 0)
+        bars            (doall
+                          (mapcat (fn [{:keys           [offset]
+                                        annotation-font :font
+                                        :as             annotation}]
+                                    (let [spaces-needed (- offset @*output-offset)]
+                                      (vreset! *output-offset (+ offset bar-count))
+                                      (list
+                                        (nchars spaces-needed \space)
+                                        (when-not (= annotation last-annotation)
+                                          [annotation-font bar]))))
+                                  annotations))
+        nib-placeholder (nchars (count nib) \space)
+        remaining-width (- width @*output-offset (count nib))
+        nibs            (list* nib (repeat nib-placeholder))
+        message-lines   (ansi/wrap remaining-width (:message last-annotation))
+        font'           (:font last-annotation)]
+    (map (fn [nib message-line]
+           [font bars [font' nib message-line]])
+         nibs
+         message-lines)))
 
 (defn callouts
   "Creates callouts (the marks, bars, and messages from the example) from annotations.
@@ -167,7 +177,13 @@
   At least one annotation is required; they will be sorted into an appropriate order.
   Annotation's ranges should not overlap.
 
-  The messages should be relatively short, and not contain any line breaks.
+  Messages should be short, or will be word-wrapped if the :width option is provided.
+
+  Options:
+
+  Key    | Description
+  ---    |---
+  :width | Total width to wrap annotations
 
   Returns a sequence of composed strings, one for each line of output.
 
@@ -181,8 +197,10 @@
   ([annotations]
    (callouts  *default-style* annotations))
   ([style annotations]
-   ;; TODO: Check for overlaps
-   (let [expanded (sort-by :offset annotations)
+   (callouts style annotations nil))
+  ([style annotations {:keys [width]
+                       :or   {width Long/MAX_VALUE}}]
+   (let [expanded    (vec (sort-by :offset annotations))
          {:keys [spacing]} style
          marker-line (markers style expanded)]
      (loop [annotations expanded
@@ -190,10 +208,9 @@
             result [marker-line]]
        (let [include-bars? (or (= spacing :tall)
                                (and first? (= spacing :compact)))
-             result' (conj result
-                           (when include-bars?
-                             (bars style annotations))
-                           (bars+message style annotations))
+             result'       (cond-> result
+                                   include-bars? (conj (bars style annotations))
+                                   true (into (annotation-message-lines style annotations width)))
              annotations' (butlast annotations)]
          (if (seq annotations')
            (recur annotations' false result')
@@ -237,7 +254,7 @@
   Returns a seq of composed strings, each representing a single line of output.
   For example, `(run! ansi/perr (annotation-lines ...))`.
 
-  "
+  This is an older function, the new annotation-set approach is easier."
   ([lines]
    (annotate-lines nil lines))
   ([opts lines]
@@ -246,7 +263,7 @@
                  start-line 1}} opts
          line-numbering? (not= line-number-width 0)
          ;; inc by one to account for the ':'
-         line-number-width' ( when line-numbering?
+         line-number-width' (when line-numbering?
                               (inc (or line-number-width
                                        (-> (+ start-line (count lines) -1) str count))))
          callout-indent (when line-numbering?
@@ -283,9 +300,9 @@
 
   Options:
 
-  :width - number (defaults to 120). Total width available for line numbers, callouts, and annotation text. A soft wrap
-  is added as necessary.
-  :window - number of lines before and after an annotated line to display (for context)
+  :width - number (default: 120). Total width available for line numbers, callouts, and annotation text.
+    Annotation text will be soft-wrapped to fit within the available space.
+  :window - number (default: 2) of lines before and after an annotated line to display (for context)
   :line-offset - number (default 1) adjustment to actual line number when rendering
   "
   {:since "3.10.0"}
@@ -300,8 +317,8 @@
     :callouts {}}))
 
 (defn add-callout
-  "Adds a callout to an annotation set. Options mare the same as for [[callouts]],
-  (:offset, :length, :font, :marker) though a :message key is added the options."
+  "Adds a callout to an annotation set. Options are the same as for [[callouts]],
+  (:offset, :length, :font, :marker) though a :message key is added to the options."
   {:since "3.10.0"}
   [annotation-set line callout-opts & message]
   (update-in annotation-set [:callouts line] conj
@@ -309,13 +326,16 @@
 
 (defn render-annotation-set
   "Invoked once all callouts have been added to the annotation set.
-  Returns a seq of composed strings, each one rendered line."
+  Returns a seq of composed strings, each a single rendered line."
   {:since "3.10.0"}
   [annotation-set]
   (let [{:keys     [lines opts]
-         callouts' :callouts} annotation-set
-        {:keys [window line-offset style]} opts
-        display-lines     (->> callouts'
+         set-callouts :callouts} annotation-set
+        {:keys [width window line-offset style]
+         :or   {width Long/MAX_VALUE}} opts
+        ;; Compute 0-based indexes of lines to be displayed; some of those lines
+        ;; will include annotations.
+        display-lines     (->> set-callouts
                                keys
                                (mapcat #(range (- % window) (+ % window 1)))
                                (remove neg?)
@@ -327,17 +347,18 @@
                                (+ line-offset)
                                str
                                count
-                               inc)
-        callout-indent    (nchars (inc line-number-width) " ")]
-    (reduce (fn [result line]
+                               inc)                         ; Include the ":"
+        callout-indent    (nchars (inc line-number-width) \space)
+        callout-width     (- width line-number-width 1)]    ; include the space after the colon
+    (reduce (fn [result linex]
               ;; Render each line; render callouts for each line that has callouts.
               (let [result' (conj result
                                   (list
-                                    [{:width line-number-width} (+ line line-offset) ":"]
+                                    [{:width line-number-width} (+ linex line-offset) ":"]
                                     " "
-                                    (nth lines line)))]
-                (if-let [line-callouts (get callouts' line)]
-                  (into result' (->> (callouts style line-callouts)
+                                    (nth lines linex)))]
+                (if-let [line-callouts (get set-callouts linex)]
+                  (into result' (->> (callouts style line-callouts {:width callout-width})
                                      (map #(list callout-indent %))))
                   result')))
             []

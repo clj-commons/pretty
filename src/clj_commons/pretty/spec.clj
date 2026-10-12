@@ -71,11 +71,18 @@
 
 ;; clj-commons.pretty.annotations
 
+(s/def ::width pos-int?)
+
 (s/fdef ann/callouts
         :args (s/cat
                 :style (s/? ::ann/style)
-                :annotations ::ann/annotations)
+                :annotations ::ann/annotations
+                :options (s/? ::callouts-options))
         :ret (s/coll-of ::ansi/composed-string))
+
+(s/def ::callouts-options
+  (s/nilable
+    (s/keys :opt-un [::width])))
 
 (s/def ::ann/style (s/keys :req-un [::ansi/font
                                     ::ann/spacing

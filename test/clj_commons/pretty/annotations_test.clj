@@ -88,6 +88,25 @@
                           :length  2
                           :message "Second"}]))))
 
+(deftest wrapping
+  (is (match? (m/via compose-each
+                     (compose-all
+                       [:yellow "   ▲▲ " [:red "▲▲▲▲"]]
+                       [:yellow "   │  " [:red "│"]]
+                       [:yellow "   │  " [:red "└╴ This is a long message that"]]
+                       [:yellow "   │  " [:red "   will have to be word-wrapped."]]
+                       [:yellow "   └╴ This " [:bold "second"] " message must also be"]
+                       [:yellow "      split across lines."]))
+              (callouts a/*default-style*
+                        [{:offset  6
+                          :length  4
+                          :font    :red
+                          :message "This is a long message that will have to be word-wrapped."}
+                         {:offset  3
+                          :length  2
+                          :message (list "This " [:bold "second"] " message must also be split across lines.")}]
+                        {:width 40}))))
+
 (deftest spacing-minimal
   (is (match? (m/via compose-each
                      (compose-all
@@ -228,18 +247,21 @@
   (is (thrown-with-msg? ExceptionInfo #"Marker should be a function or a string"
                         (extend-marker 0 5))))
 
-(defn- render
+(defn- render-set-no-color
   [annotation-set]
   (output-lines
     (with-no-color
       (run! pout (a/render-annotation-set annotation-set)))))
 
-(deftest annotation-set
+(def base-of-tower-lines
   ;; Make believe that we're annotating Dialog code.
-  (let [annotation-set (-> "base-of-tower.dg"
-                           io/resource
-                           slurp
-                           string/split-lines
+  (-> "base-of-tower.dg"
+      io/resource
+      slurp
+      string/split-lines))
+
+(deftest annotation-set
+  (let [annotation-set (-> base-of-tower-lines
                            (a/create-annotation-set)
                            ;; lines and offsets are 0 indexed, even though presented as 1 indexed
                            ;; Order of callouts never matters
@@ -273,13 +295,10 @@
                  "     │           └╴ not heavy"
                  "     └╴ is the color relevant?"
                  "66: (name *) red warning light"]
-                (render annotation-set)))))
+                (render-set-no-color annotation-set)))))
 
 (deftest annotation-set-override-defaults
-  (let [annotation-set (-> "base-of-tower.dg"
-                           io/resource
-                           slurp
-                           string/split-lines
+  (let [annotation-set (-> base-of-tower-lines
                            (a/create-annotation-set {:line-offset 101
                                                      :window      5
                                                      :style       (assoc a/default-style
@@ -299,4 +318,71 @@
                  "106:     (if) (lit by flashlight *)"
                  "107:     (then)"
                  "108:         ; you shine your flashlight up towards the tower looming above you"]
-                (render annotation-set)))))
+                (render-set-no-color annotation-set)))))
+
+(deftest annotation-set-with-width
+  (let [annotation-set (-> base-of-tower-lines
+                           (a/create-annotation-set {:width 40})
+                           ;; lines and offsets are 0 indexed, even though presented as 1 indexed
+                           ;; Order of callouts never matters
+                           (a/add-callout 64 {:offset 1} "is the color relevant?")
+                           (a/add-callout 6 {:offset 5} "it's important to understand that this is not a predicate, it's more like a special form.")
+                           (a/add-callout 13 {:offset 8} "not a comment")
+                           (a/add-callout 64 {:offset 13 :length 5} "not heavy"))]
+    ;; At this time, the fact that the lines themselves are NOT wrapped is intentional.
+    (is (match? [" 5:     Behind the concrete building a steel girder rises from the sand"
+                 " 6:     (if) (lit by flashlight *)"
+                 " 7:     (then)"
+                 "         ▲"
+                 "         │"
+                 "         └╴ it's important to"
+                 "            understand that this is not"
+                 "            a predicate, it's more like"
+                 "            a special form."
+                 " 8:         ; you shine your flashlight up towards the tower looming above you"
+                 " 9:     (elseif) (lit by headlights *)"
+                 "12:         some gargantuan spider into blackness above you"
+                 "13:     (else)"
+                 "14:         ; far above you, a red warning light blinks on and off"
+                 "            ▲"
+                 "            │"
+                 "            └╴ not a comment"
+                 "15:     (endif)"
+                 "16:     ."
+                 "63:     Bits of dirty paper and cardboard, tiny scraps of wire, broken bits of plastic, and other indistinguishable and useless things."
+                 "64: "
+                 "65: #red-warning-light"
+                 "     ▲           ▲▲▲▲▲"
+                 "     │           │"
+                 "     │           └╴ not heavy"
+                 "     └╴ is the color relevant?"
+                 "66: (name *) red warning light"]
+                (render-set-no-color annotation-set)))))
+
+(comment
+  (map ansi/pout [" 5:     Behind the concrete building a steel girder rises from the sand"
+                  " 6:     (if) (lit by flashlight *)"
+                  " 7:     (then)"
+                  "         ▲"
+                  "         │"
+                  "         └╴ this is a then"
+                  " 8:         ; you shine your flashlight up towards the tower looming above you"
+                  " 9:     (elseif) (lit by headlights *)"
+                  "12:         some gargantuan spider into blackness above you"
+                  "13:     (else)"
+                  "14:         ; far above you, a red warning light blinks on and off"
+                  "            ▲"
+                  "            │"
+                  "            └╴ not a comment"
+                  "15:     (endif)"
+                  "16:     ."
+                  "63:     Bits of dirty paper and cardboard, tiny scraps of wire, broken bits of plastic, and other indistinguishable and useless things."
+                  "64: "
+                  "65: #red-warning-light"
+                  "     ▲           ▲▲▲▲▲"
+                  "     │           │"
+                  "     │           └╴ not heavy"
+                  "     └╴ is the color relevant?"
+                  "66: (name *) red warning light"])
+
+  )
