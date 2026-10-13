@@ -397,6 +397,23 @@
                  "7:     (then)"]
                 (render-set-no-color annotation-set)))))
 
+(deftest annotation-set-with-partial-reroute
+  (let [annotation-set (-> base-of-tower-lines
+                           (a/create-annotation-set {:width 40 :window 1})
+                           (a/add-callout 5 {:offset 0} "pointing at whitespace (offset 0)")
+                           (a/add-callout 5 {:offset 28} "* is always a reference to the most recently declared topic"))]
+    (is (match?  ["5:     Behind the concrete building a steel girder rises from the sand"
+                  "6:     (if) (lit by flashlight *)"
+                  "   ▲                           ▲"
+                  "   │                           │"
+                  "   │                           │"
+                  "   │ ┌─────────────────────────┘"
+                  "   │ └╴ * is always a reference to the"
+                  "   │    most recently declared topic"
+                  "   └╴ pointing at whitespace (offset 0)"
+                  "7:     (then)"]
+                (render-set-no-color annotation-set)))))
+
 (comment
 
   (let [annotation-set (-> base-of-tower-lines

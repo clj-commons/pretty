@@ -215,7 +215,8 @@
                                                new-offset :offset} (nth annotations' j)
                                               old-offset (nth old-offsets j)]
                                           (cond
-                                            (= i j)
+                                            (and (= i j)
+                                                 (not= old-offset new-offset))
                                             (emit-text emitter
                                                        new-offset
                                                        font
@@ -254,7 +255,7 @@
   and an adjustment is necessary before invoking callouts.
 
   At least one annotation is required; they will be sorted into an appropriate order.
-  Annotation's ranges should not overlap.
+  Annotation's ranges (as defined by :offset and :length) should not overlap.
 
   Messages should be short, or will be word-wrapped if the :width option is provided.
 
@@ -392,7 +393,6 @@
   [^long length]
   (str "┯" (nchars (dec length) "━")))
 
-
 (defn create-annotation-set
   "Creates an annotation set from a seq of lines.
 
@@ -402,6 +402,9 @@
     Annotation text will be soft-wrapped to fit within the available space.
   :window - number (default: 2) of lines before and after an annotated line to display (for context)
   :line-offset - number (default 1) adjustment to actual line number when rendering
+
+  If you are using io.github.hlship/cli-tools, then `net.lewisship.cli-tools.terminal/*terminal-width*` is
+  a source for the actual terminal width.
   "
   {:since "3.10.0"}
   ([lines]
