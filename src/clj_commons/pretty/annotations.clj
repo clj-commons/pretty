@@ -24,10 +24,13 @@
   :marker   | \"▲\"   | The marker used to identify the offset/length of an annotation
   :bar      | \"│\"   | Character used as the vertical bar in the callout
   :nib      | \"└╴ \" | String used just before the annotation's message
+  :bend     | \"┌─┘\" | String used when changing the column of an annotation
 
   When :spacing is :minimal, only the lines with markers or error messages appear
   (the lines with just vertical bars are omitted).  :compact spacing is the same, but
   one line of bars appears between the markers and the first annotation message.
+
+  Note the _intentional_ space at the end of the default :nib value.
 
   The :marker is used to build a string that matches the :length of the callout.
 
@@ -39,15 +42,19 @@
   :marker can also be a function; the function is passed the length
   and returns a string (or composed string) that must be that number of characters wide.
 
-  :bar and :nib must be simple, not composed, strings.
+  :bend is used when the column for an annotation must be rerouted; like a marker, it
+  is a three character string that may be extended by repeating the middle character.
+
+  :bar, :nib, and :bend must be simple, not composed, strings.
 
   Note: rendering of Unicode characters in HTML often uses incorrect fonts or adds unwanted
   character spacing; the annotations look proper in console output."
-  {:font :yellow
+  {:font    :yellow
    :spacing :compact
-   :marker "▲"
-   :bar "│"
-   :nib "└╴ "})
+   :marker  "▲"
+   :bar     "│"
+   :nib     "└╴ "
+   :bend    "┌─┘"})
 
 (def ^:dynamic *default-style*
   "The default style used when no style is provided; some applications may bind or
@@ -96,67 +103,139 @@
   (let [{:keys          [font]
          default-marker :marker} style]
     (loop [output-offset 0
-           annotations annotations
-           result [font]]
+           annotations   annotations
+           result        [font]]
       (if-not annotations
         result
         (let [{:keys [offset length font marker]
                :or   {length 1
                       marker default-marker}} (first annotations)
               spaces-needed (- offset output-offset)
-              result' (conj result
-                            (nchars spaces-needed \space)
-                            [font (extend-marker marker length)])]
+              result'       (conj result
+                                  (nchars spaces-needed \space)
+                                  [font (extend-marker marker length)])]
           (recur (long (+ offset length))
                  (next annotations)
                  result'))))))
 
+(defn- line-emitter
+  "Create a line emitter. Get the final emitted line, as a vector, with emitted-line."
+  [font]
+  {:line   [font]
+   :offset 0})
+
+(defn- emit-final
+  "A vector (starting with a font) of the line (a composed string)."
+  [emitter]
+  (:line emitter))
+
+(defn- emit-text
+  "Emit text onto the line; offset must be greater than the current offset (text must be
+  added in offset order). "
+  [emitter offset font text]
+  (let [{current-offset :offset} emitter
+        ;; TODO: Handle when there's an overlap in offsets
+        spaces-needed (- offset current-offset)
+        spaces        (nchars spaces-needed \space)
+        text'         (if font
+                        [font text]
+                        text)]
+    (-> emitter
+        (assoc :offset (+ offset (count text)))
+        (update :line conj spaces text'))))
+
+(defn- emit-composed
+  ([emitter text]
+   ;; No :offset adjustment since this should be last and we don't know the composed text's length.
+   (update emitter :line conj text))
+  ([emitter offset text]
+   (let [{current-offset :offset} emitter
+         spaces-needed (- offset current-offset)
+         spaces        (nchars spaces-needed \space)]
+     (update emitter :line conj spaces text))))
+
 (defn- bars
-  [style annotations]
-  (let [{:keys [font bar]} style]
-    (loop [output-offset 0
-           annotations annotations
-           result [font]]
-      (if-not annotations
-        result
-        (let [{:keys [offset font]} (first annotations)
-              spaces-needed (- offset output-offset)
-              result' (conj result
-                            (nchars spaces-needed \space)
-                            [font bar])]
-          (recur (long (+ offset 1))
-                 (next annotations)
-                 result'))))))
+  [{:keys [font bar]} annotations]
+  (-> (reduce
+        (fn [emitter {:keys [offset font]}]
+          (emit-text emitter offset font bar))
+        (line-emitter font)
+        annotations)
+      emit-final))
 
 (defn- annotation-message-lines
   "Produces a composed string of the vertical bars for annotations and the nib and message
   for the final annotation. The message is wrapped and may consume multiple lines.
   Returns a seq of composed strings, one composed string per line."
   [style annotations width]
-  (let [{:keys [font bar nib]} style
-        bar-count       (count bar)
+  (let [{:keys      [bar nib]
+         style-font :font} style
         last-annotation (last annotations)
-        *output-offset  (volatile! 0)
-        bars            (doall
-                          (mapcat (fn [{:keys           [offset]
-                                        annotation-font :font
-                                        :as             annotation}]
-                                    (let [spaces-needed (- offset @*output-offset)]
-                                      (vreset! *output-offset (+ offset bar-count))
-                                      (list
-                                        (nchars spaces-needed \space)
-                                        (when-not (= annotation last-annotation)
-                                          [annotation-font bar]))))
-                                  annotations))
-        nib-placeholder (nchars (count nib) \space)
-        remaining-width (- width @*output-offset (count nib))
-        nibs            (list* nib (repeat nib-placeholder))
-        message-lines   (ansi/wrap remaining-width (:message last-annotation))
-        font'           (:font last-annotation)]
-    (map (fn [nib message-line]
-           [font bars [font' nib message-line]])
-         nibs
-         message-lines)))
+        nib-width       (count nib)
+        remaining-width (- width (:offset last-annotation) nib-width -1)
+        message-lines   (ansi/wrap remaining-width [(:font last-annotation)
+                                                    (:message last-annotation)])]
+    (map-indexed (fn [i message-line]
+                   (emit-final
+                     (reduce (fn [emitter {:keys [offset font] :as annotation}]
+                               (cond
+                                 (not= last-annotation annotation)
+                                 ;; Not the last annotation, just emit the bar at
+                                 ;; the right offset.
+                                 (emit-text emitter offset font bar)
+
+                                 ;; Last annotation.  First line (which includes the nib)?
+
+                                 (zero? i)
+                                 (-> emitter
+                                     (emit-text offset font nib)
+                                     (emit-composed message-line))
+
+                                 :else
+                                 (emit-composed emitter (+ offset nib-width) message-line)))
+                             (line-emitter style-font)
+                             annotations)))
+                 message-lines)))
+
+(defn- reroute
+  [style annotations]
+  ;; Bars are limited to single characters, so we can space them out by two.
+  (let [old-offsets  (map :offset annotations)
+        {:keys      [bar bend]
+         style-font :font} style
+        annotations' (->> annotations
+                          (map-indexed (fn [i annotation]
+                                         (assoc annotation :offset (* i 2))))
+                          vec)
+        bounds       (-> annotations count range)
+        lines        (map (fn [i]                           ; i = row / line
+                            (emit-final
+                              (reduce (fn [emitter j]       ; j = annotation within line
+                                        (let [{:keys      [font]
+                                               new-offset :offset} (nth annotations' j)
+                                              old-offset (nth old-offsets j)]
+                                          (cond
+                                            (= i j)
+                                            (emit-text emitter
+                                                       new-offset
+                                                       font
+                                                       (split-marker bend (- old-offset new-offset -1)))
+
+                                            (< j i)
+                                            (emit-text emitter
+                                                       new-offset
+                                                       font
+                                                       bar)
+
+                                            :else
+                                            (emit-text emitter
+                                                       old-offset
+                                                       font
+                                                       bar))))
+                                      (line-emitter style-font)
+                                      bounds)))
+                          bounds)]
+    [annotations' lines]))
 
 (defn callouts
   "Creates callouts (the marks, bars, and messages from the example) from annotations.
@@ -168,7 +247,7 @@
   :message  | Composed string of the message to present
   :offset   | Integer position (from 0) to mark on the line
   :length   | Number of characters in the marker (min 1, defaults to 1)
-  :font     | Override of the style's font; used for marker, bars, nib, and message
+  :font     | Override of the style's font; used for marker, bars, nib, bend, and message
   :marker   | Override of the style's marker
 
   The leftmost column has offset 0; some frameworks may report this as column 1
@@ -181,9 +260,14 @@
 
   Options:
 
-  Key    | Description
-  ---    |---
-  :width | Total width to wrap annotations
+  Key            | Description
+  ---            |---
+  :width         | Total width to wrap annotations
+  :reroute-width | Minimum width to *avoid* rerouting.  Default: 30
+
+  Rerouting: if the rightmost annotation has less than :reroute-width characters for the
+  annotation text, then the annotation columns are rerouted to columns 0, 2, 4, etc.  The
+  :bend (from the style) is extended and used to connect the old annotaton column with its new assigned column.
 
   Returns a sequence of composed strings, one for each line of output.
 
@@ -195,25 +279,39 @@
 
   Uses the style defined by [[*default-style*]] if no style is provided."
   ([annotations]
-   (callouts  *default-style* annotations))
+   (callouts *default-style* annotations))
   ([style annotations]
    (callouts style annotations nil))
-  ([style annotations {:keys [width]
-                       :or   {width Long/MAX_VALUE}}]
-   (let [expanded    (vec (sort-by :offset annotations))
+  ([style annotations {:keys [width reroute-width]
+                       :or   {width         Long/MAX_VALUE
+                              reroute-width 30}}]
+   (let [sorted-annotations (vec (sort-by :offset annotations))
          {:keys [spacing]} style
-         marker-line (markers style expanded)]
-     (loop [annotations expanded
-            first? true
-            result [marker-line]]
-       (let [include-bars? (or (= spacing :tall)
-                               (and first? (= spacing :compact)))
-             result'       (cond-> result
-                                   include-bars? (conj (bars style annotations))
-                                   true (into (annotation-message-lines style annotations width)))
+         marker-line        (markers style sorted-annotations)
+         available-width    (- width
+                               (-> sorted-annotations last :offset)
+                               (-> style :nib count))
+         reroute?           (< available-width reroute-width)
+         [sorted-annotations' reroute-lines] (if reroute?
+                                               (reroute style sorted-annotations)
+                                               [sorted-annotations nil])
+         header             (-> [marker-line
+                                 (when (= spacing :compact)
+                                   ;; Intentional: bars for the annotations before the :offset is
+                                   ;; reworked due to reroute
+                                   (bars style sorted-annotations))]
+                                (into reroute-lines))]
+     (loop [annotations sorted-annotations'
+            result      header]
+       (let [spacer       (when (= spacing :tall)
+                            (bars style annotations))
+             result'      (-> result
+                              (conj spacer)
+                              (into (annotation-message-lines style annotations width)))
              annotations' (butlast annotations)]
          (if (seq annotations')
-           (recur annotations' false result')
+           (recur annotations' result')
+           ;; Important that the vector is converted to a list by remove:
            (remove nil? result')))))))
 
 (defn annotate-lines
@@ -261,31 +359,31 @@
    (let [{:keys [style start-line line-number-width]
           :or   {style      *default-style*
                  start-line 1}} opts
-         line-numbering? (not= line-number-width 0)
+         line-numbering?    (not= line-number-width 0)
          ;; inc by one to account for the ':'
          line-number-width' (when line-numbering?
                               (inc (or line-number-width
                                        (-> (+ start-line (count lines) -1) str count))))
-         callout-indent (when line-numbering?
-                          (repeat (nchars (inc line-number-width') " ")))]
+         callout-indent     (when line-numbering?
+                              (repeat (nchars (inc line-number-width') " ")))]
      (loop [[line-data & more-lines] lines
             line-number start-line
-            result []]
+            result      []]
        (if-not line-data
          result
          (let [{:keys [line annotations]} line-data
                callout-lines (when (seq annotations)
                                (callouts style annotations))
-               result' (cond-> (conj result
-                                     (list
-                                       (when line-numbering?
-                                         (list
-                                           [{:width line-number-width'}
-                                            line-number ":"]
-                                           " "))
-                                       line))
-                               callout-lines (into
-                                               (map list callout-indent callout-lines)))]
+               result'       (cond-> (conj result
+                                           (list
+                                             (when line-numbering?
+                                               (list
+                                                 [{:width line-number-width'}
+                                                  line-number ":"]
+                                                 " "))
+                                             line))
+                                     callout-lines (into
+                                                     (map list callout-indent callout-lines)))]
            (recur more-lines (inc line-number) result')))))))
 
 (defn underline-marker
@@ -329,9 +427,9 @@
   Returns a seq of composed strings, each a single rendered line."
   {:since "3.10.0"}
   [annotation-set]
-  (let [{:keys     [lines opts]
+  (let [{:keys        [lines opts]
          set-callouts :callouts} annotation-set
-        {:keys [width window line-offset style]
+        {:keys [width reroute-width window line-offset style]
          :or   {width Long/MAX_VALUE}} opts
         ;; Compute 0-based indexes of lines to be displayed; some of those lines
         ;; will include annotations.
@@ -358,8 +456,13 @@
                                     " "
                                     (nth lines linex)))]
                 (if-let [line-callouts (get set-callouts linex)]
-                  (into result' (->> (callouts style line-callouts {:width callout-width})
-                                     (map #(list callout-indent %))))
+                  (->> (callouts
+                         style
+                         line-callouts
+                         (cond-> {:width callout-width}
+                                 reroute-width (assoc :reroute-width reroute-width)))
+                       (map #(list callout-indent %))
+                       (into result'))
                   result')))
             []
             display-lines)))
