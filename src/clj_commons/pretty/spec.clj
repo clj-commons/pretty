@@ -61,36 +61,45 @@
         :args (s/* ::ansi/composed-string)
         :ret nil?)
 
-(s/fdef ansi/pcompose                                       ; old name of pout
-        :args (s/* ::ansi/composed-string)
-        :ret nil?)
-
 (s/fdef ansi/perr
         :args (s/* ::ansi/composed-string)
         :ret nil?)
 
 ;; clj-commons.pretty.annotations
 
+(s/def ::width pos-int?)
+(s/def ::reroute-width pos-int?)
+
 (s/fdef ann/callouts
         :args (s/cat
                 :style (s/? ::ann/style)
-                :annotations ::ann/annotations)
+                :annotations ::ann/annotations
+                :options (s/? ::callouts-options))
         :ret (s/coll-of ::ansi/composed-string))
+
+(s/def ::callouts-options
+  (s/nilable
+    (s/keys :opt-un [::width
+                     ::reroute-width])))
 
 (s/def ::ann/style (s/keys :req-un [::ansi/font
                                     ::ann/spacing
                                     ::ann/marker
                                     ::ann/bar
-                                    ::ann/nib]))
+                                    ::ann/nib
+                                    ::ann/bend]))
+
+(s/def ::ann/tri (s/and string? #(= 3 (count %))))
 
 (s/def ::ann/spacing #{:tall :compact :minimal})
 (s/def ::ann/marker (s/or
                       :basic ::single-character
                       :fn fn?
-                      :tri (s/and string? #(= 3 (count %)))))
+                      :tri ::ann/tri))
 
 (s/def ::ann/bar ::single-character)
 (s/def ::ann/nib ::ansi/composed-string)
+(s/def ::ann/bend ::ann/tri)
 
 (s/def ::ann/annotations (s/coll-of ::ann/annotation))
 

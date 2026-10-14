@@ -1,3 +1,37 @@
+## 3.10.0 -- UNRELEASED
+
+Add new functions to `clj-commons.pretty.annotations`
+to streamline the typical usage; new functions:
+
+* `create-annotation-set`
+* `add-callout`
+* `render-annotation-set'
+
+With the new functions, it is possible to set a width
+for annotations, which will word-wrap as needed.
+Further, if there is insufficient horizontal space for the annotation (by default, at least 30 characters
+for the actual text),
+then the annotations offsets will be rerouted:
+
+```text
+102: (around the tower *)
+103: (name *) Base of the Tower
+      ┯       ┯━━━
+     ┌┘       │
+     │ ┌──────┘
+     │ └╴ All your base are
+     │    belong to us
+     └╴ Mark your time
+104: (look *)
+105:     Behind the concrete building a steel girder rises from the sand
+```
+
+This avoids the case where the annotation could be
+output as a single tall column of words.
+The above example was triggered by having a narrow overall width (30).
+
+Currently, long input lines are not word wrapped; they are output exactly as is.
+
 ## 3.9.0 -- 6 Sep 2026
 
 * `clj-commons.ansi/wrap` splits a composed string into a sequence of composed strings for soft or hard wrapping
