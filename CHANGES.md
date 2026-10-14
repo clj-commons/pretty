@@ -1,4 +1,4 @@
-## 3.10.0 -- UNRELEASED
+## 3.10.0 -- 14 Oct 2026
 
 Add new functions to `clj-commons.pretty.annotations`
 to streamline the typical usage; new functions:
