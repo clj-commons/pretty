@@ -42,6 +42,16 @@
                          :style   table/skinny-style}
                         sample-rows))))
 
+
+(deftest skinny-style-no-titles
+  (is (= ["Arthur |      C | Clark     "
+          "  Alan |        | Turing    "
+          " Larry |        | Niven     "
+          "  Fred |        | Flintstone"]
+         (capture-table {:columns [:first :middle :last]
+                         :style   (assoc table/skinny-style :titles? false)}
+                        sample-rows))))
+
 (deftest minimal-style
   (is (= [" First Middle    Last   "
           "Arthur      C Clark     "
@@ -50,6 +60,15 @@
           "  Fred        Flintstone"]
          (capture-table {:columns [:first :middle :last]
                          :style   table/minimal-style}
+                        sample-rows))))
+
+(deftest values-only-style
+  (is (= ["Arthur      C Clark     "
+          "  Alan        Turing    "
+          " Larry        Niven     "
+          "  Fred        Flintstone"]
+         (capture-table {:columns [:first :middle :last]
+                         :style   table/values-only-style}
                         sample-rows))))
 
 (deftest markdown-style

@@ -312,7 +312,7 @@
   (let [annotation-set (-> base-of-tower-lines
                            (a/create-annotation-set {:line-offset 101
                                                      :window      5
-                                                     :style       (assoc a/default-style
+                                                     :style       (assoc default-style
                                                                     :spacing :minimal
                                                                     :marker a/underline-marker)})
                            (a/add-callout 2 {:offset 9
@@ -420,7 +420,7 @@
                            (a/create-annotation-set {:line-offset 101
                                                      :window      5
                                                      :width       30
-                                                     :style       (assoc a/default-style
+                                                     :style       (assoc default-style
                                                                     :spacing :minimal
                                                                     :marker a/underline-marker)})
                            (a/add-callout 2 {:offset 9

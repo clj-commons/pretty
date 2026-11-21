@@ -157,7 +157,7 @@
     "START-ABCDEFGH-END"))
 
 (deftest ignores-fonts-when-color-disabled
-  (binding [ansi/*color-enabled* false]
+  (binding [*color-enabled* false]
     (is (= "Warning: Reactor Leak!"
            (compose [:red "Warning:"] " " [:bold "Reactor Leak!"])))))
 

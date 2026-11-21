@@ -76,9 +76,18 @@
                       (reduce max title-width)))]
     (assoc column :width width')))
 
+;; The names here are a little confusing, due to gradual evolution.
+;; :titles? controls the column titles, when it is false, no column titles at all.
+;; :header? is actually the decoration before the column titles.
+;; :divider? is the seperator between the column titles (:header?) and the first row.
+;; So when :titles? is false, then the title row and the divider are both supressed.
+
+;; :titles? was added in 3.11.0, and defaults to true if omitted.
+
 (def default-style
   "Default style, with thin borders (using character graphics) and a header and footer."
-  {:header-font   :bold
+  {:titles?       true
+   :header-font   :bold
    :hbar          "─"
    :header?       true
    :header-left   "┌"
@@ -98,7 +107,8 @@
 
 (def skinny-style
   "Removes most of the borders and uses simple characters for column separators."
-  {:header-font   :bold
+  {:titles?       true
+   :header-font   :bold
    :hbar          "-"
    :header?       false
    :divider?      true
@@ -113,7 +123,8 @@
 (def ^{:added "3.4.0"}
   minimal-style
   "A minimal style that uses only white-space as a column separator."
-  {:header-font   :bold.double-underlined
+  {:titles?       true
+   :header-font   :bold.double-underlined
    :hbar          " "
    :header?       false
    :divider?      false
@@ -125,11 +136,17 @@
    :row-right     nil
    :footer?       false})
 
+(def ^{:added "3.4.0"}
+  values-only-style
+  "A variable on minimal-style that suppresses the title row."
+  (assoc minimal-style :titles? false))
+
 (def ^{:added "3.8.0"}
   markdown-style
   "A style that produces output compatible with Markdown table syntax.
   Intended for output consumed by tools that render Markdown, such as AI agents."
-  {:header-font   nil
+  {:titles?       true
+   :header-font   nil
    :hbar          "-"
    :header?       false
    :divider?      true
@@ -259,7 +276,8 @@
                 opts)
         {:keys [columns style default-decorator row-annotator row-decorator]
          :or   {style *default-style*}} opts'
-        {:keys [header?
+        {:keys [titles?
+                header?
                 footer?
                 header-left
                 header-sep
@@ -275,7 +293,8 @@
                 footer-left
                 footer-sep
                 footer-right
-                hbar]} style
+                hbar]
+         :or   {titles? true}} style
         last-column-index (dec (count columns))
         columns' (->> columns
                       (map expand-column)
@@ -296,18 +315,19 @@
         header-right))
 
     ;; The title bar itself
-    (pout
-      row-left
-      (for [{:keys [width title title-align last?]} columns']
-        (list [{:width width
-                :align (or title-align :center)
-                :font  header-font} title]
-              (when-not last?
-                row-sep)))
-      row-right)
+    (when titles?
+      (pout
+        row-left
+        (for [{:keys [width title title-align last?]} columns']
+          (list [{:width width
+                  :align (or title-align :center)
+                  :font  header-font} title]
+                (when-not last?
+                  row-sep)))
+        row-right))
 
     ;; divider separates the title bar from the rows
-    (when divider?
+    (when (and titles? divider?)
       (pout
         divider-left
         (for [{:keys [bar last?]} columns']
