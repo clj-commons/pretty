@@ -1,3 +1,7 @@
+## 3.11.0 -- UNRELEASED
+
+`clj-commons.format.table` has a new style setting to omit headers
+
 ## 3.10.0 -- 14 Oct 2026
 
 Add new functions to `clj-commons.pretty.annotations`
