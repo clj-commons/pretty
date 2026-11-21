@@ -1,6 +1,8 @@
-## 3.11.0 -- UNRELEASED
+## 3.11.0 -- 21 Nov 2026
 
 `clj-commons.format.table` has a new style setting to omit headers
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/72?closed=1)
 
 ## 3.10.0 -- 14 Oct 2026
 
