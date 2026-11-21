@@ -62,7 +62,7 @@
                          :style   table/minimal-style}
                         sample-rows))))
 
-(deftest minimal-style
+(deftest values-only-style
   (is (= ["Arthur      C Clark     "
           "  Alan        Turing    "
           " Larry        Niven     "
