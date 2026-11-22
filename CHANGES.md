@@ -18,13 +18,13 @@ to streamline the typical usage; new functions:
 
 * `create-annotation-set`
 * `add-callout`
-* `render-annotation-set'
+* `render-annotation-set`
 
 With the new functions, it is possible to set a width
 for annotations, which will word-wrap as needed.
 Further, if there is insufficient horizontal space for the annotation (by default, at least 30 characters
 for the actual text),
-then the annotations offsets will be rerouted:
+then the annotations' offsets will be rerouted:
 
 ```text
 102: (around the tower *)
