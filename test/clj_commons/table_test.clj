@@ -31,6 +31,18 @@
           "└──────┴──────┴──────────┘"]
          (capture-table [:first :middle :last] sample-rows))))
 
+(deftest default-style-titles-off
+  (is (= ["┌──────┬─┬──────────┐"
+          "│Arthur│C│Clark     │"
+          "│  Alan│ │Turing    │"
+          "│ Larry│ │Niven     │"
+          "│  Fred│ │Flintstone│"
+          "└──────┴─┴──────────┘"]
+         (capture-table {:columns [:first :middle :last]
+                         :style   (assoc table/default-style :titles? false)} sample-rows))))
+
+
+
 (deftest skinny-style
   (is (= [" First | Middle |    Last   "
           "-------+--------+-----------"
@@ -44,10 +56,10 @@
 
 
 (deftest skinny-style-no-titles
-  (is (= ["Arthur |      C | Clark     "
-          "  Alan |        | Turing    "
-          " Larry |        | Niven     "
-          "  Fred |        | Flintstone"]
+  (is (= ["Arthur | C | Clark     "
+          "  Alan |   | Turing    "
+          " Larry |   | Niven     "
+          "  Fred |   | Flintstone"]
          (capture-table {:columns [:first :middle :last]
                          :style   (assoc table/skinny-style :titles? false)}
                         sample-rows))))
@@ -63,10 +75,10 @@
                         sample-rows))))
 
 (deftest values-only-style
-  (is (= ["Arthur      C Clark     "
-          "  Alan        Turing    "
-          " Larry        Niven     "
-          "  Fred        Flintstone"]
+  (is (= ["Arthur C Clark     "
+          "  Alan   Turing    "
+          " Larry   Niven     "
+          "  Fred   Flintstone"]
          (capture-table {:columns [:first :middle :last]
                          :style   table/values-only-style}
                         sample-rows))))
@@ -111,7 +123,7 @@
           " I Have No Mouth And | horror | A maleovolent AI physically an *"
           "       I Must Scream |        | d psychologically tortures the"
           "                     |        | last remaining humans.        "
-          " The Lathe Of Heaven |     sf | A man whose convinced that his *"
+          " The Lathe Of Heaven |     sf | A man who's convinced that his *"
           "                     |        | dreams come true seeks the car"
           "                     |        | e of a doctor                 "
           ;; The space follows the newline and is kept:
@@ -131,4 +143,4 @@
                           :summary "A maleovolent AI physically and psychologically tortures the last remaining humans."}
                          {:title   "The Lathe Of Heaven"
                           :genre   "sf"
-                          :summary "A man whose convinced that his dreams come true seeks the care of a doctor\n who wishes to take that power for himself."}]))))
+                          :summary "A man who's convinced that his dreams come true seeks the care of a doctor\n who wishes to take that power for himself."}]))))

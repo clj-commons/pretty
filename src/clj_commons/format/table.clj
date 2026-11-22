@@ -65,10 +65,10 @@
         (.length (ansi/compose formatted))))))
 
 (defn- set-width
-  [column data]
+  [column titles? data]
   (let [{:keys [key ^String title width formatter]
          :or   {formatter identity}} column
-        title-width (.length title)
+        title-width (if titles? (.length title) 0)
         width' (if width
                  (max width title-width)
                  (->> data
@@ -298,7 +298,7 @@
         last-column-index (dec (count columns))
         columns' (->> columns
                       (map expand-column)
-                      (map #(set-width % rows))
+                      (map #(set-width % titles? rows))
                       (map-indexed #(assoc %2 :index %1))
                       (map (fn [col]
                              (assoc col
