@@ -1,3 +1,10 @@
+## 3.11.1 -- 22 Nov 2026
+
+`clj-commons.format.table/print-table` no longer considers title width when
+calculating column width, if titles are not being printed.
+
+[Closed Issues](https://github.com/clj-commons/pretty/milestone/73?closed=1)
+
 ## 3.11.0 -- 21 Nov 2026
 
 `clj-commons.format.table` has a new style setting to omit headers
