@@ -136,7 +136,7 @@
    :row-right     nil
    :footer?       false})
 
-(def ^{:added "3.4.0"}
+(def ^{:added "3.11.0"}
   values-only-style
   "A variable on minimal-style that suppresses the title row."
   (assoc minimal-style :titles? false))

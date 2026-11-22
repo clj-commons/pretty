@@ -7,7 +7,8 @@ calculating column width, if titles are not being printed.
 
 ## 3.11.0 -- 21 Nov 2026
 
-`clj-commons.format.table` has a new style setting to omit headers
+`clj-commons.format.table` can now omit the header row (displaying column titles), and
+includes a new style, `values-only-style` that builds on `minimal-style`.
 
 [Closed Issues](https://github.com/clj-commons/pretty/milestone/72?closed=1)
 
